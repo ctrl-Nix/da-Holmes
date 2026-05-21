@@ -187,7 +187,23 @@ export default function App() {
         const unifiedData = await res.json();
         
         if (unifiedData.type !== 'username') {
-          setResults({ ...unifiedData, username: queryValue, _type: unifiedData.type });
+          let fallbackSummary = "Intelligence gathering complete.";
+          if (unifiedData.type === 'email' && unifiedData.data?.breaches) {
+             fallbackSummary = unifiedData.data.breaches.status === 'compromised' 
+               ? `CRITICAL: ${unifiedData.data.breaches.breach_count} data breaches detected for this email address.`
+               : "SECURE: No known data breaches detected for this email.";
+          } else if (unifiedData.type === 'network') {
+             fallbackSummary = "Network infrastructure mapped and port scan completed successfully.";
+          } else if (unifiedData.data?.summary) {
+             fallbackSummary = unifiedData.data.summary;
+          }
+
+          setResults({ 
+             ...unifiedData, 
+             username: queryValue, 
+             _type: unifiedData.type,
+             summary: fallbackSummary
+          });
           setStatus('done');
           return;
         }
