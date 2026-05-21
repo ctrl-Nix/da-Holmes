@@ -56,3 +56,15 @@ class AnalystNote(Base):
     timestamp: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True, nullable=False)
 
     investigation: Mapped["Investigation"] = relationship("Investigation", back_populates="notes")
+
+
+class ApiKeySetting(Base):
+    """
+    Stores credentials/keys for third-party API services securely.
+    """
+    __tablename__ = "api_key_settings"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    service_name: Mapped[str] = mapped_column(String(50), unique=True, index=True, nullable=False)
+    api_key: Mapped[str] = mapped_column(String(255), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)

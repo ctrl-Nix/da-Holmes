@@ -30,6 +30,7 @@ import UnifiedDashboard   from './components/UnifiedDashboard';
 import ActivityHeatmap    from './components/ActivityHeatmap';
 import OnboardingModal    from './components/OnboardingModal';
 import HolmesLogo         from './components/HolmesLogo';
+import ApiVault           from './components/ApiVault';
 
 
 const API_BASE = 'http://localhost:8001';
@@ -280,7 +281,7 @@ export default function App() {
         <SidebarItem icon={Activity} label="Live Feed" active={view === 'graph'} onClick={() => setView('graph')} />
         <SidebarItem icon={Database} label="Intelligence Pool" />
         <SidebarItem icon={FileText} label="Recent Reports" />
-        <SidebarItem icon={Settings} label="Settings" />
+        <SidebarItem icon={Settings} label="Settings" active={view === 'settings'} onClick={() => setView('settings')} />
         
         <div className="mt-8 text-[10px] font-semibold text-[rgba(55,53,47,0.3)] uppercase px-2 mb-2 tracking-widest">Modules</div>
         <div className="flex flex-col gap-0.5">
@@ -295,76 +296,82 @@ export default function App() {
       {/* Main Content */}
       <main className="notion-main">
         <div className="max-w-[800px]">
-          <div className="flex items-center gap-4 mb-4 text-4xl">🕵️‍♂️</div>
-          <h1>Investigation Portal</h1>
-          <p>
-            Start a new multi-source intelligence gathering session. 
-            Inputs are automatically correlated across global databases.
-          </p>
+          {view === 'settings' ? (
+            <ApiVault />
+          ) : (
+            <>
+              <div className="flex items-center gap-4 mb-4 text-4xl">🕵️‍♂️</div>
+              <h1>Investigation Portal</h1>
+              <p>
+                Start a new multi-source intelligence gathering session. 
+                Inputs are automatically correlated across global databases.
+              </p>
 
-          <SearchBar onSearch={handleSearch} onClear={() => setStatus('idle')} loading={status === 'loading'} />
+              <SearchBar onSearch={handleSearch} onClear={() => setStatus('idle')} loading={status === 'loading'} />
 
-          {status === 'loading' && !results && <InvestigatingState />}
-          {error && <div className="p-3 bg-red-50 text-red-600 rounded-md border border-red-100 text-sm mb-6">⚠️ {error}</div>}
+              {status === 'loading' && !results && <InvestigatingState />}
+              {error && <div className="p-3 bg-red-50 text-red-600 rounded-md border border-red-100 text-sm mb-6">⚠️ {error}</div>}
 
-          {results && (
-            <div className="flex flex-col gap-10 animate-fade-in">
-              <Section title="Investigation Summary" emoji="📝">
-                <div className="notion-card bg-[rgba(242,241,238,0.3)] border-none">
-                   <p className="text-sm m-0 italic">"{results.summary}"</p>
-                </div>
-              </Section>
-
-              {results._type === 'username' ? (
-                <div className="flex flex-col gap-10">
-                  <Section title="Social Footprint" emoji="👣">
-                    <PlatformGrid footprint={results.platform_footprint} scanResults={results.scoring_breakdown} />
+              {results && (
+                <div className="flex flex-col gap-10 animate-fade-in">
+                  <Section title="Investigation Summary" emoji="📝">
+                    <div className="notion-card bg-[rgba(242,241,238,0.3)] border-none">
+                       <p className="text-sm m-0 italic">"{results.summary}"</p>
+                    </div>
                   </Section>
-                  <Section title="Digital Map" emoji="🗺️">
-                    <GraphWidget rawData={results} />
-                  </Section>
+
+                  {results._type === 'username' ? (
+                    <div className="flex flex-col gap-10">
+                      <Section title="Social Footprint" emoji="👣">
+                        <PlatformGrid footprint={results.platform_footprint} scanResults={results.scoring_breakdown} />
+                      </Section>
+                      <Section title="Digital Map" emoji="🗺️">
+                        <GraphWidget rawData={results} />
+                      </Section>
+                    </div>
+                  ) : results._type === 'domain' ? (
+                    <Section title="Infrastructure Overview" emoji="🏗️">
+                       <UnifiedDashboard data={results} />
+                    </Section>
+                  ) : (
+                    <UnifiedDashboard data={results} />
+                  )}
+                  
+                  {/* Report Footer */}
+                  <div className="mt-20 pt-8 border-t border-[rgba(55,53,47,0.1)] flex justify-between items-center opacity-50">
+                    <span className="text-xs font-medium italic">Auto-generated report • Public Data Only</span>
+                    <button onClick={() => generatePDF(results)} className="notion-button text-xs">
+                      <FileText size={14} /> Download Report
+                    </button>
+                  </div>
                 </div>
-              ) : results._type === 'domain' ? (
-                <Section title="Infrastructure Overview" emoji="🏗️">
-                   <UnifiedDashboard data={results} />
-                </Section>
-              ) : (
-                <UnifiedDashboard data={results} />
               )}
-              
-              {/* Report Footer */}
-              <div className="mt-20 pt-8 border-t border-[rgba(55,53,47,0.1)] flex justify-between items-center opacity-50">
-                <span className="text-xs font-medium italic">Auto-generated report • Public Data Only</span>
-                <button onClick={() => generatePDF(results)} className="notion-button text-xs">
-                  <FileText size={14} /> Download Report
-                </button>
-              </div>
-            </div>
-          )}
 
-          {status === 'idle' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-12">
-               <div className="notion-card group cursor-pointer">
-                  <div className="text-2xl mb-2">🔭</div>
-                  <h3 className="text-sm">Technical Stack</h3>
-                  <p className="text-xs m-0">Identify server-side technologies and frameworks.</p>
-               </div>
-               <div className="notion-card group cursor-pointer">
-                  <div className="text-2xl mb-2">🔒</div>
-                  <h3 className="text-sm">Spoofing Audit</h3>
-                  <p className="text-xs m-0">Verify SPF/DMARC records and email security.</p>
-               </div>
-               <div className="notion-card group cursor-pointer">
-                  <div className="text-2xl mb-2">🕰️</div>
-                  <h3 className="text-sm">History Lookup</h3>
-                  <p className="text-xs m-0">Fetch archived snapshots from Wayback Machine.</p>
-               </div>
-               <div className="notion-card group cursor-pointer">
-                  <div className="text-2xl mb-2">⛓️</div>
-                  <h3 className="text-sm">BTC Intelligence</h3>
-                  <p className="text-xs m-0">Audit wallet balances and transaction history.</p>
-               </div>
-            </div>
+              {status === 'idle' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-12">
+                   <div className="notion-card group cursor-pointer">
+                      <div className="text-2xl mb-2">🔭</div>
+                      <h3 className="text-sm">Technical Stack</h3>
+                      <p className="text-xs m-0">Identify server-side technologies and frameworks.</p>
+                   </div>
+                   <div className="notion-card group cursor-pointer">
+                      <div className="text-2xl mb-2">🔒</div>
+                      <h3 className="text-sm">Spoofing Audit</h3>
+                      <p className="text-xs m-0">Verify SPF/DMARC records and email security.</p>
+                   </div>
+                   <div className="notion-card group cursor-pointer">
+                      <div className="text-2xl mb-2">🕰️</div>
+                      <h3 className="text-sm">History Lookup</h3>
+                      <p className="text-xs m-0">Fetch archived snapshots from Wayback Machine.</p>
+                   </div>
+                   <div className="notion-card group cursor-pointer">
+                      <div className="text-2xl mb-2">⛓️</div>
+                      <h3 className="text-sm">BTC Intelligence</h3>
+                      <p className="text-xs m-0">Audit wallet balances and transaction history.</p>
+                   </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       </main>

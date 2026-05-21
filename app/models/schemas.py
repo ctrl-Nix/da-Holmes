@@ -311,3 +311,28 @@ class InvestigationResponse(InvestigationBase):
     }
 
 
+class ApiKeySettingBase(BaseModel):
+    service_name: str = Field(..., description="Service name (e.g. shodan, virustotal, hunterio).", examples=["shodan"])
+    api_key: str = Field(..., description="The third-party API key.")
+
+class ApiKeySettingCreate(ApiKeySettingBase):
+    pass
+
+class ApiKeySettingResponse(BaseModel):
+    id: int
+    service_name: str
+    updated_at: datetime
+
+    model_config = {
+        "from_attributes": True
+    }
+
+class ApiKeySaveRequest(BaseModel):
+    keys: Dict[str, str] = Field(
+        ...,
+        description="A dictionary of service_name to api_key.",
+        examples=[{"shodan": "key123", "virustotal": "key456"}]
+    )
+
+
+

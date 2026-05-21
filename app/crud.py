@@ -1,7 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from typing import List, Optional
+from typing import List, Optional, Dict
 from datetime import datetime
+import os
 
 from app.models import models, schemas
 
@@ -140,3 +141,69 @@ async def delete_analyst_note(db: AsyncSession, note_id: int) -> bool:
     await db.delete(db_note)
     await db.commit()
     return True
+
+
+# ---------------------------------------------------------------------------
+# API Key Vault CRUD & Obfuscation
+# ---------------------------------------------------------------------------
+
+from cryptography.fernet import Fernet
+import base64
+from hashlib import sha256
+
+SECRET_KEY_RAW = os.getenv("HOLMES_SECRET_KEY", "holmes-default-secret-key-32bytes-long!")
+key_bytes = sha256(SECRET_KEY_RAW.encode()).digest()
+FERNET_KEY = base64.urlsafe_b64encode(key_bytes)
+fernet = Fernet(FERNET_KEY)
+
+def encrypt_key(plain_text: str) -> str:
+    return fernet.encrypt(plain_text.encode()).decode()
+
+def decrypt_key(cipher_text: str) -> str:
+    try:
+        return fernet.decrypt(cipher_text.encode()).decode()
+    except Exception:
+        return ""
+
+async def save_api_keys(db: AsyncSession, keys: Dict[str, str]) -> Dict[str, str]:
+    """
+    Saves or updates encrypted API keys in the SQLite database.
+    """
+    saved_keys = {}
+    for service, key_val in keys.items():
+        if not service:
+            continue
+        # Check if already exists
+        result = await db.execute(
+            select(models.ApiKeySetting).filter(models.ApiKeySetting.service_name == service)
+        )
+        db_setting = result.scalars().first()
+        encrypted_val = encrypt_key(key_val)
+        if db_setting:
+            db_setting.api_key = encrypted_val
+        else:
+            db_setting = models.ApiKeySetting(service_name=service, api_key=encrypted_val)
+            db.add(db_setting)
+        saved_keys[service] = "********"  # Mask key value in the response
+    await db.commit()
+    return saved_keys
+
+async def get_api_key(db: AsyncSession, service_name: str) -> Optional[str]:
+    """
+    Retrieves and decrypts an API key for a service.
+    """
+    result = await db.execute(
+        select(models.ApiKeySetting).filter(models.ApiKeySetting.service_name == service_name)
+    )
+    db_setting = result.scalars().first()
+    if db_setting:
+        return decrypt_key(db_setting.api_key)
+    return None
+
+async def get_all_api_keys_masked(db: AsyncSession) -> Dict[str, str]:
+    """
+    Retrieves all stored services and returns masked keys.
+    """
+    result = await db.execute(select(models.ApiKeySetting))
+    settings_list = result.scalars().all()
+    return {s.service_name: "********" for s in settings_list}

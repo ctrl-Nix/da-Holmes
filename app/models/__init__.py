@@ -1,2 +1,2 @@
 # models package
-from .models import Investigation, TargetResult, AnalystNote
+from .models import Investigation, TargetResult, AnalystNote, ApiKeySetting
