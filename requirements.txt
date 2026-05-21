@@ -11,3 +11,4 @@ sqlalchemy>=2.0.0
 aiosqlite>=0.18.0
 cryptography>=42.0.0
 tenacity>=8.0.0
+python-Wappalyzer>=0.3.1
