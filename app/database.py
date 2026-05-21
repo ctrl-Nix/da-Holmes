@@ -4,8 +4,10 @@ from sqlalchemy import event
 from sqlalchemy.engine import Engine
 import sqlite3
 
-# SQLite database URL for async operations using aiosqlite
-DATABASE_URL = "sqlite+aiosqlite:///./holmes.db"
+import os
+
+# SQLite database URL for async operations using aiosqlite, with environment variable override
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./holmes.db")
 
 # Create async engine. check_same_thread is set to False for SQLite multithreading support.
 engine = create_async_engine(

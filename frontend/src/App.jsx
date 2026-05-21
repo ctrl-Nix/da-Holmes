@@ -32,8 +32,7 @@ import OnboardingModal    from './components/OnboardingModal';
 import HolmesLogo         from './components/HolmesLogo';
 import ApiVault           from './components/ApiVault';
 
-
-const API_BASE = 'http://localhost:8001';
+const API_BASE = import.meta.env.VITE_API_URL || '';
 
 const CATEGORIES = [
   { value: 'unified',  label: 'Auto-Detect',   icon: Zap, emoji: '⚡' },
