@@ -12,3 +12,4 @@ aiosqlite>=0.18.0
 cryptography>=42.0.0
 tenacity>=8.0.0
 python-Wappalyzer>=0.3.1
+google-play-scraper>=1.2.7

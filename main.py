@@ -19,7 +19,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
-from app.api.routes import analyze, scanner, domain, security, network, forensics, email, crypto, geoint, archive, techstack, spoofing, threatintel, certificates, trackers, friendship, unified, history, keys, github, report
+from app.api.routes import analyze, scanner, domain, security, network, forensics, email, crypto, geoint, archive, techstack, spoofing, threatintel, certificates, trackers, friendship, unified, history, keys, github, report, mobile_recon
 from app.core.config import settings
 from app.core.keep_alive import start_keep_alive
 from contextlib import asynccontextmanager
@@ -326,6 +326,12 @@ def create_application() -> FastAPI:
         report.router,
         prefix="/api",
         tags=["PDF Reports"],
+    )
+
+    application.include_router(
+        mobile_recon.router,
+        prefix="/api",
+        tags=["Mobile App Recon"],
     )
 
     return application
