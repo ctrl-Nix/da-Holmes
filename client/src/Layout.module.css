@@ -1,0 +1,443 @@
+.appContainer {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background-color: var(--notion-bg);
+  color: var(--notion-fg);
+}
+
+/* ── Collapsible Left Sidebar ── */
+.sidebar {
+  background-color: var(--notion-sidebar);
+  border-right: 1px solid var(--notion-border);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.sidebarExpanded {
+  width: 240px;
+}
+
+.sidebarCollapsed {
+  width: 56px;
+}
+
+/* Sidebar Toggle Handle */
+.sidebarToggleBtn {
+  position: absolute;
+  top: 18px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(55, 53, 47, 0.45);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sidebarToggleBtn:hover {
+  background-color: var(--notion-hover);
+  color: var(--notion-fg);
+}
+
+.sidebarCollapsed .sidebarToggleBtn {
+  right: 16px;
+}
+
+/* Logo Header */
+.sidebarHeader {
+  padding: 16px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 56px;
+}
+
+.logoIcon {
+  width: 22px;
+  height: 22px;
+  background-color: var(--notion-accent);
+  color: white;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.logoText {
+  opacity: 1;
+  transition: opacity 0.15s ease;
+  font-weight: 600;
+  color: var(--notion-fg);
+}
+
+.sidebarCollapsed .logoText {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Sidebar Navigation Items */
+.navSection {
+  padding: 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+.sectionTitle {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: rgba(55, 53, 47, 0.35);
+  padding: 6px 16px;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  transition: opacity 0.15s ease;
+}
+
+.sidebarCollapsed .sectionTitle {
+  opacity: 0;
+  padding: 6px 0;
+  text-align: center;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  margin: 0 0 0 8px;
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+  border-left: 3px solid transparent;
+  color: rgba(55, 53, 47, 0.65);
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.navItem:hover {
+  background-color: var(--notion-hover);
+  color: var(--notion-fg);
+}
+
+.navItemActive {
+  background-color: var(--notion-accent-bg, rgba(35, 131, 226, 0.08)) !important;
+  border-left-color: var(--notion-accent, #2383e2) !important;
+  color: var(--notion-accent, #2383e2) !important;
+  font-weight: 600;
+}
+
+.navItemIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.navItemLabel {
+  opacity: 1;
+  transition: opacity 0.15s ease;
+}
+
+.sidebarCollapsed .navItemLabel {
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+}
+
+.sidebarCollapsed .navItem {
+  justify-content: center;
+  padding: 8px 0;
+  margin: 0 4px;
+}
+
+/* Sidebar Footer Profile */
+.sidebarFooter {
+  border-top: 1px solid var(--notion-border);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  white-space: nowrap;
+  min-height: 52px;
+}
+
+.avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #e3e2e0;
+  color: #5f5e5b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 10px;
+  flex-shrink: 0;
+}
+
+.username {
+  font-weight: 500;
+  color: var(--notion-fg);
+}
+
+.sidebarCollapsed .username {
+  display: none;
+}
+
+.sidebarCollapsed .sidebarFooter {
+  justify-content: center;
+}
+
+/* ── Main Content Area ── */
+.mainContent {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--notion-bg);
+}
+
+/* Top Header Bar */
+.headerBar {
+  height: 48px;
+  border-bottom: 1px solid var(--notion-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  flex-shrink: 0;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.menuToggle {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: rgba(55, 53, 47, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  padding: 4px;
+}
+
+.menuToggle:hover {
+  background-color: var(--notion-hover);
+  color: var(--notion-fg);
+}
+
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(55, 53, 47, 0.45);
+  font-size: 13px;
+}
+
+.breadcrumbSeparator {
+  color: rgba(55, 53, 47, 0.2);
+}
+
+.breadcrumbActive {
+  color: var(--notion-fg);
+  font-weight: 500;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.headerButton {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12.5px;
+  color: rgba(55, 53, 47, 0.55);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: background 0.15s ease;
+}
+
+.headerButton:hover {
+  background-color: var(--notion-hover);
+  color: var(--notion-fg);
+}
+
+/* Content Area Scroll Pane */
+.scrollPane {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 48px 96px 96px 96px;
+  display: flex;
+  justify-content: center;
+}
+
+.contentWrapper {
+  width: 100%;
+  max-width: 900px;
+}
+
+@media (max-width: 900px) {
+  .scrollPane {
+    padding: 32px 24px 64px 24px;
+  }
+}
+
+/* Sidebar History Items */
+.historySection {
+  border-top: 1px solid var(--notion-border);
+  padding: 12px 0;
+  display: flex;
+  flex-direction: column;
+  max-height: 280px;
+  min-height: 120px;
+}
+
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+
+.historyItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 14px;
+  margin: 0 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11.5px;
+  font-weight: 500;
+  transition: background 0.15s ease;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.historyItem:hover {
+  background-color: var(--notion-hover);
+}
+
+.historyClearBtn {
+  margin: 8px 14px 0 14px;
+  padding: 6px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--notion-red);
+  background-color: var(--notion-red-bg);
+  border: 1px solid var(--notion-border);
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+
+.historyClearBtn:hover {
+  background-color: rgba(235, 87, 87, 0.12);
+}
+
+/* Mobile Sidebar Backdrop Overlay */
+.mobileSidebarBackdrop {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobileSidebarBackdrop {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(15, 15, 15, 0.4);
+    backdrop-filter: blur(1.5px);
+    z-index: 999;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 1000;
+    height: 100%;
+    transform: translateX(-100%);
+    box-shadow: 4px 0 16px rgba(0, 0, 0, 0.15);
+    background-color: var(--notion-sidebar);
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .sidebarExpanded {
+    width: 240px !important;
+    transform: translateX(0) !important;
+  }
+
+  .sidebarCollapsed {
+    width: 0px !important;
+    transform: translateX(-100%) !important;
+    border-right: none !important;
+  }
+
+  .scrollPane {
+    padding: 16px 12px 64px 12px !important;
+  }
+
+  .headerBar {
+    padding: 0 12px !important;
+  }
+
+  .breadcrumbs {
+    font-size: 12px !important;
+    gap: 4px !important;
+  }
+}
+
+@media (max-width: 375px) {
+  .breadcrumbs {
+    display: none !important; /* Hide breadcrumbs on very small screens to fit header content */
+  }
+  .headerRight {
+    gap: 4px !important;
+  }
+}
+

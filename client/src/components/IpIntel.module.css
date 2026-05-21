@@ -1,0 +1,245 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--notion-border);
+  padding-bottom: 12px;
+}
+
+.titleSec {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon {
+  font-size: 20px;
+}
+
+.titleText {
+  font-size: 15px;
+  color: var(--notion-fg);
+}
+
+.dcBadge {
+  background: rgba(230, 126, 34, 0.1);
+  color: #e67e22;
+  border: 1px solid rgba(230, 126, 34, 0.2);
+  padding: 3px 8px;
+  font-size: 10.5px;
+  font-weight: 700;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.grid2Col {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.card {
+  background-color: var(--notion-bg);
+  border: 1px solid var(--notion-border);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  display: flex;
+  flex-direction: column;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--notion-fg);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--notion-border);
+  background-color: var(--notion-sidebar);
+}
+
+.cardBody {
+  flex-grow: 1;
+}
+
+.mapContainer {
+  width: 100%;
+  height: 200px;
+  background-color: var(--notion-hover-active);
+  z-index: 1;
+}
+
+.mapPlaceholder {
+  width: 100%;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12.5px;
+  color: rgba(55,53,47,0.5);
+  background-color: var(--notion-sidebar);
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #f1f1f0;
+  font-size: 13px;
+}
+
+body.dark .detailRow {
+  border-bottom-color: rgba(255,255,255,0.05);
+}
+
+.detailKey {
+  color: rgba(55, 53, 47, 0.6);
+  font-weight: 500;
+}
+
+body.dark .detailKey {
+  color: rgba(232, 232, 229, 0.6);
+}
+
+.detailVal {
+  color: var(--notion-fg);
+  font-weight: 500;
+  text-align: right;
+  max-width: 60%;
+}
+
+.codeFont {
+  font-family: monospace;
+}
+
+.subHeading {
+  display: block;
+  font-weight: 600;
+  font-size: 12px;
+  color: rgba(55, 53, 47, 0.55);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+body.dark .subHeading {
+  color: rgba(232, 232, 229, 0.55);
+}
+
+.tableWrapper {
+  border: 1px solid var(--notion-border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.portsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.portsTable th {
+  background-color: var(--notion-sidebar);
+  padding: 8px 12px;
+  font-weight: 600;
+  color: rgba(55, 53, 47, 0.6);
+  text-align: left;
+  border-bottom: 1px solid var(--notion-border);
+}
+
+body.dark .portsTable th {
+  color: rgba(232, 232, 229, 0.6);
+}
+
+.portsTable td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #f1f1f0;
+  color: var(--notion-fg);
+}
+
+body.dark .portsTable td {
+  border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+
+.portsTable tr:last-child td {
+  border-bottom: none;
+}
+
+.portOpen {
+  color: #2b7a3e;
+  background-color: #eaf6ec;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 700;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.portClosed {
+  color: #ca2c2c;
+  background-color: #fdebeb;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 700;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.investigateBtn {
+  padding: 4px 8px;
+  background-color: var(--notion-accent-bg);
+  color: var(--notion-accent);
+  border: 1px solid var(--notion-border);
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.investigateBtn:hover {
+  background-color: var(--notion-hover-active);
+}
+
+.terminalContainer {
+  background-color: #1a1a1a;
+  color: #e6e6e6;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #333333;
+}
+
+.terminalHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #222222;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-family: monospace;
+  border-bottom: 1px solid #333333;
+  color: #8c8c8c;
+}
+
+.terminalBody {
+  padding: 12px;
+  font-size: 11.5px;
+  line-height: 1.4;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  margin: 0;
+  font-family: monospace;
+}

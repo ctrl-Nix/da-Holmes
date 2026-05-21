@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: da-holmes-api
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: FRONTEND_URL
+        value: https://da-holmes.vercel.app
+      - key: WIGLE_AUTH
+        sync: false
+      - key: ABSTRACT_KEY
+        sync: false

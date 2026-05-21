@@ -1,0 +1,278 @@
+.container {
+  background-color: var(--notion-bg);
+  border: 1px solid var(--notion-border);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px;
+  background-color: var(--notion-sidebar);
+  border-bottom: 1px solid var(--notion-border);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.icon {
+  font-size: 18px;
+}
+
+.title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--notion-fg);
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 11.5px;
+  color: rgba(55, 53, 47, 0.5);
+  margin-top: 2px;
+}
+
+body.dark .subtitle {
+  color: rgba(232, 232, 229, 0.5);
+}
+
+.countBadge {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+}
+
+.countCritical {
+  background-color: rgba(202, 44, 44, 0.08);
+  color: #ca2c2c;
+  border-color: rgba(202, 44, 44, 0.15);
+}
+
+.countSecure {
+  background-color: rgba(43, 122, 62, 0.08);
+  color: #2b7a3e;
+  border-color: rgba(43, 122, 62, 0.15);
+}
+
+.body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Warnings */
+.riskOverview {
+  display: flex;
+  gap: 12px;
+  background-color: rgba(202, 44, 44, 0.03);
+  border: 1px solid rgba(202, 44, 44, 0.12);
+  padding: 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #ca2c2c;
+}
+
+.warningIcon {
+  color: #ca2c2c;
+  flex-shrink: 0;
+}
+
+.overviewText {
+  font-size: 12.5px;
+  margin-top: 4px;
+  color: rgba(55, 53, 47, 0.7);
+  line-height: 1.4;
+}
+
+body.dark .overviewText {
+  color: rgba(232, 232, 229, 0.7);
+}
+
+/* Vectors */
+.typesBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sectionTitle {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: rgba(55, 53, 47, 0.45);
+  letter-spacing: 0.5px;
+}
+
+body.dark .sectionTitle {
+  color: rgba(232, 232, 229, 0.45);
+}
+
+.typesGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.dataTypeChip {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+/* Badge Color Rules */
+.badgeRed {
+  background-color: rgba(202, 44, 44, 0.08);
+  color: #ca2c2c;
+  border: 1px solid rgba(202, 44, 44, 0.15);
+}
+
+.badgeOrange {
+  background-color: rgba(249, 115, 22, 0.08);
+  color: #ea580c;
+  border: 1px solid rgba(249, 115, 22, 0.15);
+}
+
+.badgeYellow {
+  background-color: rgba(234, 179, 8, 0.08);
+  color: #ca8a04;
+  border: 1px solid rgba(234, 179, 8, 0.15);
+}
+
+.badgeNeutral {
+  background-color: var(--notion-sidebar);
+  color: var(--notion-fg);
+  border: 1px solid var(--notion-border);
+}
+
+/* Timeline */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-left: 20px;
+  margin-top: 6px;
+}
+
+.timelineItem {
+  display: flex;
+  position: relative;
+  padding-bottom: 24px;
+}
+
+.timelineItem:last-child {
+  padding-bottom: 0;
+}
+
+.timelineLine {
+  position: absolute;
+  left: -13px;
+  top: 14px;
+  bottom: -14px;
+  width: 1px;
+  background-color: var(--notion-border);
+}
+
+.timelineItem:last-child .timelineLine {
+  display: none;
+}
+
+.timelineMarker {
+  position: absolute;
+  left: -19px;
+  top: 1px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background-color: #ca2c2c;
+  border: 2px solid var(--notion-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  z-index: 2;
+}
+
+.timelineContent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-grow: 1;
+}
+
+.timelineHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.breachName {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--notion-fg);
+  margin: 0;
+}
+
+.breachYear {
+  font-size: 11.5px;
+  color: rgba(55, 53, 47, 0.5);
+  font-weight: 600;
+}
+
+body.dark .breachYear {
+  color: rgba(232, 232, 229, 0.5);
+}
+
+.exposedChipsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.miniChip {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1.5px 5px;
+  border-radius: 3px;
+}
+
+/* Secure Mode */
+.secureBox {
+  display: flex;
+  gap: 12px;
+  background-color: rgba(43, 122, 62, 0.03);
+  border: 1px solid rgba(43, 122, 62, 0.12);
+  padding: 16px;
+  border-radius: 6px;
+  color: #2b7a3e;
+}
+
+.secureIcon {
+  color: #2b7a3e;
+  flex-shrink: 0;
+}
+
+.secureText {
+  font-size: 12.5px;
+  margin-top: 4px;
+  color: rgba(55, 53, 47, 0.7);
+}
+
+body.dark .secureText {
+  color: rgba(232, 232, 229, 0.7);
+}

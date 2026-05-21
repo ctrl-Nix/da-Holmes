@@ -1,0 +1,9 @@
+fastapi==0.111.0
+uvicorn==0.29.0
+httpx==0.27.0
+Pillow==10.3.0
+piexif==1.1.3
+slowapi==0.1.9
+python-multipart==0.0.9
+reportlab==4.1.0
+maigret==0.4.4

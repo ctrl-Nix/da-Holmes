@@ -1,0 +1,524 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── Form Inputs & Layouts ── */
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.inputLabel {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(55, 53, 47, 0.55);
+}
+
+.inputWrapper {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--notion-border);
+  border-radius: 4px;
+  background-color: var(--notion-light-gray);
+  padding: 8px 12px;
+  gap: 8px;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.inputWrapper:focus-within {
+  border-color: var(--notion-accent);
+  background-color: white;
+}
+
+.inputIcon {
+  color: rgba(55, 53, 47, 0.4);
+  display: flex;
+  align-items: center;
+}
+
+.inputField {
+  border: none;
+  background: transparent;
+  outline: none;
+  width: 100%;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--notion-fg);
+}
+
+.inputField::placeholder {
+  color: rgba(55, 53, 47, 0.35);
+}
+
+.actionRow {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  font-size: 13.5px;
+  font-weight: 500;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid var(--notion-border);
+  background-color: white;
+  color: var(--notion-fg);
+  transition: background-color 0.1s ease, border-color 0.1s ease;
+}
+
+.btn:hover {
+  background-color: var(--notion-hover);
+}
+
+.btnPrimary {
+  background-color: var(--notion-accent);
+  color: white;
+  border: none;
+}
+
+.btnPrimary:hover {
+  background-color: #1e70c1;
+}
+
+.btnLoading {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* ── Results Container ── */
+.resultsContainer {
+  background-color: white;
+  border: 1px solid var(--notion-border);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-top: 12px;
+  animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.resultsHeader {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--notion-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--notion-sidebar);
+}
+
+.resultsTitle {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--notion-fg);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.resultsBody {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── Risk & Assessment Layouts ── */
+.riskOverview {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  border-bottom: 1px solid var(--notion-border);
+  padding-bottom: 24px;
+}
+
+.gaugeContainer {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 700;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.gaugeContainer::before {
+  content: '';
+  position: absolute;
+  top: 6px; left: 6px; right: 6px; bottom: 6px;
+  background-color: white;
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.gaugeText {
+  z-index: 2;
+}
+
+.riskDetails {
+  flex-grow: 1;
+}
+
+.riskTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--notion-fg);
+  margin-bottom: 4px;
+}
+
+.riskDescription {
+  font-size: 13px;
+  color: rgba(55, 53, 47, 0.55);
+}
+
+/* Detail Tables */
+.tableWrapper {
+  overflow-x: auto;
+  border: 1px solid var(--notion-border);
+  border-radius: 6px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+}
+
+.tableHeader {
+  background-color: var(--notion-sidebar);
+  border-bottom: 1px solid var(--notion-border);
+}
+
+.tableHeaderCell {
+  padding: 10px 16px;
+  font-weight: 600;
+  color: rgba(55, 53, 47, 0.5);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tableRow {
+  border-bottom: 1px solid var(--notion-border);
+  transition: background-color 0.1s ease;
+}
+
+.tableRow:last-child {
+  border-bottom: none;
+}
+
+.tableRow:hover {
+  background-color: var(--notion-hover);
+}
+
+.tableCell {
+  padding: 12px 16px;
+  color: var(--notion-fg);
+  vertical-align: middle;
+}
+
+.codeFont {
+  font-family: Menlo, Consolas, Monaco, monospace;
+  font-size: 12px;
+  background-color: var(--notion-light-gray);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+/* Bullet list details */
+.bulletList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bulletItem {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 13px;
+  padding: 6px 10px;
+  border-radius: 4px;
+}
+
+.bulletDanger {
+  background-color: var(--notion-red-bg);
+  color: #c0392b;
+}
+
+.bulletSuccess {
+  background-color: var(--notion-green-bg);
+  color: #27ae60;
+}
+
+.bulletInfo {
+  background-color: var(--notion-accent-bg);
+  color: #2980b9;
+}
+
+.bulletItemText {
+  line-height: 1.4;
+}
+
+/* EXIF Drag & Drop Uploader */
+.uploadArea {
+  border: 2px dashed var(--notion-border-strong);
+  border-radius: 6px;
+  padding: 40px 20px;
+  text-align: center;
+  background-color: var(--notion-sidebar);
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.uploadArea:hover {
+  background-color: var(--notion-hover);
+  border-color: var(--notion-accent);
+}
+
+.uploadAreaActive {
+  background-color: var(--notion-accent-bg);
+  border-color: var(--notion-accent);
+}
+
+.uploadIcon {
+  color: var(--notion-accent);
+}
+
+.uploadTitle {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--notion-fg);
+}
+
+.uploadSubtitle {
+  font-size: 12px;
+  color: rgba(55, 53, 47, 0.45);
+}
+
+/* Social Footprint List */
+.footprintGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.footprintItem {
+  border: 1px solid var(--notion-border);
+  border-radius: 6px;
+  padding: 12px 16px;
+  background-color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-decoration: none;
+}
+
+.footprintItem:hover {
+  background-color: var(--notion-hover);
+}
+
+.footprintName {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--notion-fg);
+}
+
+.footprintLinkIcon {
+  color: rgba(55, 53, 47, 0.3);
+}
+
+.statusIndicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.statusFound {
+  background-color: var(--notion-green);
+  box-shadow: 0 0 6px rgba(46, 204, 113, 0.4);
+}
+
+.statusNotFound {
+  background-color: var(--notion-gray);
+  opacity: 0.5;
+}
+
+/* Key Value Row */
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--notion-border);
+}
+
+.detailRow:last-child {
+  border-bottom: none;
+}
+
+.detailKey {
+  font-size: 13px;
+  color: rgba(55, 53, 47, 0.55);
+  font-weight: 500;
+}
+
+.detailValue {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--notion-fg);
+  max-width: 70%;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Timeline Components */
+.timeline {
+  position: relative;
+  padding-left: 20px;
+  border-left: 2px solid var(--notion-border);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.timelineItem {
+  position: relative;
+}
+
+.timelineDot {
+  position: absolute;
+  left: -27px;
+  top: 4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: white;
+  border: 2px solid var(--notion-accent);
+}
+
+.timelineDate {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(55, 53, 47, 0.4);
+}
+
+.timelineText {
+  font-size: 13px;
+  color: var(--notion-fg);
+  font-weight: 500;
+}
+
+/* ── Keyframe Animations ── */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Friendship graph responsiveness toggles */
+.graphWrapper {
+  display: flex !important;
+}
+
+.desktopOnlyWarning {
+  display: none !important;
+}
+
+@media (max-width: 600px) {
+  .graphWrapper {
+    display: none !important;
+  }
+  .desktopOnlyWarning {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 16px;
+    text-align: center;
+    border: 1px dashed var(--notion-border-strong);
+    border-radius: 6px;
+    background-color: var(--notion-light-gray);
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+/* General Modules Responsiveness under 768px */
+@media (max-width: 768px) {
+  .actionRow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .actionRow button, .btn {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .resultsHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+  }
+
+  .resultsHeader div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .resultsBody {
+    padding: 16px !important;
+  }
+
+  .riskOverview {
+    flex-direction: column;
+    text-align: center;
+    gap: 16px;
+  }
+
+  .riskDetails {
+    width: 100%;
+  }
+
+  /* Form layouts inside modules should stack vertically */
+  .grid2Col, .grid3Col {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+}
+
+@media (max-width: 375px) {
+  .resultsTitle {
+    font-size: 13px !important;
+  }
+}

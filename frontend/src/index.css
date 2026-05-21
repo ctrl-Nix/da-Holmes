@@ -1,0 +1,215 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --notion-bg: #ffffff;
+  --notion-fg: #37352f;
+  --notion-sidebar: #fbfbfa;
+  --notion-border: rgba(55, 53, 47, 0.09);
+  --notion-border-strong: rgba(55, 53, 47, 0.16);
+  --notion-hover: rgba(55, 53, 47, 0.03);
+  --notion-hover-active: rgba(55, 53, 47, 0.08);
+  --notion-accent: #2383e2;
+  --notion-accent-bg: rgba(35, 131, 226, 0.07);
+  --notion-red: #eb5757;
+  --notion-red-bg: rgba(235, 87, 87, 0.07);
+  --notion-green: #2ecc71;
+  --notion-green-bg: rgba(46, 204, 113, 0.07);
+  --notion-yellow: #f2994a;
+  --notion-yellow-bg: rgba(242, 153, 74, 0.07);
+  --notion-gray: #9b9a97;
+  --notion-light-gray: #f1f1ef;
+
+  /* Risk Color System */
+  --risk-critical: #eb3b3b;
+  --risk-high: #e07b39;
+  --risk-medium: #dfab01;
+  --risk-low: #0f7b6c;
+  --risk-secure: #0f7b6c;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  background-color: var(--notion-bg);
+  color: var(--notion-fg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+#root {
+  height: 100%;
+  width: 100%;
+}
+
+/* Headings font styling */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600 !important;
+  font-family: 'Inter', sans-serif;
+  color: var(--notion-fg);
+}
+
+/* Body Text color */
+p, span, div, li, td, th {
+  color: var(--notion-fg);
+}
+
+/* Monospace Class */
+.monospace-data, code, pre, .mono-data {
+  font-family: 'JetBrains Mono', monospace !important;
+}
+
+/* Custom Scrollbar to match Notion's style */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(55, 53, 47, 0.12);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(55, 53, 47, 0.25);
+}
+
+/* Risk Badges Styling */
+.badge-critical {
+  background-color: #fdecea !important;
+  color: #eb3b3b !important;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+}
+
+.badge-high {
+  background-color: #fef3ec !important;
+  color: #e07b39 !important;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+}
+
+.badge-medium {
+  background-color: #fefce8 !important;
+  color: #dfab01 !important;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+}
+
+.badge-secure, .badge-low {
+  background-color: #edfaf4 !important;
+  color: #0f7b6c !important;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Dark Mode Updates */
+body.dark {
+  --notion-bg: #191919;
+  --notion-fg: #e8e8e5;
+  --notion-sidebar: #1f1f1f;
+  --notion-border: rgba(255, 255, 255, 0.1);
+  --notion-border-strong: rgba(255, 255, 255, 0.15);
+  --notion-hover: rgba(255, 255, 255, 0.03);
+  --notion-hover-active: rgba(255, 255, 255, 0.08);
+  --notion-accent: #2383e2;
+  --notion-accent-bg: rgba(35, 131, 226, 0.15);
+  --notion-light-gray: #242424;
+  
+  background-color: var(--notion-bg);
+  color: var(--notion-fg);
+}
+
+body.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+body.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Saturation Boost on Badges in Dark Mode */
+body.dark .badge-critical {
+  background-color: #2b1c1c !important;
+  color: #ff5252 !important;
+}
+
+body.dark .badge-high {
+  background-color: #2e2017 !important;
+  color: #ff904d !important;
+}
+
+body.dark .badge-medium {
+  background-color: #2e2d17 !important;
+  color: #ffdf4d !important;
+}
+
+body.dark .badge-secure, body.dark .badge-low {
+  background-color: #172b22 !important;
+  color: #1cd4b8 !important;
+}
+
+/* ── Globals for OSINT Unified Card System ── */
+div[class*="_container_"], div[class*="_card_"], .resultContainer, .skeletonCard {
+  background-color: var(--notion-bg) !important;
+  border: 1px solid rgba(55,53,47,0.1) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important;
+  padding: 24px !important;
+  transition: all 0.2s ease !important;
+}
+
+div[class*="_container_"]:hover, div[class*="_card_"]:hover, .resultContainer:hover, .skeletonCard:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
+}
+
+/* Make sure inner headers normalize correctly */
+div[class*="_header_"], div[class*="_headerRow_"] {
+  background-color: transparent !important;
+  border-bottom: 1px solid var(--notion-border) !important;
+  padding: 0 0 16px 0 !important;
+  margin-bottom: 16px !important;
+  min-height: auto !important;
+}
+
+div[class*="_body_"], div[class*="_cardBody_"] {
+  padding: 0 !important;
+}
+
+body.dark div[class*="_container_"], body.dark div[class*="_card_"], body.dark .resultContainer, body.dark .skeletonCard {
+  background-color: #242424 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}

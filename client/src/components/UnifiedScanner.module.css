@@ -1,0 +1,623 @@
+.scannerContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.inputWrapper {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--notion-border);
+  border-radius: 12px;
+  background-color: var(--notion-light-gray);
+  padding: 6px 16px;
+  gap: 12px;
+  position: relative;
+  transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+  min-height: 52px;
+  width: 100%;
+}
+
+.inputWrapper:focus-within {
+  border-color: var(--notion-accent);
+  background-color: white;
+  box-shadow: 0 0 0 3px rgba(35, 131, 226, 0.15);
+}
+
+.inputIcon {
+  color: rgba(55, 53, 47, 0.45);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.inputField {
+  border: none;
+  background: transparent;
+  outline: none;
+  width: 100%;
+  font-family: inherit;
+  font-size: 14.5px;
+  color: var(--notion-fg);
+  padding: 4px 0;
+}
+
+.inputField::placeholder {
+  color: rgba(55, 53, 47, 0.35);
+}
+
+/* ── Badges ── */
+.badgeContainer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  animation: popIn 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  user-select: none;
+}
+
+/* Notion soft color tints */
+.badge_btc {
+  background-color: #fcecd9;
+  color: #c9751d;
+}
+
+.badge_email {
+  background-color: #eaf6ec;
+  color: #2b7a3e;
+}
+
+.badge_network {
+  background-color: #e6f3fc;
+  color: #1a629b;
+}
+
+.badge_domain {
+  background-color: #edeef0;
+  color: #4f5256;
+}
+
+.badge_bssid {
+  background-color: #f7e6f3;
+  color: #9c2b86;
+}
+
+.badge_username {
+  background-color: #f1f1ef;
+  color: #5f5e5b;
+}
+
+.badge_phone {
+  background-color: #fff0f0;
+  color: #d13438;
+}
+
+/* Submit Button inside input */
+.submitBtn {
+  background-color: var(--notion-accent);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: background-color 0.1s ease;
+}
+
+.submitBtn:hover {
+  background-color: #1e70c1;
+}
+
+.submitBtnDisabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Result JSON Block */
+.resultContainer {
+  margin-top: 16px;
+  border: 1px solid var(--notion-border);
+  border-radius: 6px;
+  background-color: white;
+  overflow: hidden;
+  animation: slideDown 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.resultHeader {
+  padding: 10px 14px;
+  background-color: var(--notion-sidebar);
+  border-bottom: 1px solid var(--notion-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(55, 53, 47, 0.5);
+}
+
+.codeBlock {
+  padding: 14px;
+  font-family: Menlo, Consolas, Monaco, monospace;
+  font-size: 13px;
+  background-color: white;
+  color: var(--notion-fg);
+  white-space: pre-wrap;
+  word-break: break-all;
+  line-height: 1.5;
+  margin: 0;
+  overflow-x: auto;
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Batch Mode ── */
+.toggleRow {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--notion-fg);
+  user-select: none;
+  margin-bottom: 4px;
+}
+
+.batchToggleBtn {
+  background-color: var(--notion-sidebar);
+  border: 1px solid var(--notion-border);
+  border-radius: 4px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--notion-fg);
+  transition: all 0.1s ease;
+}
+
+.batchToggleBtnActive {
+  background-color: var(--notion-accent-bg);
+  border-color: var(--notion-accent);
+  color: var(--notion-accent);
+}
+
+.batchTextarea {
+  width: 100%;
+  min-height: 120px;
+  border: 1px solid var(--notion-border);
+  border-radius: 6px;
+  padding: 12px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--notion-fg);
+  background-color: var(--notion-bg);
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.batchTextarea:focus {
+  outline: none;
+  border-color: var(--notion-accent);
+  box-shadow: 0 0 0 2px rgba(35, 131, 226, 0.15);
+}
+
+.batchActions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.batchCountInfo {
+  font-size: 12px;
+  color: rgba(55, 53, 47, 0.5);
+}
+
+body.dark .batchCountInfo {
+  color: rgba(232, 232, 229, 0.5);
+}
+
+.batchRunBtn {
+  background-color: var(--notion-accent);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.1s ease;
+}
+
+.batchRunBtn:hover {
+  background-color: #1e70c1;
+}
+
+.batchProgressContainer {
+  width: 100%;
+  background-color: var(--notion-sidebar);
+  border: 1px solid var(--notion-border);
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.batchProgressBarBg {
+  width: 100%;
+  height: 6px;
+  background-color: var(--notion-border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.batchProgressBarFill {
+  height: 100%;
+  background-color: var(--notion-accent);
+  transition: width 0.3s ease;
+}
+
+.batchProgressText {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--notion-fg);
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Collapsible targets */
+.batchResultsContainer {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.collapsibleCard {
+  border: 1px solid var(--notion-border);
+  border-radius: 8px;
+  background-color: var(--notion-bg);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.01);
+}
+
+.collapsibleHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  cursor: pointer;
+  background-color: var(--notion-sidebar);
+  user-select: none;
+  transition: background-color 0.1s ease;
+}
+
+.collapsibleHeader:hover {
+  background-color: var(--notion-border);
+}
+
+.targetMeta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.targetLabel {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--notion-fg);
+}
+
+.collapsibleBody {
+  padding: 16px;
+  border-top: 1px solid var(--notion-border);
+  background-color: var(--notion-bg);
+  animation: slideDown 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* --- Analyst Notes & Tags Styling --- */
+.hasResults {
+  max-width: 1050px !important;
+}
+
+.resultsLayout {
+  display: flex;
+  gap: 24px;
+  align-items: start;
+  width: 100%;
+  margin-top: 10px;
+}
+
+@media (max-width: 820px) {
+  .resultsLayout {
+    flex-direction: column;
+  }
+}
+
+.resultsLeftCol {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.notesPanel {
+  width: 320px;
+  background-color: var(--notion-bg);
+  border: 1px solid var(--notion-border);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease-in-out;
+}
+
+@media (max-width: 820px) {
+  .notesPanel {
+    width: 100%;
+  }
+}
+
+.notesPanelCollapsed {
+  width: 46px;
+  padding: 12px 6px;
+  align-items: center;
+  overflow: hidden;
+  background-color: var(--notion-sidebar);
+  border: 1px solid var(--notion-border);
+  border-radius: 8px;
+  flex-shrink: 0;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: all 0.2s ease-in-out;
+}
+
+.notesPanelCollapsed:hover {
+  background-color: var(--notion-border);
+}
+
+.notesPanelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--notion-border);
+  padding-bottom: 10px;
+}
+
+.notesPanelTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--notion-fg);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.notesCollapseBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: rgba(55, 53, 47, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.1s ease;
+}
+
+.notesCollapseBtn:hover {
+  background-color: var(--notion-border);
+  color: var(--notion-fg);
+}
+
+.notesTextarea {
+  width: 100%;
+  min-height: 140px;
+  border: 1px solid var(--notion-border);
+  border-radius: 6px;
+  padding: 10px;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--notion-fg);
+  background-color: #fafafa;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+  box-sizing: border-box;
+}
+
+.notesTextarea:focus {
+  border-color: var(--notion-accent);
+  background-color: #ffffff;
+  box-shadow: 0 0 0 2px rgba(35, 131, 226, 0.1);
+}
+
+.tagsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tagsLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(55, 53, 47, 0.45);
+  text-transform: uppercase;
+}
+
+.tagsGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tagPill {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.1s ease;
+  border: 1px solid transparent;
+}
+
+.tagPillInactive {
+  background-color: #f5f5f4;
+  color: rgba(55, 53, 47, 0.5);
+  border: 1px dashed var(--notion-border);
+}
+
+.tagPillInactive:hover {
+  background-color: var(--notion-border);
+  color: var(--notion-fg);
+}
+
+.disclaimerBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background-color: var(--notion-light-gray);
+  border: 1px solid var(--notion-border);
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  animation: slideDown 0.25s ease-out;
+}
+
+body.dark .disclaimerBanner {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.disclaimerIcon {
+  font-size: 15px;
+  line-height: 1;
+  margin-top: 1px;
+}
+
+.disclaimerText {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: rgba(55, 53, 47, 0.65);
+  line-height: 1.5;
+}
+
+body.dark .disclaimerText {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+@media (max-width: 768px) {
+  .scannerContainer {
+    max-width: 100% !important;
+    padding: 0 4px !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .inputWrapper {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 12px !important;
+    gap: 8px !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .inputField {
+    border: 1px solid var(--notion-border) !important;
+    background-color: var(--notion-light-gray) !important;
+    border-radius: 6px !important;
+    padding: 10px 12px !important;
+    width: 100% !important;
+    font-size: 14px !important;
+    box-sizing: border-box !important;
+  }
+
+  .inputIcon {
+    display: none !important;
+  }
+
+  .badgeContainer {
+    justify-content: flex-start !important;
+    margin-top: 2px !important;
+    padding-left: 2px !important;
+  }
+
+  .submitBtn {
+    width: 100% !important;
+    padding: 10px !important;
+    font-size: 14px !important;
+    margin-top: 4px !important;
+    min-height: 40px !important;
+  }
+
+  .batchActions {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+
+  .batchRunBtn {
+    width: 100% !important;
+  }
+}
+
+

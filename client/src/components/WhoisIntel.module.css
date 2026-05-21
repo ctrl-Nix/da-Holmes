@@ -1,0 +1,333 @@
+.container {
+  background-color: var(--notion-bg);
+  border: 1px solid var(--notion-border);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px;
+  background-color: var(--notion-sidebar);
+  border-bottom: 1px solid var(--notion-border);
+}
+
+.titleGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon {
+  font-size: 18px;
+}
+
+.titleText {
+  font-size: 14px;
+  color: var(--notion-fg);
+}
+
+.badgeRow {
+  display: flex;
+  gap: 8px;
+}
+
+.riskBadge {
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 4px;
+  letter-spacing: 0.03em;
+}
+
+.riskNew {
+  background-color: rgba(230, 126, 34, 0.1);
+  color: #e67e22;
+  border: 1px solid rgba(230, 126, 34, 0.2);
+}
+
+.riskExpiry {
+  background-color: rgba(202, 44, 44, 0.1);
+  color: #ca2c2c;
+  border: 1px solid rgba(202, 44, 44, 0.2);
+}
+
+.body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Timeline Layout */
+.timelineSection {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sectionHeader {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(55, 53, 47, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+body.dark .sectionHeader {
+  color: rgba(232, 232, 229, 0.5);
+}
+
+.timelineContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--notion-sidebar);
+  border: 1px solid var(--notion-border);
+  border-radius: 8px;
+  padding: 20px 32px;
+  position: relative;
+  gap: 12px;
+}
+
+.timelineNode {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 2;
+  min-width: 140px;
+}
+
+.nodeBullet {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.bulletCreate {
+  background-color: rgba(35, 131, 226, 0.1);
+  color: var(--notion-accent);
+  border: 1px solid rgba(35, 131, 226, 0.2);
+}
+
+.bulletUpdate {
+  background-color: rgba(140, 140, 140, 0.1);
+  color: #8c8c8c;
+  border: 1px solid rgba(140, 140, 140, 0.2);
+}
+
+.bulletExpire {
+  background-color: rgba(43, 122, 62, 0.1);
+  color: #2b7a3e;
+  border: 1px solid rgba(43, 122, 62, 0.2);
+}
+
+.bulletExpireWarning {
+  background-color: rgba(202, 44, 44, 0.1);
+  color: #ca2c2c;
+  border: 1px solid rgba(202, 44, 44, 0.25);
+  animation: pulseExpire 2s infinite ease-in-out;
+}
+
+@keyframes pulseExpire {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.06); box-shadow: 0 0 8px rgba(202, 44, 44, 0.2); }
+  100% { transform: scale(1); }
+}
+
+.nodeLabels {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nodeTitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(55, 53, 47, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+body.dark .nodeTitle {
+  color: rgba(232, 232, 229, 0.5);
+}
+
+.nodeDate {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--notion-fg);
+}
+
+.timelineConnector {
+  flex-grow: 1;
+  height: 2px;
+  background-color: var(--notion-border);
+  position: relative;
+  z-index: 1;
+}
+
+/* Alerts styling */
+.alertsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.alertBox {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.alertOrange {
+  background-color: rgba(230, 126, 34, 0.08);
+  color: #d35400;
+  border: 1px solid rgba(230, 126, 34, 0.15);
+}
+
+body.dark .alertOrange {
+  color: #e67e22;
+}
+
+.alertRed {
+  background-color: rgba(202, 44, 44, 0.07);
+  color: #b81d1d;
+  border: 1px solid rgba(202, 44, 44, 0.15);
+}
+
+body.dark .alertRed {
+  color: #f16d6d;
+}
+
+/* Info Grid */
+.infoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  border: 1px solid var(--notion-border);
+  border-radius: 6px;
+  padding: 16px;
+}
+
+@media (max-width: 600px) {
+  .infoGrid {
+    grid-template-columns: 1fr;
+  }
+  .infoCol:last-child {
+    border-left: none !important;
+    border-top: 1px solid var(--notion-border);
+    padding-top: 16px;
+  }
+}
+
+.infoCol {
+  display: flex;
+  flex-direction: column;
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f1f1f0;
+  font-size: 12.5px;
+}
+
+body.dark .detailRow {
+  border-bottom-color: rgba(255,255,255,0.05);
+}
+
+.detailLabel {
+  color: rgba(55, 53, 47, 0.6);
+  font-weight: 500;
+}
+
+body.dark .detailLabel {
+  color: rgba(232, 232, 229, 0.6);
+}
+
+.detailVal {
+  color: var(--notion-fg);
+  font-weight: 500;
+  text-align: right;
+  max-width: 60%;
+}
+
+.codeFont {
+  font-family: monospace;
+}
+
+.nsBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background-color: var(--notion-sidebar);
+  border: 1px solid var(--notion-border);
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11.5px;
+  color: var(--notion-fg);
+  align-self: flex-start;
+}
+
+/* Collapsible Console */
+.collapsibleWrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.collapseToggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: transparent;
+  border: 1px solid var(--notion-border);
+  color: var(--notion-fg);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.collapseToggle:hover {
+  background-color: var(--notion-sidebar);
+}
+
+.rawConsole {
+  margin-top: 8px;
+  background-color: #1a1a1a;
+  border: 1px solid #333333;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.codeBlock {
+  margin: 0;
+  padding: 14px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: #cccccc;
+  font-family: monospace;
+  overflow-x: auto;
+  white-space: pre-wrap;
+}

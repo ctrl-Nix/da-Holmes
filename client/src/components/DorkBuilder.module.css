@@ -1,0 +1,207 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.title {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--notion-fg);
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 13.5px;
+  color: rgba(55, 53, 47, 0.65);
+  margin-top: 4px;
+}
+
+body.dark .subtitle {
+  color: rgba(232, 232, 229, 0.65);
+}
+
+.copyAllBtn {
+  background-color: var(--notion-accent-bg);
+  color: var(--notion-accent);
+  border: 1px solid var(--notion-border);
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.copyAllBtn:hover {
+  background-color: var(--notion-border);
+}
+
+/* Input Section */
+.inputSection {
+  background-color: var(--notion-sidebar);
+  border: 1px solid var(--notion-border);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.inputLabel {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: rgba(55, 53, 47, 0.5);
+  letter-spacing: 0.5px;
+}
+
+body.dark .inputLabel {
+  color: rgba(232, 232, 229, 0.5);
+}
+
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  color: rgba(55, 53, 47, 0.4);
+}
+
+body.dark .searchIcon {
+  color: rgba(232, 232, 229, 0.4);
+}
+
+.inputField {
+  width: 100%;
+  padding: 9px 12px 9px 36px;
+  font-size: 13.5px;
+  border: 1px solid var(--notion-border);
+  border-radius: 6px;
+  background-color: var(--notion-bg);
+  color: var(--notion-fg);
+  font-family: inherit;
+}
+
+.inputField:focus {
+  outline: none;
+  border-color: var(--notion-accent);
+}
+
+/* Categories */
+.categoriesStack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.categoryCard {
+  background-color: var(--notion-bg);
+  border: 1px solid var(--notion-border);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.01);
+}
+
+.categoryHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--notion-sidebar);
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--notion-border);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--notion-fg);
+}
+
+.chipsGrid {
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+}
+
+.dorkChip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: background-color 0.1s ease;
+  font-size: 13px;
+}
+
+.dorkChip:hover {
+  background-color: var(--notion-sidebar);
+}
+
+.chipLeft {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  overflow: hidden;
+}
+
+.chipLabel {
+  font-weight: 600;
+  color: var(--notion-fg);
+  flex-shrink: 0;
+  width: 180px;
+}
+
+.chipCode {
+  font-family: monospace;
+  color: var(--notion-accent);
+  background-color: var(--notion-sidebar);
+  border: 1px solid var(--notion-border);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chipRight {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.actionBtn {
+  background: none;
+  border: 1px solid var(--notion-border);
+  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--notion-fg);
+  cursor: pointer;
+  transition: all 0.1s ease;
+  text-decoration: none;
+}
+
+.actionBtn:hover {
+  border-color: var(--notion-accent);
+  color: var(--notion-accent);
+  background-color: var(--notion-accent-bg);
+}

@@ -1,0 +1,357 @@
+.title {
+  font-size: 34px;
+  font-weight: 700;
+  color: var(--notion-fg);
+  margin-bottom: 8px;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  font-size: 15px;
+  color: var(--notion-fg);
+  opacity: 0.65;
+  margin-bottom: 24px;
+}
+
+/* Callout Block (Notion callout) */
+.calloutBlock {
+  background-color: var(--notion-light-gray);
+  border-radius: 6px;
+  padding: 14px 18px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 32px;
+}
+
+.calloutEmoji {
+  font-size: 18px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.calloutText {
+  font-size: 13.5px;
+  color: var(--notion-fg);
+  line-height: 1.5;
+}
+
+.sectionHeader {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--notion-fg);
+  margin: 32px 0 12px 0;
+  border-bottom: 1px solid var(--notion-border);
+  padding-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Grid Layouts */
+.grid3Col {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.grid2Col {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 640px) {
+  .grid3Col {
+    grid-template-columns: 1fr;
+  }
+  .grid2Col {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Stat Cards */
+.statCard {
+  border: 1px solid var(--notion-border);
+  border-radius: 6px;
+  padding: 16px;
+  background-color: white;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.statCard:hover {
+  background-color: var(--notion-hover);
+  border-color: var(--notion-border-strong);
+}
+
+.statLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(55, 53, 47, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.statValue {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--notion-fg);
+  line-height: 1.1;
+  margin-bottom: 6px;
+}
+
+.statSubtext {
+  font-size: 12px;
+  color: rgba(55, 53, 47, 0.5);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.statSubtextTrend {
+  font-weight: 600;
+  color: var(--notion-green);
+}
+
+/* Launcher Card Widgets */
+.launcherCard {
+  border: 1px solid var(--notion-border);
+  border-radius: 6px;
+  padding: 16px;
+  background-color: white;
+  cursor: pointer;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.launcherCard:hover {
+  background-color: var(--notion-hover);
+  border-color: var(--notion-border-strong);
+}
+
+.launcherIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  background-color: var(--notion-accent-bg);
+  color: var(--notion-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.launcherIconGreen {
+  background-color: var(--notion-green-bg);
+  color: var(--notion-green);
+}
+
+.launcherIconYellow {
+  background-color: var(--notion-yellow-bg);
+  color: var(--notion-yellow);
+}
+
+.launcherIconRed {
+  background-color: var(--notion-red-bg);
+  color: var(--notion-red);
+}
+
+.launcherText {
+  flex-grow: 1;
+}
+
+.launcherTitle {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--notion-fg);
+  margin-bottom: 4px;
+}
+
+.launcherDesc {
+  font-size: 12.5px;
+  color: rgba(55, 53, 47, 0.55);
+}
+
+/* Simulated Heatmap Block */
+.heatmapCard {
+  border: 1px solid var(--notion-border);
+  border-radius: 6px;
+  padding: 20px;
+  background-color: white;
+}
+
+.heatmapHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.heatmapTitle {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--notion-fg);
+}
+
+.heatmapLegend {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 11px;
+  color: rgba(55, 53, 47, 0.45);
+}
+
+.heatmapLegendBox {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.heatmapGrid {
+  display: grid;
+  grid-template-columns: repeat(24, 1fr);
+  gap: 4px;
+}
+
+.heatmapCell {
+  aspect-ratio: 1;
+  background-color: var(--notion-light-gray);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: opacity 0.1s ease;
+}
+
+.heatmapCell:hover {
+  outline: 1px solid var(--notion-accent);
+}
+
+.cellLow { background-color: rgba(35, 131, 226, 0.2); }
+.cellMedium { background-color: rgba(35, 131, 226, 0.5); }
+.cellHigh { background-color: rgba(35, 131, 226, 0.85); }
+
+/* Reports & List Containers */
+.listContainer {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--notion-border);
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: white;
+}
+
+.listItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--notion-border);
+  cursor: pointer;
+  transition: background-color 0.1s ease;
+}
+
+.listItem:last-child {
+  border-bottom: none;
+}
+
+.listItem:hover {
+  background-color: var(--notion-hover);
+}
+
+.listItemLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.listItemEmoji {
+  font-size: 16px;
+}
+
+.listItemTitle {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--notion-fg);
+}
+
+.listItemMeta {
+  font-size: 11.5px;
+  color: rgba(55, 53, 47, 0.45);
+  margin-top: 2px;
+}
+
+.tag {
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 3px;
+  line-height: 1.2;
+}
+
+.tagBlue {
+  background-color: var(--notion-accent-bg);
+  color: var(--notion-accent);
+}
+
+.tagGreen {
+  background-color: var(--notion-green-bg);
+  color: var(--notion-green);
+}
+
+.tagRed {
+  background-color: var(--notion-red-bg);
+  color: var(--notion-red);
+}
+
+.tagYellow {
+  background-color: var(--notion-yellow-bg);
+  color: var(--notion-yellow);
+}
+
+.tagGray {
+  background-color: var(--notion-light-gray);
+  color: var(--notion-fg);
+}
+
+@media (max-width: 768px) {
+  .title {
+    font-size: 26px !important;
+  }
+  .subtitle {
+    font-size: 13.5px !important;
+    margin-bottom: 18px !important;
+  }
+  .grid3Col, .grid2Col {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  .heatmapGrid {
+    overflow-x: auto !important;
+    display: flex !important;
+    gap: 4px !important;
+    padding-bottom: 8px !important;
+  }
+  .heatmapCell {
+    width: 14px !important;
+    height: 14px !important;
+    flex-shrink: 0 !important;
+  }
+}
+
+@media (max-width: 375px) {
+  .title {
+    font-size: 22px !important;
+  }
+  .launcherCard {
+    padding: 12px !important;
+    gap: 12px !important;
+  }
+  .launcherIcon {
+    width: 30px !important;
+    height: 30px !important;
+  }
+}

@@ -1,0 +1,417 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.inputWrapper {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--notion-border);
+  border-radius: 8px;
+  background-color: var(--notion-light-gray);
+  padding: 8px 16px;
+  gap: 12px;
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 48px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.inputWrapper:focus-within {
+  border-color: var(--notion-accent);
+  background-color: var(--notion-bg);
+  box-shadow: 0 0 0 3px rgba(35, 131, 226, 0.18), 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.inputIcon {
+  color: var(--notion-fg);
+  opacity: 0.45;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.inputField {
+  border: none;
+  background: transparent;
+  outline: none;
+  width: 100%;
+  font-family: inherit;
+  font-size: 14.5px;
+  color: var(--notion-fg);
+  padding: 4px 0;
+}
+
+.inputField::placeholder {
+  color: var(--notion-fg);
+  opacity: 0.35;
+}
+
+/* Submit Button */
+.submitBtn {
+  background-color: var(--notion-accent);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(35, 131, 226, 0.2);
+}
+
+.submitBtn:hover:not(.submitBtnDisabled) {
+  background-color: #1b6ec2;
+  transform: translateY(-0.5px);
+  box-shadow: 0 3px 8px rgba(35, 131, 226, 0.3);
+}
+
+.submitBtnDisabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Disclaimer Banner */
+.disclaimerBanner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: var(--notion-light-gray);
+  border: 1px solid var(--notion-border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 12.5px;
+  color: var(--notion-fg);
+  opacity: 0.85;
+  line-height: 1.4;
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Card Grid */
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 16px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.card {
+  border: 1px solid var(--notion-border);
+  border-radius: 10px;
+  padding: 16px;
+  background-color: var(--notion-bg);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: cardPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  opacity: 0;
+  animation-delay: var(--delay, 0s);
+  min-height: 110px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.01);
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.02);
+  border-color: var(--notion-border-strong);
+}
+
+.cardFound {
+  border-left: 3px solid var(--notion-green);
+}
+
+.cardNotFound {
+  border-left: 3px solid var(--notion-border-strong);
+  opacity: 0.8;
+}
+
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.platformBadge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.platformEmoji {
+  font-size: 18px;
+}
+
+.platformName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--notion-fg);
+}
+
+/* Status Pills */
+.statusPill {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.pillFound {
+  background-color: var(--notion-green-bg);
+  color: var(--notion-green);
+}
+
+.pillNotFound {
+  background-color: var(--notion-light-gray);
+  color: var(--notion-fg);
+  opacity: 0.65;
+}
+
+.cardBottom {
+  display: flex;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.profileInactive {
+  font-size: 12px;
+  color: var(--notion-fg);
+  opacity: 0.45;
+  font-style: italic;
+}
+
+/* New Deep Scan UI Elements */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+
+.sectionHeader {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--notion-fg);
+  opacity: 0.6;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--notion-border);
+  padding-bottom: 8px;
+  margin-top: 14px;
+}
+
+.counterText {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--notion-fg);
+}
+
+.progressBarContainer {
+  width: 100%;
+  height: 8px;
+  background-color: var(--notion-border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.progressBarFill {
+  height: 100%;
+  background-color: var(--notion-green);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 4px rgba(46, 204, 113, 0.4);
+}
+
+.visitBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  background-color: var(--notion-accent-bg);
+  color: var(--notion-accent) !important;
+  border: 1px solid var(--notion-border);
+  border-radius: 6px;
+  padding: 5px 10px;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.visitBtn:hover {
+  background-color: var(--notion-accent);
+  color: white !important;
+  border-color: var(--notion-accent);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(35, 131, 226, 0.25);
+}
+
+.completeBanner {
+  background-color: var(--notion-green-bg);
+  border: 1px solid rgba(46, 204, 113, 0.25);
+  color: var(--notion-green);
+  border-radius: 8px;
+  padding: 12px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: fadeIn 0.3s ease-out;
+  box-shadow: 0 2px 8px rgba(46, 204, 113, 0.05);
+}
+
+.completeBanner span {
+  color: inherit;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes cardPop {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.deepProgressBox {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--notion-border);
+  border-radius: 6px;
+  background-color: var(--notion-light-gray);
+  margin-bottom: 10px;
+}
+
+.deepProgressTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.progressPct {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--notion-accent);
+}
+
+.collapsibleSection {
+  border: 1px solid var(--notion-border);
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: var(--notion-bg);
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+}
+
+.collapsibleHeader {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--notion-fg);
+  transition: background-color 0.15s ease;
+}
+
+.collapsibleHeader:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.collapsibleGreen {
+  color: var(--notion-green);
+  border-left: 3px solid var(--notion-green);
+  background-color: rgba(46, 204, 113, 0.04);
+}
+
+.collapsibleGray {
+  color: var(--notion-fg);
+  opacity: 0.8;
+  border-left: 3px solid var(--notion-border-strong);
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.collapsibleOrange {
+  color: #d97706;
+  border-left: 3px solid #d97706;
+  background-color: rgba(217, 119, 6, 0.04);
+}
+
+.collapsibleIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  opacity: 0.7;
+}
+
+.compactList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 14px;
+  max-height: 200px;
+  overflow-y: auto;
+  border-top: 1px solid var(--notion-border);
+  background-color: var(--notion-bg);
+}
+
+.compactItem {
+  font-size: 12px;
+  background-color: var(--notion-light-gray);
+  color: var(--notion-fg);
+  opacity: 0.75;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--notion-border);
+}
+
+.compactItemOrange {
+  font-size: 12px;
+  background-color: rgba(217, 119, 6, 0.08);
+  color: #d97706;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(217, 119, 6, 0.2);
+}
+
+.compactEmpty {
+  font-size: 12px;
+  color: var(--notion-fg);
+  opacity: 0.5;
+  padding: 10px 14px;
+  font-style: italic;
+  border-top: 1px solid var(--notion-border);
+}
+
