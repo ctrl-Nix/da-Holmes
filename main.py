@@ -166,22 +166,24 @@ def create_application() -> FastAPI:
 
     # --- CORS Middleware ---
     import os
-    frontend_url = os.getenv("FRONTEND_URL", "*")
-    origins = ["http://localhost:5173"]
+    frontend_url = os.getenv("FRONTEND_URL", "")
+    origins = [
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "https://your-project.vercel.app"
+    ]
+    
     if frontend_url:
-        if frontend_url == "*":
-            origins.append("*")
-        else:
-            if "," in frontend_url:
-                origins.extend([o.strip() for o in frontend_url.split(",") if o.strip()])
-            else:
-                origins.append(frontend_url)
-    else:
-        origins.append("*")
+        if "," in frontend_url:
+            origins.extend([o.strip() for o in frontend_url.split(",") if o.strip()])
+        elif frontend_url not in origins:
+            origins.append(frontend_url)
 
-    allow_credentials = True
+    # Ensure no wildcards if using credentials
     if "*" in origins:
-        allow_credentials = False
+        origins.remove("*")
+        
+    allow_credentials = True
 
     application.add_middleware(
         CORSMiddleware,
@@ -1022,10 +1024,12 @@ async def maigret_scan(request: Request, username: str = Query(...)):
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
+    import os
+    port = int(os.getenv("PORT", 8000))
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
-        port=8000,
-        reload=True,
+        port=port,
+        reload=True if port == 8000 else False,
         log_level="info",
     )
