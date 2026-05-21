@@ -140,9 +140,9 @@ export default function ApiVault() {
       <form onSubmit={handleSave} className="space-y-6">
         {/* VirusTotal Input */}
         <div className="space-y-2">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center mb-1">
             <label className="text-sm font-semibold text-slate-200">VirusTotal API Key</label>
-            <span className="text-[10px] text-slate-500">IP reputation & hash scanning</span>
+            <span className="text-xs text-slate-500 bg-slate-900/50 px-2 py-0.5 rounded border border-white/5">IP reputation & hash scanning</span>
           </div>
           <div className="relative flex items-center">
             <input
@@ -150,17 +150,17 @@ export default function ApiVault() {
               placeholder={keys.virustotal === '********' ? '••••••••••••••••' : 'Enter VirusTotal API Key'}
               value={keys.virustotal === '********' ? '' : keys.virustotal}
               onChange={(e) => handleInputChange('virustotal', e.target.value)}
-              className="w-full bg-slate-900 border border-slate-800 focus:border-emerald-500/50 rounded-lg px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-600 outline-none transition-colors"
+              className={`w-full bg-slate-900/80 border border-slate-700/50 focus:border-emerald-500/50 rounded-lg py-3.5 pr-10 text-sm text-slate-100 placeholder-slate-500 outline-none transition-colors shadow-inner ${keys.virustotal === '********' ? 'pl-28' : 'pl-4'}`}
             />
             {keys.virustotal === '********' && (
-              <span className="absolute left-3.5 text-xs text-emerald-500/60 font-semibold uppercase tracking-wider pointer-events-none">
-                [Configured]
+              <span className="absolute left-4 text-[11px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded font-bold uppercase tracking-wider pointer-events-none">
+                Configured
               </span>
             )}
             <button
               type="button"
               onClick={() => toggleVisibility('virustotal')}
-              className="absolute right-3 text-slate-500 hover:text-slate-300 transition-colors p-1"
+              className="absolute right-4 text-slate-400 hover:text-slate-200 transition-colors p-1"
             >
               {visibility.virustotal ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
@@ -169,9 +169,9 @@ export default function ApiVault() {
 
         {/* Shodan Input */}
         <div className="space-y-2">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center mb-1">
             <label className="text-sm font-semibold text-slate-200">Shodan API Key</label>
-            <span className="text-[10px] text-slate-500">Port scanner & banner intelligence</span>
+            <span className="text-xs text-slate-500 bg-slate-900/50 px-2 py-0.5 rounded border border-white/5">Port scanner & banner intelligence</span>
           </div>
           <div className="relative flex items-center">
             <input
@@ -179,17 +179,17 @@ export default function ApiVault() {
               placeholder={keys.shodan === '********' ? '••••••••••••••••' : 'Enter Shodan API Key'}
               value={keys.shodan === '********' ? '' : keys.shodan}
               onChange={(e) => handleInputChange('shodan', e.target.value)}
-              className="w-full bg-slate-900 border border-slate-800 focus:border-emerald-500/50 rounded-lg px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-600 outline-none transition-colors"
+              className={`w-full bg-slate-900/80 border border-slate-700/50 focus:border-emerald-500/50 rounded-lg py-3.5 pr-10 text-sm text-slate-100 placeholder-slate-500 outline-none transition-colors shadow-inner ${keys.shodan === '********' ? 'pl-28' : 'pl-4'}`}
             />
             {keys.shodan === '********' && (
-              <span className="absolute left-3.5 text-xs text-emerald-500/60 font-semibold uppercase tracking-wider pointer-events-none">
-                [Configured]
+              <span className="absolute left-4 text-[11px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded font-bold uppercase tracking-wider pointer-events-none">
+                Configured
               </span>
             )}
             <button
               type="button"
               onClick={() => toggleVisibility('shodan')}
-              className="absolute right-3 text-slate-500 hover:text-slate-300 transition-colors p-1"
+              className="absolute right-4 text-slate-400 hover:text-slate-200 transition-colors p-1"
             >
               {visibility.shodan ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
@@ -198,9 +198,9 @@ export default function ApiVault() {
 
         {/* Hunter.io Input */}
         <div className="space-y-2">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center mb-1">
             <label className="text-sm font-semibold text-slate-200">Hunter.io API Key</label>
-            <span className="text-[10px] text-slate-500">Email format & domain verification</span>
+            <span className="text-xs text-slate-500 bg-slate-900/50 px-2 py-0.5 rounded border border-white/5">Email format & domain verification</span>
           </div>
           <div className="relative flex items-center">
             <input
@@ -208,17 +208,17 @@ export default function ApiVault() {
               placeholder={keys.hunterio === '********' ? '••••••••••••••••' : 'Enter Hunter.io API Key'}
               value={keys.hunterio === '********' ? '' : keys.hunterio}
               onChange={(e) => handleInputChange('hunterio', e.target.value)}
-              className="w-full bg-slate-900 border border-slate-800 focus:border-emerald-500/50 rounded-lg px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-600 outline-none transition-colors"
+              className={`w-full bg-slate-900/80 border border-slate-700/50 focus:border-emerald-500/50 rounded-lg py-3.5 pr-10 text-sm text-slate-100 placeholder-slate-500 outline-none transition-colors shadow-inner ${keys.hunterio === '********' ? 'pl-28' : 'pl-4'}`}
             />
             {keys.hunterio === '********' && (
-              <span className="absolute left-3.5 text-xs text-emerald-500/60 font-semibold uppercase tracking-wider pointer-events-none">
-                [Configured]
+              <span className="absolute left-4 text-[11px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded font-bold uppercase tracking-wider pointer-events-none">
+                Configured
               </span>
             )}
             <button
               type="button"
               onClick={() => toggleVisibility('hunterio')}
-              className="absolute right-3 text-slate-500 hover:text-slate-300 transition-colors p-1"
+              className="absolute right-4 text-slate-400 hover:text-slate-200 transition-colors p-1"
             >
               {visibility.hunterio ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
@@ -245,7 +245,7 @@ export default function ApiVault() {
           <button
             type="submit"
             disabled={status === 'saving'}
-            className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-800/40 text-slate-950 font-bold py-2.5 px-4 rounded-lg cursor-pointer transition-all active:scale-[0.98] shadow-lg shadow-emerald-600/10"
+            className="w-full flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 disabled:bg-emerald-900/40 disabled:text-emerald-500/40 text-slate-950 font-bold py-3.5 px-4 rounded-lg cursor-pointer transition-all active:scale-[0.98] shadow-[0_0_15px_rgba(16,185,129,0.2)] mt-4 text-base"
           >
             {status === 'saving' ? (
               <>

@@ -350,40 +350,40 @@ export default function App() {
 
               {status === 'idle' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-12 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-                   <div className="notion-card group cursor-pointer flex flex-col justify-between">
-                      <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center border border-blue-500/20 mb-4 group-hover:scale-110 transition-transform">
-                        <Code2 size={20} className="text-cyan-400" />
+                   <div className="notion-card group cursor-pointer flex flex-col justify-between min-h-[160px] h-full p-6">
+                      <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center border border-blue-500/20 mb-5 group-hover:scale-110 transition-transform">
+                        <Code2 size={24} className="text-cyan-400" />
                       </div>
                       <div>
-                        <h3 className="text-base text-slate-200 mb-1">Technical Stack</h3>
-                        <p className="text-xs text-slate-500 leading-relaxed m-0">Identify server-side technologies and frameworks.</p>
+                        <h3 className="text-lg font-semibold text-slate-100 mb-1.5">Technical Stack</h3>
+                        <p className="text-sm text-slate-400 leading-relaxed m-0">Identify server-side technologies and frameworks.</p>
                       </div>
                    </div>
-                   <div className="notion-card group cursor-pointer flex flex-col justify-between">
-                      <div className="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center border border-orange-500/20 mb-4 group-hover:scale-110 transition-transform">
-                        <ShieldCheck size={20} className="text-orange-400" />
+                   <div className="notion-card group cursor-pointer flex flex-col justify-between min-h-[160px] h-full p-6">
+                      <div className="w-12 h-12 bg-orange-500/10 rounded-xl flex items-center justify-center border border-orange-500/20 mb-5 group-hover:scale-110 transition-transform">
+                        <ShieldCheck size={24} className="text-orange-400" />
                       </div>
                       <div>
-                        <h3 className="text-base text-slate-200 mb-1">Spoofing Audit</h3>
-                        <p className="text-xs text-slate-500 leading-relaxed m-0">Verify SPF/DMARC records and email security.</p>
+                        <h3 className="text-lg font-semibold text-slate-100 mb-1.5">Spoofing Audit</h3>
+                        <p className="text-sm text-slate-400 leading-relaxed m-0">Verify SPF/DMARC records and email security.</p>
                       </div>
                    </div>
-                   <div className="notion-card group cursor-pointer flex flex-col justify-between">
-                      <div className="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center border border-emerald-500/20 mb-4 group-hover:scale-110 transition-transform">
-                        <History size={20} className="text-emerald-400" />
+                   <div className="notion-card group cursor-pointer flex flex-col justify-between min-h-[160px] h-full p-6">
+                      <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center border border-emerald-500/20 mb-5 group-hover:scale-110 transition-transform">
+                        <History size={24} className="text-emerald-400" />
                       </div>
                       <div>
-                        <h3 className="text-base text-slate-200 mb-1">History Lookup</h3>
-                        <p className="text-xs text-slate-500 leading-relaxed m-0">Fetch archived snapshots from Wayback Machine.</p>
+                        <h3 className="text-lg font-semibold text-slate-100 mb-1.5">History Lookup</h3>
+                        <p className="text-sm text-slate-400 leading-relaxed m-0">Fetch archived snapshots from Wayback Machine.</p>
                       </div>
                    </div>
-                   <div className="notion-card group cursor-pointer flex flex-col justify-between">
-                      <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center border border-purple-500/20 mb-4 group-hover:scale-110 transition-transform">
-                        <Hash size={20} className="text-purple-400" />
+                   <div className="notion-card group cursor-pointer flex flex-col justify-between min-h-[160px] h-full p-6">
+                      <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center border border-purple-500/20 mb-5 group-hover:scale-110 transition-transform">
+                        <Hash size={24} className="text-purple-400" />
                       </div>
                       <div>
-                        <h3 className="text-base text-slate-200 mb-1">BTC Intelligence</h3>
-                        <p className="text-xs text-slate-500 leading-relaxed m-0">Audit wallet balances and transaction history.</p>
+                        <h3 className="text-lg font-semibold text-slate-100 mb-1.5">BTC Intelligence</h3>
+                        <p className="text-sm text-slate-400 leading-relaxed m-0">Audit wallet balances and transaction history.</p>
                       </div>
                    </div>
                 </div>
