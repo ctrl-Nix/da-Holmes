@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum
-from typing import Optional
+from typing import Optional, List, Any, Dict
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -249,4 +249,65 @@ class DomainScanResponse(BaseModel):
             "scanned_at": "2025-01-01T12:00:00Z",
         }
     }}
+
+
+# ---------------------------------------------------------------------------
+# Database Integration Schemas
+# ---------------------------------------------------------------------------
+
+class TargetResultBase(BaseModel):
+    module_name: str = Field(..., description="Name of the module that generated this result.", examples=["shodan"])
+    raw_json: Optional[Dict[str, Any]] = Field(default=None, description="Raw JSON data payload from the module.")
+    status: str = Field(..., description="Execution status of the module.", examples=["success"])
+
+class TargetResultCreate(TargetResultBase):
+    investigation_id: int = Field(..., description="Parent investigation ID.")
+
+class TargetResultResponse(TargetResultBase):
+    id: int
+    investigation_id: int
+
+    model_config = {
+        "from_attributes": True
+    }
+
+
+class AnalystNoteBase(BaseModel):
+    tag_color: Optional[str] = Field(default=None, description="CSS color tag.", examples=["#ff0000"])
+    note_text: str = Field(..., description="Content of the note.")
+
+class AnalystNoteCreate(AnalystNoteBase):
+    investigation_id: int = Field(..., description="Parent investigation ID.")
+
+class AnalystNoteUpdate(BaseModel):
+    tag_color: Optional[str] = Field(default=None, description="Updated CSS color tag.")
+    note_text: Optional[str] = Field(default=None, description="Updated content of the note.")
+
+class AnalystNoteResponse(AnalystNoteBase):
+    id: int
+    investigation_id: int
+    timestamp: datetime
+
+    model_config = {
+        "from_attributes": True
+    }
+
+
+class InvestigationBase(BaseModel):
+    query_type: str = Field(..., description="Query type (e.g. ip, domain, email, username).", examples=["domain"])
+    query_value: str = Field(..., description="Value scanned.", examples=["example.com"])
+
+class InvestigationCreate(InvestigationBase):
+    pass
+
+class InvestigationResponse(InvestigationBase):
+    id: int
+    timestamp: datetime
+    results: List[TargetResultResponse] = []
+    notes: List[AnalystNoteResponse] = []
+
+    model_config = {
+        "from_attributes": True
+    }
+
 

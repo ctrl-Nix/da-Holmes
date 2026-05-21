@@ -55,3 +55,8 @@ __pycache__/
 venv/
 env/
 ENV/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3

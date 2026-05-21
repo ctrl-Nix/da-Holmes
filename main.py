@@ -19,9 +19,12 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
-from app.api.routes import analyze, scanner, domain, security, network, forensics, email, crypto, geoint, archive, techstack, spoofing, threatintel, certificates, trackers, friendship, unified
+from app.api.routes import analyze, scanner, domain, security, network, forensics, email, crypto, geoint, archive, techstack, spoofing, threatintel, certificates, trackers, friendship, unified, history
 from app.core.config import settings
 from app.core.keep_alive import start_keep_alive
+from contextlib import asynccontextmanager
+from app.database import engine, Base
+from app.models import models
 
 # Start keep-alive thread to bypass Render free tier sleep
 start_keep_alive()
@@ -46,6 +49,14 @@ def validate_value(val: str, field_name: str = "Input") -> str:
 # Application Factory
 # ---------------------------------------------------------------------------
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Create SQLite database tables if they don't exist
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
+    await engine.dispose()
+
 def create_application() -> FastAPI:
     application = FastAPI(
         title=settings.PROJECT_NAME,
@@ -53,6 +64,7 @@ def create_application() -> FastAPI:
         version=settings.VERSION,
         docs_url="/docs",
         redoc_url="/redoc",
+        lifespan=lifespan,
     )
 
     # --- SlowAPI & Rate Limiting ---
@@ -290,6 +302,12 @@ def create_application() -> FastAPI:
         unified.router,
         prefix="/api",
         tags=["Unified OSINT"],
+    )
+
+    application.include_router(
+        history.router,
+        prefix="/api",
+        tags=["Investigation History"],
     )
 
     return application
