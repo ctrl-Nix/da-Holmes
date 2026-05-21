@@ -1,19 +1,34 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy import event
-from sqlalchemy.engine import Engine
-import sqlite3
-
 import os
 
-# SQLite database URL for async operations using aiosqlite, with environment variable override
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./holmes.db")
+# Dynamically resolve DATABASE_URL and database engine settings
+RAW_DATABASE_URL = os.getenv("DATABASE_URL", "")
 
-# Create async engine. check_same_thread is set to False for SQLite multithreading support.
+if RAW_DATABASE_URL:
+    # Support PostgreSQL with asyncpg driver
+    # Platforms like Heroku, Render, or Neon often provide postgres:// or postgresql:// URLs
+    if RAW_DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = RAW_DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
+    elif RAW_DATABASE_URL.startswith("postgresql://"):
+        DATABASE_URL = RAW_DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
+    else:
+        DATABASE_URL = RAW_DATABASE_URL
+    
+    engine_args = {}
+else:
+    # Default to local SQLite database path using aiosqlite for async compatibility
+    DATABASE_URL = "sqlite+aiosqlite:///./holmes.db"
+    engine_args = {
+        "connect_args": {"check_same_thread": False}
+    }
+
+# Create async engine
 engine = create_async_engine(
     DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    echo=False
+    echo=False,
+    **engine_args
 )
 
 # Configure the async session maker
@@ -29,12 +44,13 @@ AsyncSessionLocal = async_sessionmaker(
 class Base(DeclarativeBase):
     pass
 
-# Event listener to enable foreign key constraints for SQLite
+# Event listener to enable foreign key constraints for SQLite connection sessions
 @event.listens_for(engine.sync_engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
-    cursor = dbapi_connection.cursor()
-    cursor.execute("PRAGMA foreign_keys=ON")
-    cursor.close()
+    if "sqlite" in engine.url.drivername:
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
 
 # FastAPI dependency to yield database sessions
 async def get_db():
