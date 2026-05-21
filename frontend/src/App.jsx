@@ -49,10 +49,14 @@ function SidebarItem({ icon: Icon, label, active, onClick }) {
   return (
     <div 
       onClick={onClick}
-      className={`flex items-center gap-2 px-3 py-1.5 rounded-md cursor-pointer text-sm font-medium transition-colors ${active ? 'bg-[rgba(55,53,47,0.08)]' : 'hover:bg-[rgba(55,53,47,0.03)]'}`}
+      className={`flex items-center gap-3 px-4 py-2.5 rounded-xl cursor-pointer text-sm font-medium transition-all ${
+        active 
+        ? 'bg-blue-500/10 text-cyan-400 border border-blue-500/20 shadow-[0_0_15px_rgba(34,211,238,0.1)]' 
+        : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent'
+      }`}
     >
-      <Icon size={16} className={active ? 'text-blue-500' : 'text-[rgba(55,53,47,0.45)]'} />
-      <span className={active ? 'text-[#37352f]' : 'text-[rgba(55,53,47,0.65)]'}>{label}</span>
+      <Icon size={18} className={active ? 'text-cyan-400' : 'text-slate-500'} />
+      <span>{label}</span>
     </div>
   );
 }
@@ -80,37 +84,25 @@ function SearchBar({ onSearch, onClear, loading }) {
   };
 
   return (
-    <div className="mb-12 w-full max-w-full">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-2 w-full">
-        <div 
-          className="flex items-center gap-3 bg-[rgba(242,241,238,0.6)] transition-all"
-          style={{
-            minHeight: '52px',
-            borderRadius: '12px',
-            border: '1px solid var(--notion-border)',
-            padding: '6px 16px',
-            width: '100%',
-            boxShadow: 'none'
-          }}
-          onFocus={(e) => e.currentTarget.style.boxShadow = '0 0 0 3px rgba(35,131,226,0.15)'}
-          onBlur={(e) => e.currentTarget.style.boxShadow = 'none'}
-        >
+    <div className="mb-12 w-full max-w-full animate-fade-in" style={{ animationDelay: '0.1s' }}>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-full">
+        <div className="search-container flex items-center gap-3">
           <div className="relative">
             <button 
               type="button"
               onClick={() => setCatOpen(!catOpen)}
-              className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-[rgba(55,53,47,0.05)] text-xs font-medium text-[rgba(55,53,47,0.5)]"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-semibold text-slate-300 border border-white/10 transition-colors"
             >
               <span>{category.emoji}</span>
-              <ChevronDown size={12} />
+              <ChevronDown size={14} className="text-slate-400" />
             </button>
             {catOpen && (
-              <div className="absolute top-full left-0 mt-1 z-50 bg-white border border-[rgba(55,53,47,0.09)] rounded-md shadow-xl min-w-[140px] py-1">
+              <div className="absolute top-full left-0 mt-2 z-50 bg-[#111827] border border-white/10 rounded-xl shadow-2xl min-w-[160px] py-2 backdrop-blur-xl">
                 {CATEGORIES.map(cat => (
                   <div 
                     key={cat.value}
                     onClick={() => { setCategory(cat); setCatOpen(false); }}
-                    className="flex items-center gap-2 px-3 py-1.5 text-xs hover:bg-[rgba(55,53,47,0.03)] cursor-pointer"
+                    className="flex items-center gap-3 px-4 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-cyan-400 cursor-pointer transition-colors"
                   >
                     <span>{cat.emoji}</span> {cat.label}
                   </div>
@@ -118,28 +110,29 @@ function SearchBar({ onSearch, onClear, loading }) {
               </div>
             )}
           </div>
+          
           <input 
-            className="flex-1 bg-transparent border-none outline-none text-sm text-[#37352f] placeholder-[rgba(55,53,47,0.3)]"
+            className="notion-input"
             placeholder="Investigate anything — domain, username, email, IP, Bitcoin address..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
           
-          <span className="notion-tag text-[10px] bg-blue-50 text-blue-700 border-blue-100 px-2 py-0.5 rounded font-bold uppercase">
+          <span className="text-[10px] bg-blue-500/10 text-cyan-400 border border-blue-500/20 px-2.5 py-1 rounded-md font-bold uppercase tracking-wider whitespace-nowrap">
             {category.label}
           </span>
 
           <button 
             type="submit" 
             disabled={loading}
-            className="notion-button-primary px-4 py-1.5 text-xs rounded"
+            className="notion-button-primary px-6 py-2 text-sm whitespace-nowrap"
           >
             {loading ? 'Running...' : 'Investigate'}
           </button>
         </div>
-        <div className="flex items-center justify-between px-1">
-          <span className="text-[10px] text-[rgba(55,53,47,0.4)] font-medium">⚡ Pro Tip: Try auto-detect mode</span>
-          {query && <span onClick={() => { setQuery(''); onClear(); }} className="text-[10px] text-red-500 cursor-pointer hover:underline">Clear</span>}
+        <div className="flex items-center justify-between px-2">
+          <span className="text-xs text-slate-500 font-medium tracking-wide">⚡ Pro Tip: Try auto-detect mode for best results</span>
+          {query && <span onClick={() => { setQuery(''); onClear(); }} className="text-xs text-red-400 cursor-pointer hover:text-red-300 transition-colors">Clear Input</span>}
         </div>
       </form>
     </div>
@@ -273,9 +266,10 @@ export default function App() {
         Server waking up, please wait...
       </div>
       {/* Sidebar */}
-      <aside className="notion-sidebar p-4 flex flex-col gap-1">
-        <div className="flex items-center gap-2 px-2 py-3 mb-4" style={{ fontSize: '15px' }}>
+      <aside className="notion-sidebar p-6 flex flex-col gap-2">
+        <div className="flex items-center gap-3 px-2 py-4 mb-6 border-b border-white/5">
           <HolmesLogo />
+          <span className="font-bold text-lg tracking-wide text-white">da Holmes</span>
         </div>
         
         <SidebarItem icon={LayoutGrid} label="Dashboard" active={view === 'dashboard'} onClick={() => setView('dashboard')} />
@@ -284,8 +278,8 @@ export default function App() {
         <SidebarItem icon={FileText} label="Recent Reports" />
         <SidebarItem icon={Settings} label="Settings" active={view === 'settings'} onClick={() => setView('settings')} />
         
-        <div className="mt-8 text-[10px] font-semibold text-[rgba(55,53,47,0.3)] uppercase px-2 mb-2 tracking-widest">Modules</div>
-        <div className="flex flex-col gap-0.5">
+        <div className="mt-10 text-[11px] font-bold text-slate-500 uppercase px-4 mb-3 tracking-widest">Active Modules</div>
+        <div className="flex flex-col gap-1">
            <SidebarItem icon={ShieldCheck} label="Spoofing Audit" />
            <SidebarItem icon={Mail} label="Email Search" />
            <SidebarItem icon={Globe} label="Domain Scan" />
@@ -296,28 +290,34 @@ export default function App() {
 
       {/* Main Content */}
       <main className="notion-main">
-        <div className="max-w-[800px]">
+        <div className="max-w-[840px] mx-auto">
           {view === 'settings' ? (
             <ApiVault />
           ) : (
             <>
-              <div className="flex items-center gap-4 mb-4 text-4xl">🕵️‍♂️</div>
-              <h1>Investigation Portal</h1>
-              <p>
-                Start a new multi-source intelligence gathering session. 
-                Inputs are automatically correlated across global databases.
-              </p>
+              <div className="flex items-center gap-4 mb-6 animate-fade-in">
+                <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center border border-blue-500/20 shadow-[0_0_20px_rgba(34,211,238,0.15)]">
+                  <Search size={24} className="text-cyan-400" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-300">Investigation Portal</h1>
+                  <p className="text-sm text-slate-400 mt-1">
+                    Start a new multi-source intelligence gathering session. 
+                    Inputs are automatically correlated across global databases.
+                  </p>
+                </div>
+              </div>
 
               <SearchBar onSearch={handleSearch} onClear={() => setStatus('idle')} loading={status === 'loading'} />
 
               {status === 'loading' && !results && <InvestigatingState />}
-              {error && <div className="p-3 bg-red-50 text-red-600 rounded-md border border-red-100 text-sm mb-6">⚠️ {error}</div>}
+              {error && <div className="p-4 bg-red-500/10 text-red-400 rounded-xl border border-red-500/20 text-sm mb-6 flex items-center gap-3"><AlertTriangle size={18}/> {error}</div>}
 
               {results && (
                 <div className="flex flex-col gap-10 animate-fade-in">
                   <Section title="Investigation Summary" emoji="📝">
-                    <div className="notion-card bg-[rgba(242,241,238,0.3)] border-none">
-                       <p className="text-sm m-0 italic">"{results.summary}"</p>
+                    <div className="glass-panel rounded-xl p-5">
+                       <p className="text-sm m-0 text-cyan-100 font-mono italic leading-relaxed">"{results.summary}"</p>
                     </div>
                   </Section>
 
@@ -339,36 +339,52 @@ export default function App() {
                   )}
                   
                   {/* Report Footer */}
-                  <div className="mt-20 pt-8 border-t border-[rgba(55,53,47,0.1)] flex justify-between items-center opacity-50">
-                    <span className="text-xs font-medium italic">Auto-generated report • Public Data Only</span>
-                    <button onClick={() => generatePDF(results)} className="notion-button text-xs">
-                      <FileText size={14} /> Download Report
+                  <div className="mt-20 pt-8 border-t border-white/10 flex justify-between items-center opacity-70 hover:opacity-100 transition-opacity">
+                    <span className="text-xs font-medium text-slate-400">Auto-generated report • Public Data Only</span>
+                    <button onClick={() => generatePDF(results)} className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-200 text-xs font-semibold rounded-lg border border-white/10 transition-colors">
+                      <FileText size={14} className="text-cyan-400" /> Download Report
                     </button>
                   </div>
                 </div>
               )}
 
               {status === 'idle' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-12">
-                   <div className="notion-card group cursor-pointer">
-                      <div className="text-2xl mb-2">🔭</div>
-                      <h3 className="text-sm">Technical Stack</h3>
-                      <p className="text-xs m-0">Identify server-side technologies and frameworks.</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-12 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+                   <div className="notion-card group cursor-pointer flex flex-col justify-between">
+                      <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center border border-blue-500/20 mb-4 group-hover:scale-110 transition-transform">
+                        <Code2 size={20} className="text-cyan-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-base text-slate-200 mb-1">Technical Stack</h3>
+                        <p className="text-xs text-slate-500 leading-relaxed m-0">Identify server-side technologies and frameworks.</p>
+                      </div>
                    </div>
-                   <div className="notion-card group cursor-pointer">
-                      <div className="text-2xl mb-2">🔒</div>
-                      <h3 className="text-sm">Spoofing Audit</h3>
-                      <p className="text-xs m-0">Verify SPF/DMARC records and email security.</p>
+                   <div className="notion-card group cursor-pointer flex flex-col justify-between">
+                      <div className="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center border border-orange-500/20 mb-4 group-hover:scale-110 transition-transform">
+                        <ShieldCheck size={20} className="text-orange-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-base text-slate-200 mb-1">Spoofing Audit</h3>
+                        <p className="text-xs text-slate-500 leading-relaxed m-0">Verify SPF/DMARC records and email security.</p>
+                      </div>
                    </div>
-                   <div className="notion-card group cursor-pointer">
-                      <div className="text-2xl mb-2">🕰️</div>
-                      <h3 className="text-sm">History Lookup</h3>
-                      <p className="text-xs m-0">Fetch archived snapshots from Wayback Machine.</p>
+                   <div className="notion-card group cursor-pointer flex flex-col justify-between">
+                      <div className="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center border border-emerald-500/20 mb-4 group-hover:scale-110 transition-transform">
+                        <History size={20} className="text-emerald-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-base text-slate-200 mb-1">History Lookup</h3>
+                        <p className="text-xs text-slate-500 leading-relaxed m-0">Fetch archived snapshots from Wayback Machine.</p>
+                      </div>
                    </div>
-                   <div className="notion-card group cursor-pointer">
-                      <div className="text-2xl mb-2">⛓️</div>
-                      <h3 className="text-sm">BTC Intelligence</h3>
-                      <p className="text-xs m-0">Audit wallet balances and transaction history.</p>
+                   <div className="notion-card group cursor-pointer flex flex-col justify-between">
+                      <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center border border-purple-500/20 mb-4 group-hover:scale-110 transition-transform">
+                        <Hash size={20} className="text-purple-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-base text-slate-200 mb-1">BTC Intelligence</h3>
+                        <p className="text-xs text-slate-500 leading-relaxed m-0">Audit wallet balances and transaction history.</p>
+                      </div>
                    </div>
                 </div>
               )}
@@ -377,7 +393,7 @@ export default function App() {
         </div>
       </main>
 
-      <footer className="fixed bottom-4 right-4 text-[10px] font-semibold text-[rgba(55,53,47,0.3)] uppercase tracking-widest bg-white/80 px-2 py-1 rounded">
+      <footer className="fixed bottom-6 right-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest glass-panel px-4 py-2 rounded-full border border-white/10 shadow-lg">
         Holmes Intelligence Protocol v2.1
       </footer>
     </div>
