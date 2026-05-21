@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Key, Eye, EyeOff, Save, ShieldAlert, Server, ShieldCheck, RefreshCw } from 'lucide-react';
 
+import { API_BASE_URL } from '../utils/api';
+
 export default function ApiVault() {
   const [keys, setKeys] = useState({
     virustotal: '',
@@ -16,7 +18,7 @@ export default function ApiVault() {
   const [errorMsg, setErrorMsg] = useState('');
   const [dbStatus, setDbStatus] = useState('unknown'); // unknown | connected | error
 
-  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  const API_BASE = API_BASE_URL;
 
   // Fetch already saved keys (they will return masked as ******** if set)
   useEffect(() => {

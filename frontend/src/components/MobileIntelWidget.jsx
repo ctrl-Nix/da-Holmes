@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Smartphone, AlertTriangle, Loader2, Star, CheckCircle, ShieldAlert } from 'lucide-react';
+import { API_BASE_URL } from '../utils/api';
 
 export default function MobileIntelWidget({ domain }) {
   const [data, setData] = useState(null);
@@ -22,7 +23,7 @@ export default function MobileIntelWidget({ domain }) {
       const query = domain.replace(/^(https?:\/\/)?(www\.)?/, '').split('.')[0];
 
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || '';
+        const apiUrl = API_BASE_URL;
         const response = await fetch(`${apiUrl}/api/mobile-recon/${encodeURIComponent(query)}`);
         
         if (response.status === 404) {

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Hash, Search, ExternalLink, AlertTriangle, Activity } from 'lucide-react';
+import { API_BASE_URL } from '../utils/api';
 
 const CryptoWidget = () => {
   const [address, setAddress] = useState('');
@@ -12,7 +13,7 @@ const CryptoWidget = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`http://localhost:8000/api/crypto/btc/${address}`);
+      const response = await fetch(`${API_BASE_URL}/api/crypto/btc/${address}`);
       const result = await response.json();
       if (result.status === 'success') {
         setData(result);

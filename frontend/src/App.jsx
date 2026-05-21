@@ -32,7 +32,9 @@ import OnboardingModal    from './components/OnboardingModal';
 import HolmesLogo         from './components/HolmesLogo';
 import ApiVault           from './components/ApiVault';
 
-const API_BASE = import.meta.env.VITE_API_URL || '';
+import { API_BASE_URL } from './utils/api';
+
+const API_BASE = API_BASE_URL;
 
 const CATEGORIES = [
   { value: 'unified',  label: 'Auto-Detect',   icon: Zap, emoji: '⚡' },
@@ -150,7 +152,7 @@ export default function App() {
   const [bannerVisible, setBannerVisible] = useState(false);
 
   useEffect(() => {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    const apiUrl = API_BASE_URL;
     setBannerVisible(true);
     fetch(`${apiUrl}/health`)
       .then(res => {

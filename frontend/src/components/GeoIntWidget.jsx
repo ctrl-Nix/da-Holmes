@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { MapPin, Search, ExternalLink, AlertTriangle, Globe } from 'lucide-react';
+import { API_BASE_URL } from '../utils/api';
 
 const GeoIntWidget = () => {
   const [bssid, setBssid] = useState('');
@@ -12,7 +13,7 @@ const GeoIntWidget = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`http://localhost:8000/api/geoint/wifi/${bssid}`);
+      const response = await fetch(`${API_BASE_URL}/api/geoint/wifi/${bssid}`);
       const result = await response.json();
       if (result.status === 'success') {
         setData(result);

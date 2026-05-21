@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Download, Loader2 } from 'lucide-react';
+import { API_BASE_URL } from '../utils/api';
 
 export default function DownloadReportButton({ dashboardData, disabled = false }) {
   const [isDownloading, setIsDownloading] = useState(false);
@@ -12,7 +13,7 @@ export default function DownloadReportButton({ dashboardData, disabled = false }
     
     try {
       setIsDownloading(true);
-      const apiUrl = import.meta.env.VITE_API_URL || '';
+      const apiUrl = API_BASE_URL;
       const response = await fetch(`${apiUrl}/api/download-report?domain=${encodeURIComponent(target)}`, {
         method: 'GET',
       });
