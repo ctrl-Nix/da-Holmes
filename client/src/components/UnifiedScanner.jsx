@@ -181,7 +181,7 @@ export default function UnifiedScanner({ initialQuery = '' }) {
         const updated = [
           { query: cleanQuery, type: targetType, timestamp: Date.now(), riskScore: score }, 
           ...history.filter(h => h.query !== cleanQuery)
-        ].slice(0, 20);
+        ].slice(0, 50);
         localStorage.setItem('holmes-history', JSON.stringify(updated));
         window.dispatchEvent(new CustomEvent('holmes-history-updated'));
       } catch (hErr) {
@@ -333,17 +333,17 @@ export default function UnifiedScanner({ initialQuery = '' }) {
         
         const cleanQuery = query.trim();
         if (cleanQuery) {
-          history = history.filter(item => item.query !== cleanQuery);
+          const updated = [
+            {
+              query: cleanQuery,
+              type: detectedType || 'username',
+              timestamp: Date.now(),
+              riskScore: score
+            },
+            ...history.filter(item => item.query !== cleanQuery)
+          ].slice(0, 50);
           
-          history.unshift({
-            query: cleanQuery,
-            type: detectedType || 'username',
-            timestamp: new Date().toISOString(),
-            riskScore: score
-          });
-          
-          history = history.slice(0, 20);
-          localStorage.setItem('holmes-history', JSON.stringify(history));
+          localStorage.setItem('holmes-history', JSON.stringify(updated));
           window.dispatchEvent(new CustomEvent('holmes-history-updated'));
         }
       } catch (err) {

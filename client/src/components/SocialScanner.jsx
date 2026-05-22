@@ -97,7 +97,7 @@ export default function SocialScanner({ isLoading }) {
     setNotFoundOpen(false);
     setUnavailableOpen(false);
 
-    const url = `${API_BASE}/api/username/maigret?username=${encodeURIComponent(cleanUsername)}`;
+    const url = `${API_BASE}/api/analyze?username=${encodeURIComponent(cleanUsername)}`;
     const eventSource = new EventSource(url);
     activeAnalyzeSource.current = eventSource;
 
@@ -153,7 +153,7 @@ export default function SocialScanner({ isLoading }) {
     };
   };
 
-  const TOTAL_SITES = 3120;
+  const TOTAL_SITES = 1822;
   const quickFoundCount = quickFindings.filter(f => f.status === 'found').length;
   const totalFound = quickFoundCount + foundList.length;
   const progressPercent = Math.min(100, Math.round((totalChecked / TOTAL_SITES) * 100));

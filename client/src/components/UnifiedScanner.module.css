@@ -368,7 +368,7 @@ body.dark .batchCountInfo {
 
 /* --- Analyst Notes & Tags Styling --- */
 .hasResults {
-  max-width: 1050px !important;
+  max-width: 100% !important;
 }
 
 .resultsLayout {

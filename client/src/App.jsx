@@ -167,6 +167,65 @@ function ThreatTicker({ feed, loading }) {
   );
 }
 
+const mapHistoryToReports = (historyArray) => {
+  if (!Array.isArray(historyArray)) return [];
+  return historyArray.map((item, index) => {
+    const query = item.query || '';
+    const type = item.type || 'username';
+    const score = item.riskScore !== undefined ? item.riskScore : 100;
+    
+    let emoji = '🕵️';
+    if (type === 'domain') emoji = '🏢';
+    else if (type === 'username') emoji = '👤';
+    else if (type === 'btc') emoji = '💰';
+    else if (type === 'network') emoji = '🌐';
+    else if (type === 'email') emoji = '📧';
+    else if (type === 'phone') emoji = '📱';
+
+    let title = `Intelligence Target Audit (${query})`;
+    if (type === 'domain') title = `Corporate Security Audit (${query})`;
+    else if (type === 'username') title = `Subject Profile Brief (${query})`;
+    else if (type === 'btc') title = `High-Value Asset Tracing (${query})`;
+    else if (type === 'network') title = `IP Fingerprint & Route (${query})`;
+    else if (type === 'email') title = `Data Breach Intelligence (${query})`;
+    else if (type === 'phone') title = `Telephony Node Intelligence (${query})`;
+
+    let typeLabel = 'Target Audit';
+    if (type === 'domain') typeLabel = 'Domain Audit';
+    else if (type === 'username') typeLabel = 'Username Footprint';
+    else if (type === 'btc') typeLabel = 'Blockchain Intel';
+    else if (type === 'network') typeLabel = 'Network Node Audit';
+    else if (type === 'email') typeLabel = 'Email Threat Recon';
+    else if (type === 'phone') typeLabel = 'Telephony Node Recon';
+
+    let risk = 'SECURE';
+    if (score <= 33) risk = 'CRITICAL';
+    else if (score <= 66) risk = 'VULNERABLE';
+
+    let dateStr = '2026-05-22';
+    try {
+      const ts = item.timestamp || item.date;
+      if (ts) {
+        const d = new Date(ts);
+        if (!isNaN(d.getTime())) {
+          dateStr = d.toISOString().split('T')[0];
+        }
+      }
+    } catch (e) {}
+
+    return {
+      id: `rep-${index}-${item.timestamp || index}`,
+      emoji,
+      title,
+      date: dateStr,
+      target: query,
+      type: typeLabel,
+      author: 'Agent Holmes',
+      risk,
+      score
+    };
+  });
+};
 
 export default function App() {
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
@@ -254,13 +313,13 @@ export default function App() {
         // Save scan to history
         try {
           const history = JSON.parse(localStorage.getItem('holmes-history') || '[]');
-          const isDuplicate = history.some(item => item.query === cleanHost && item.type === 'network');
-          if (!isDuplicate) {
-            const updated = [{ query: cleanHost, type: 'network', date: new Date().toISOString() }, ...history];
-            localStorage.setItem('holmes-history', JSON.stringify(updated.slice(0, 50)));
-            if (typeof updateNotesCount === 'function') updateNotesCount();
-            window.dispatchEvent(new CustomEvent('holmes-history-updated'));
-          }
+          const updated = [
+            { query: cleanHost, type: 'network', timestamp: Date.now(), riskScore: 100 },
+            ...history.filter(item => item.query !== cleanHost)
+          ].slice(0, 50);
+          localStorage.setItem('holmes-history', JSON.stringify(updated));
+          if (typeof updateNotesCount === 'function') updateNotesCount();
+          window.dispatchEvent(new CustomEvent('holmes-history-updated'));
         } catch (hErr) {
           console.error('Failed to log traceroute history:', hErr);
         }
@@ -377,12 +436,38 @@ export default function App() {
     }
   };
 
+  const updateReportsFromHistory = () => {
+    try {
+      const saved = localStorage.getItem('holmes-history');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          if (parsed.length === 0) {
+            setReports([
+              { id: 'rep-mock-1', emoji: '🏢', title: 'Corporate Security Audit (kiit.ac.in)', date: '2026-05-17', target: 'kiit.ac.in', type: 'Domain Audit', author: 'Agent Holmes', risk: 'VULNERABLE', score: 65 },
+              { id: 'rep-mock-2', emoji: '👤', title: 'Subject Profile Brief (torvalds)', date: '2026-05-16', target: 'torvalds', type: 'Username Footprint', author: 'Agent Holmes', risk: 'SECURE', score: 92 },
+              { id: 'rep-mock-3', emoji: '💰', title: 'High-Value Asset Tracing (1A1zP1eP...)', date: '2026-05-15', target: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa', type: 'Blockchain Intel', author: 'System Sentinel', risk: 'CRITICAL', score: 20 },
+            ]);
+          } else {
+            setReports(mapHistoryToReports(parsed));
+          }
+        }
+      } else {
+        setReports([]);
+      }
+    } catch (err) {
+      console.error('Failed to update reports:', err);
+    }
+  };
+
   useEffect(() => {
     loadHistory();
     updateNotesCount();
+    updateReportsFromHistory();
     const handleHistoryUpdate = () => {
       loadHistory();
       updateNotesCount();
+      updateReportsFromHistory();
     };
     window.addEventListener('holmes-history-updated', handleHistoryUpdate);
     return () => {
@@ -510,11 +595,26 @@ export default function App() {
   const exifMapRef = useRef(null);
 
   // Simulated Database Reports
-  const [reports, setReports] = useState([
-    { id: 'rep-01', emoji: '🏢', title: 'Corporate Security Audit (kiit.ac.in)', date: '2026-05-17', target: 'kiit.ac.in', type: 'Domain Audit', author: 'Agent Holmes', risk: 'VULNERABLE', score: 65 },
-    { id: 'rep-02', emoji: '👤', title: 'Subject Profile Brief (torvalds)', date: '2026-05-16', target: 'torvalds', type: 'Username Footprint', author: 'Agent Holmes', risk: 'SECURE', score: 92 },
-    { id: 'rep-03', emoji: '💰', title: 'High-Value Asset Tracing (1A1zP1eP...)', date: '2026-05-15', target: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa', type: 'Blockchain Intel', author: 'System Sentinel', risk: 'CRITICAL', score: 20 },
-  ]);
+  const getInitialReports = () => {
+    try {
+      const saved = localStorage.getItem('holmes-history');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return mapHistoryToReports(parsed);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load initial reports:', err);
+    }
+    return [
+      { id: 'rep-mock-1', emoji: '🏢', title: 'Corporate Security Audit (kiit.ac.in)', date: '2026-05-17', target: 'kiit.ac.in', type: 'Domain Audit', author: 'Agent Holmes', risk: 'VULNERABLE', score: 65 },
+      { id: 'rep-mock-2', emoji: '👤', title: 'Subject Profile Brief (torvalds)', date: '2026-05-16', target: 'torvalds', type: 'Username Footprint', author: 'Agent Holmes', risk: 'SECURE', score: 92 },
+      { id: 'rep-mock-3', emoji: '💰', title: 'High-Value Asset Tracing (1A1zP1eP...)', date: '2026-05-15', target: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa', type: 'Blockchain Intel', author: 'System Sentinel', risk: 'CRITICAL', score: 20 },
+    ];
+  };
+
+  const [reports, setReports] = useState(getInitialReports);
 
   // Collapsible toggle
   const toggleSidebar = () => setSidebarExpanded(!sidebarExpanded);
@@ -562,10 +662,31 @@ export default function App() {
         // Save scan to history
         try {
           const history = JSON.parse(localStorage.getItem('holmes-history') || '[]');
-          const isDuplicate = history.some(item => item.query === q && item.type === targetType);
-          if (!isDuplicate) {
-            const updated = [{ query: q, type: targetType, date: new Date().toISOString() }, ...history];
-            localStorage.setItem('holmes-history', JSON.stringify(updated.slice(0, 50)));
+          const cleanQuery = q.trim();
+          if (cleanQuery) {
+            let score = 100;
+            if (data) {
+              const spoofing = data.spoofing || {};
+              if (spoofing.spf_vulnerable === true) score -= 20;
+              if (spoofing.dmarc_vulnerable === true) score -= 20;
+
+              const subdomainsCount = data.subdomain_count || data.subdomains?.length || 0;
+              if (subdomainsCount > 5) {
+                score -= (subdomainsCount - 5) * 10;
+              }
+
+              const socialsList = data.social?.platforms || data.platforms || [];
+              const foundSocialCount = socialsList.filter(p => p.status === 'found').length;
+              score -= foundSocialCount * 15;
+              score = Math.max(0, Math.min(100, score));
+            }
+
+            const updated = [
+              { query: cleanQuery, type: targetType, timestamp: Date.now(), riskScore: score },
+              ...history.filter(item => item.query !== cleanQuery)
+            ].slice(0, 50);
+
+            localStorage.setItem('holmes-history', JSON.stringify(updated));
             if (typeof updateNotesCount === 'function') updateNotesCount();
             window.dispatchEvent(new CustomEvent('holmes-history-updated'));
           }
@@ -634,10 +755,31 @@ export default function App() {
       // Save scan to history (fallback)
       try {
         const history = JSON.parse(localStorage.getItem('holmes-history') || '[]');
-        const isDuplicate = history.some(item => item.query === q && item.type === mockType);
-        if (!isDuplicate) {
-          const updated = [{ query: q, type: mockType, date: new Date().toISOString() }, ...history];
-          localStorage.setItem('holmes-history', JSON.stringify(updated.slice(0, 50)));
+        const cleanQuery = q.trim();
+        if (cleanQuery) {
+          let score = 100;
+          if (mockData) {
+            const spoofing = mockData.spoofing || {};
+            if (spoofing.spf_vulnerable === true) score -= 20;
+            if (spoofing.dmarc_vulnerable === true) score -= 20;
+
+            const subdomainsCount = mockData.subdomain_count || mockData.subdomains?.length || 0;
+            if (subdomainsCount > 5) {
+              score -= (subdomainsCount - 5) * 10;
+            }
+
+            const socialsList = mockData.social?.platforms || mockData.platforms || [];
+            const foundSocialCount = socialsList.filter(p => p.status === 'found').length;
+            score -= foundSocialCount * 15;
+            score = Math.max(0, Math.min(100, score));
+          }
+
+          const updated = [
+            { query: cleanQuery, type: mockType, timestamp: Date.now(), riskScore: score },
+            ...history.filter(item => item.query !== cleanQuery)
+          ].slice(0, 50);
+
+          localStorage.setItem('holmes-history', JSON.stringify(updated));
           if (typeof updateNotesCount === 'function') updateNotesCount();
           window.dispatchEvent(new CustomEvent('holmes-history-updated'));
         }
@@ -1576,6 +1718,7 @@ export default function App() {
               </button>
             )}
           </div>
+        )}
         {/* Notes Section */}
         {sidebarExpanded && getNotesList().length > 0 && (
           <div className={layoutStyles.historySection}>
@@ -1873,6 +2016,13 @@ export default function App() {
             {activeView === 'reports' && activeReportId && (
               (() => {
                 const rep = reports.find(r => r.id === activeReportId) || reports[0];
+                if (!rep) {
+                  return (
+                    <div style={{ padding: '40px 24px', textAlign: 'center', color: 'var(--notion-fg-light)', fontSize: '14px' }}>
+                      No report selected or available. Please select a report or run a scan first.
+                    </div>
+                  );
+                }
                 return (
                   <div className={repStyles.reportContainer}>
                     <div className={repStyles.reportHeader}>
@@ -2406,7 +2556,7 @@ export default function App() {
             {/* ── GOOGLE DORK BUILDER ── */}
             {activeView === 'dorkBuilder' && (
               <div className={modStyles.container}>
-                <DorkBuilder />
+                <DorkBuilder target={unifiedQuery} />
               </div>
             )}
 
