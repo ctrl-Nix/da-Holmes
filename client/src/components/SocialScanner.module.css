@@ -381,7 +381,7 @@
   flex-wrap: wrap;
   gap: 8px;
   padding: 12px 14px;
-  max-height: 200px;
+  max-height: 500px;
   overflow-y: auto;
   border-top: 1px solid var(--notion-border);
   background-color: var(--notion-bg);
