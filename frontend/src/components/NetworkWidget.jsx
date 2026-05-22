@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Globe, Server, MapPin, Activity, Loader2, Database } from 'lucide-react';
+import { API_BASE_URL } from '../utils/api';
 
 export default function NetworkWidget() {
   const [target, setTarget] = useState('');
@@ -16,7 +17,7 @@ export default function NetworkWidget() {
     setError('');
     
     try {
-      const response = await fetch(`/api/network/info?target=${encodeURIComponent(target)}`);
+      const response = await fetch(`${API_BASE_URL}/api/network/info?target=${encodeURIComponent(target)}`);
       if (response.ok) {
         const data = await response.json();
         setResult(data);

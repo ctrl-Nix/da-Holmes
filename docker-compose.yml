@@ -17,7 +17,7 @@ services:
 
   frontend:
     build:
-      context: ./client
+      context: ./frontend
       dockerfile: Dockerfile
     container_name: holmes_frontend
     ports:

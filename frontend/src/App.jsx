@@ -30,8 +30,10 @@ import UnifiedDashboard   from './components/UnifiedDashboard';
 import ActivityHeatmap    from './components/ActivityHeatmap';
 import OnboardingModal    from './components/OnboardingModal';
 import HolmesLogo         from './components/HolmesLogo';
-import ApiVault           from './components/ApiVault';
-
+import CorporateIntelWidget from './components/CorporateIntelWidget';
+import MobileIntelWidget  from './components/MobileIntelWidget';
+import NetworkWidget      from './components/NetworkWidget';
+import SecurityWidget     from './components/SecurityWidget';
 import { API_BASE_URL } from './utils/api';
 
 const API_BASE = API_BASE_URL;
@@ -292,23 +294,58 @@ export default function App() {
         <SidebarItem icon={Activity} label="Live Feed" active={view === 'graph'} onClick={() => setView('graph')} />
         <SidebarItem icon={Database} label="Intelligence Pool" />
         <SidebarItem icon={FileText} label="Recent Reports" />
-        <SidebarItem icon={Settings} label="Settings" active={view === 'settings'} onClick={() => setView('settings')} />
+
         
         <div className="mt-10 text-[11px] font-bold text-slate-500 uppercase px-4 mb-3 tracking-widest">Active Modules</div>
-        <div className="flex flex-col gap-1">
-           <SidebarItem icon={ShieldCheck} label="Spoofing Audit" />
-           <SidebarItem icon={Mail} label="Email Search" />
-           <SidebarItem icon={Globe} label="Domain Scan" />
-           <SidebarItem icon={Camera} label="EXIF Forensic" />
-           <SidebarItem icon={MapPin} label="WIFI Geolocation" />
+        <div className="flex flex-col gap-1 overflow-y-auto max-h-[300px] custom-scrollbar">
+           <SidebarItem icon={ShieldCheck} label="Spoofing Audit" active={view === 'spoofing'} onClick={() => setView('spoofing')} />
+           <SidebarItem icon={Code2} label="Tech Stack" active={view === 'techstack'} onClick={() => setView('techstack')} />
+           <SidebarItem icon={History} label="History Lookup" active={view === 'archive'} onClick={() => setView('archive')} />
+           <SidebarItem icon={Camera} label="EXIF Forensic" active={view === 'exif'} onClick={() => setView('exif')} />
+           <SidebarItem icon={MapPin} label="WIFI Geolocation" active={view === 'geoint'} onClick={() => setView('geoint')} />
+           <SidebarItem icon={Hash} label="BTC Intelligence" active={view === 'crypto'} onClick={() => setView('crypto')} />
+           <SidebarItem icon={Globe} label="Threat Intel" active={view === 'threat'} onClick={() => setView('threat')} />
+           <SidebarItem icon={ShieldCheck} label="Certificates" active={view === 'certificates'} onClick={() => setView('certificates')} />
+           <SidebarItem icon={Activity} label="Trackers" active={view === 'trackers'} onClick={() => setView('trackers')} />
+           <SidebarItem icon={User} label="Friendship Graph" active={view === 'friendship'} onClick={() => setView('friendship')} />
+           <SidebarItem icon={Database} label="Corporate Intel" active={view === 'corporate'} onClick={() => setView('corporate')} />
+           <SidebarItem icon={Activity} label="Mobile Recon" active={view === 'mobile'} onClick={() => setView('mobile')} />
+           <SidebarItem icon={Layers} label="Network Intel" active={view === 'network'} onClick={() => setView('network')} />
+           <SidebarItem icon={ShieldCheck} label="Security Check" active={view === 'security'} onClick={() => setView('security')} />
         </div>
       </aside>
 
       {/* Main Content */}
       <main className="notion-main">
         <div className="max-w-[840px] mx-auto">
-          {view === 'settings' ? (
-            <ApiVault />
+          {view === 'spoofing' ? (
+            <SpoofingWidget />
+          ) : view === 'techstack' ? (
+            <TechStackWidget />
+          ) : view === 'archive' ? (
+            <ArchiveWidget />
+          ) : view === 'crypto' ? (
+            <CryptoWidget />
+          ) : view === 'exif' ? (
+            <ExifWidget />
+          ) : view === 'geoint' ? (
+            <GeoIntWidget />
+          ) : view === 'threat' ? (
+            <ThreatIntelWidget />
+          ) : view === 'certificates' ? (
+            <CertificatesWidget />
+          ) : view === 'trackers' ? (
+            <TrackersWidget />
+          ) : view === 'friendship' ? (
+            <FriendshipWidget />
+          ) : view === 'corporate' ? (
+            <CorporateIntelWidget />
+          ) : view === 'mobile' ? (
+            <MobileIntelWidget />
+          ) : view === 'network' ? (
+            <NetworkWidget />
+          ) : view === 'security' ? (
+            <SecurityWidget />
           ) : (
             <>
               <div className="flex items-center gap-4 mb-6 animate-fade-in">
@@ -366,7 +403,7 @@ export default function App() {
 
               {status === 'idle' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-12 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-                   <div className="notion-card group cursor-pointer flex flex-col justify-between min-h-[160px] h-full p-6">
+                   <div onClick={() => setView('techstack')} className="notion-card group cursor-pointer flex flex-col justify-between min-h-[160px] h-full p-6 hover:bg-white/5 transition-colors border border-white/5 hover:border-white/20">
                       <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center border border-blue-500/20 mb-5 group-hover:scale-110 transition-transform">
                         <Code2 size={24} className="text-cyan-400" />
                       </div>
@@ -375,7 +412,7 @@ export default function App() {
                         <p className="text-sm text-slate-400 leading-relaxed m-0">Identify server-side technologies and frameworks.</p>
                       </div>
                    </div>
-                   <div className="notion-card group cursor-pointer flex flex-col justify-between min-h-[160px] h-full p-6">
+                   <div onClick={() => setView('spoofing')} className="notion-card group cursor-pointer flex flex-col justify-between min-h-[160px] h-full p-6 hover:bg-white/5 transition-colors border border-white/5 hover:border-white/20">
                       <div className="w-12 h-12 bg-orange-500/10 rounded-xl flex items-center justify-center border border-orange-500/20 mb-5 group-hover:scale-110 transition-transform">
                         <ShieldCheck size={24} className="text-orange-400" />
                       </div>
@@ -384,7 +421,7 @@ export default function App() {
                         <p className="text-sm text-slate-400 leading-relaxed m-0">Verify SPF/DMARC records and email security.</p>
                       </div>
                    </div>
-                   <div className="notion-card group cursor-pointer flex flex-col justify-between min-h-[160px] h-full p-6">
+                   <div onClick={() => setView('archive')} className="notion-card group cursor-pointer flex flex-col justify-between min-h-[160px] h-full p-6 hover:bg-white/5 transition-colors border border-white/5 hover:border-white/20">
                       <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center border border-emerald-500/20 mb-5 group-hover:scale-110 transition-transform">
                         <History size={24} className="text-emerald-400" />
                       </div>
@@ -393,7 +430,7 @@ export default function App() {
                         <p className="text-sm text-slate-400 leading-relaxed m-0">Fetch archived snapshots from Wayback Machine.</p>
                       </div>
                    </div>
-                   <div className="notion-card group cursor-pointer flex flex-col justify-between min-h-[160px] h-full p-6">
+                   <div onClick={() => setView('crypto')} className="notion-card group cursor-pointer flex flex-col justify-between min-h-[160px] h-full p-6 hover:bg-white/5 transition-colors border border-white/5 hover:border-white/20">
                       <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center border border-purple-500/20 mb-5 group-hover:scale-110 transition-transform">
                         <Hash size={24} className="text-purple-400" />
                       </div>
