@@ -7,3 +7,6 @@ slowapi==0.1.9
 python-multipart==0.0.9
 reportlab==4.1.0
 maigret==0.4.4
+dnspython==2.6.1
+python-whois==0.9.5
+sqlalchemy==2.0.30

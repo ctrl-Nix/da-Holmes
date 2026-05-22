@@ -2,7 +2,28 @@ import React from 'react';
 import { AlertCircle, ShieldCheck, Calendar, Lock, AlertTriangle, ShieldAlert } from 'lucide-react';
 import styles from './BreachIntel.module.css';
 
-export default function BreachIntel({ results }) {
+export default function BreachIntel({ results, isLoading }) {
+  if (isLoading) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <div className={styles.headerLeft}>
+            <span className={styles.icon}>🕵️‍♂️</span>
+            <div>
+              <h3 className={styles.title}>Data Breach Exposure Telemetry</h3>
+            </div>
+          </div>
+        </div>
+        <div className={styles.body}>
+          <div className="skeleton" style={{ height: '70px', marginBottom: '16px', borderRadius: '6px' }}></div>
+          <div className="skeleton" style={{ height: '40px', marginBottom: '12px', borderRadius: '6px' }}></div>
+          <div className="skeleton" style={{ height: '40px', marginBottom: '12px', borderRadius: '6px' }}></div>
+          <div className="skeleton" style={{ height: '40px', borderRadius: '6px' }}></div>
+        </div>
+      </div>
+    );
+  }
+
   if (!results) return null;
 
   const { email, breach_count, breaches = [], most_recent_breach, exposed_data_types = [] } = results;

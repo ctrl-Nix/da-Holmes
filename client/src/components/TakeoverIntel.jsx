@@ -2,8 +2,27 @@ import React, { useState } from 'react';
 import { ShieldCheck, AlertOctagon, Info, ChevronDown, ChevronUp, Terminal } from 'lucide-react';
 import styles from './TakeoverIntel.module.css';
 
-export default function TakeoverIntel({ results }) {
+export default function TakeoverIntel({ results, isLoading }) {
   const [expanded, setExpanded] = useState(false);
+
+  if (isLoading) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <div className={styles.headerTitleSec}>
+            <span className={styles.icon}>🎯</span>
+            <span className={styles.headerText}>Subdomain Takeover vulnerability Audit</span>
+          </div>
+        </div>
+        <div className={styles.body}>
+          <div className="skeleton" style={{ height: '36px', marginBottom: '8px', borderRadius: '6px' }}></div>
+          <div className="skeleton" style={{ height: '36px', marginBottom: '8px', borderRadius: '6px' }}></div>
+          <div className="skeleton" style={{ height: '36px', marginBottom: '8px', borderRadius: '6px' }}></div>
+          <div className="skeleton" style={{ height: '36px', borderRadius: '6px' }}></div>
+        </div>
+      </div>
+    );
+  }
 
   if (!results || results.status === 'unavailable' || results.length === 0) {
     if (results && results.status === 'unavailable') {
@@ -85,8 +104,9 @@ export default function TakeoverIntel({ results }) {
 
         {expanded && (
           <div className={styles.accordionContent}>
-            <table className={styles.resultsTable}>
-              <thead>
+            <div className={styles.tableWrapper}>
+              <table className={styles.resultsTable}>
+                <thead>
                 <tr>
                   <th>Host Subdomain</th>
                   <th>DNS Status</th>
@@ -119,6 +139,7 @@ export default function TakeoverIntel({ results }) {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         )}
 

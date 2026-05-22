@@ -98,21 +98,26 @@
 
 /* ── Results Container ── */
 .resultsContainer {
-  background-color: white;
+  background-color: var(--notion-bg);
   border: 1px solid var(--notion-border);
-  border-radius: 6px;
+  border-radius: 12px;
   overflow: hidden;
   margin-top: 12px;
   animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  transition: box-shadow 0.2s ease;
+}
+
+.resultsContainer:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
 }
 
 .resultsHeader {
-  padding: 16px 20px;
+  padding: 16px 24px;
   border-bottom: 1px solid var(--notion-border);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: var(--notion-sidebar);
+  background-color: var(--notion-bg);
 }
 
 .resultsTitle {
@@ -521,4 +526,41 @@
   .resultsTitle {
     font-size: 13px !important;
   }
+}
+
+/* ── Risk Badges ── */
+.riskBadge {
+  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 4px;
+  padding: 4px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  letter-spacing: 0.05em;
+}
+
+.riskBadgeCritical {
+  background-color: rgba(235, 59, 59, 0.1);
+  color: var(--risk-critical);
+  border: 1px solid rgba(235, 59, 59, 0.2);
+}
+
+.riskBadgeHigh {
+  background-color: rgba(224, 123, 57, 0.1);
+  color: var(--risk-high);
+  border: 1px solid rgba(224, 123, 57, 0.2);
+}
+
+.riskBadgeMedium {
+  background-color: rgba(223, 171, 1, 0.1);
+  color: var(--risk-medium);
+  border: 1px solid rgba(223, 171, 1, 0.2);
+}
+
+.riskBadgeSecure {
+  background-color: rgba(15, 123, 108, 0.1);
+  color: var(--risk-secure);
+  border: 1px solid rgba(15, 123, 108, 0.2);
 }

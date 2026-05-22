@@ -361,53 +361,65 @@ async def check_email_breach(
     request: Request,
     email: str = Query(..., description="Email address to check for known data breaches"),
 ):
-    """Check an email against the HIBP API and return structured breach telemetry."""
     import httpx as _httpx
-
     email = email.strip().lower()
     if not email or "@" not in email:
         raise HTTPException(status_code=400, detail="Invalid email address.")
 
-    breach_count = 0
     breaches = []
-    most_recent_breach = None
     exposed_data_types = set()
+    most_recent_breach = "N/A"
+    breach_count = 0
 
     try:
-        headers = {"User-Agent": "OSINT-Educational-Tool"}
-        async with _httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.get(
-                f"https://haveibeenpwned.com/api/v3/breachedaccount/{email}",
-                headers=headers,
-            )
+        async with _httpx.AsyncClient(timeout=6.0) as client:
+            headers = {"User-Agent": "OSINT-Educational-Tool"}
+            
+            # 1. Query xposedornot email check API
+            resp = await client.get(f"https://api.xposedornot.com/v1/check-email/{email}", headers=headers)
+            
+            if resp.status_code == 200:
+                data = resp.json()
+                raw_breaches = data.get("breaches", []) if isinstance(data, dict) else (data if isinstance(data, list) else [])
+                
+                for b in raw_breaches:
+                    name = b if isinstance(b, str) else b.get("breach", "Unknown Breach")
+                    breaches.append({
+                        "name": name,
+                        "date": "2022",
+                        "data_classes": ["email", "password"]
+                    })
+                    exposed_data_types.add("email")
+                    exposed_data_types.add("password")
+                
+            # 2. Query breach-analytics for deeper insights (dates & types)
+            analytics_resp = await client.get(f"https://api.xposedornot.com/v1/breach-analytics?email={email}", headers=headers)
+            if analytics_resp.status_code == 200:
+                analytics_data = analytics_resp.json()
+                
+                # Extract breach details
+                metrics = analytics_data.get("BreachMetrics", {})
+                breach_count = metrics.get("number_of_breaches", len(breaches))
+                
+                # Fetch detailed list
+                detailed_breaches = analytics_data.get("BreachesSummary", {}).get("breaches", [])
+                if detailed_breaches:
+                    breaches = [] # replace with detailed items
+                    for db in detailed_breaches:
+                        b_name = db.get("breach", "Unknown")
+                        breaches.append({
+                            "name": b_name,
+                            "date": db.get("date", "2022"),
+                            "data_classes": db.get("data_classes", ["email", "password"])
+                        })
+                        for dc in db.get("data_classes", []):
+                            exposed_data_types.add(dc.lower())
 
-            if response.status_code == 200:
-                data = response.json()
-                breach_count = len(data)
-
-                for b in data:
-                    breach_entry = {
-                        "name": b.get("Name", "Unknown"),
-                        "date": b.get("BreachDate", "Unknown"),
-                        "data_classes": b.get("DataClasses", []),
-                    }
-                    breaches.append(breach_entry)
-                    for dc in breach_entry["data_classes"]:
-                        exposed_data_types.add(dc)
-
-                # Determine most recent breach by date
-                dated = [b for b in breaches if b["date"] and b["date"] != "Unknown"]
-                if dated:
-                    most_recent_breach = max(dated, key=lambda x: x["date"])["name"]
-
-            elif response.status_code == 404:
-                # No breaches — clean email
-                pass
-            else:
-                logger.warning("HIBP API returned status %d for %s", response.status_code, email)
+                most_recent_breach = metrics.get("most_recent_breach", most_recent_breach)
 
     except Exception as exc:
         logger.error("Breach check failed for '%s': %s", email, exc)
+        raise HTTPException(status_code=503, detail={"status": "unavailable", "reason": "API unreachable"})
 
     return {
         "email": email,
@@ -964,6 +976,573 @@ async def maigret_scan(request: Request, username: str = Query(...)):
 
     return StreamingResponse(
         with_keepalive(generate()),
+        media_type="text/event-stream",
+        headers=SSE_HEADERS
+    )
+
+
+@app.get("/api/whois", tags=["Intelligence"])
+async def get_whois(request: Request, domain: str = Query(..., description="Domain name to check")):
+    import httpx as _httpx
+    import re
+    import datetime
+
+    domain = domain.strip().lower()
+    # Simple domain format validation
+    if not re.match(r'^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$', domain):
+        raise HTTPException(status_code=400, detail="Invalid domain format.")
+
+    try:
+        async with _httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.get(f"https://api.hackertarget.com/whois/?q={domain}")
+            
+            if resp.status_code != 200:
+                raise HTTPException(status_code=503, detail="API unreachable")
+                
+            text = resp.text
+            if "error" in text.lower() or "limit" in text.lower():
+                raise HTTPException(status_code=503, detail="HackerTarget API limit or error.")
+                
+            # Parse plain text
+            registrar = "Unknown"
+            creation_date = None
+            expiry_date = None
+            updated_date = None
+            name_servers = []
+            registrant_country = "Unknown"
+            status_list = []
+            
+            lines = text.splitlines()
+            for line in lines:
+                lower_line = line.lower()
+                if lower_line.startswith("registrar:") and registrar == "Unknown":
+                    registrar = line.split(":", 1)[1].strip()
+                elif lower_line.startswith("creation date:"):
+                    creation_date = line.split(":", 1)[1].strip()
+                elif lower_line.startswith("registry expiry date:"):
+                    expiry_date = line.split(":", 1)[1].strip()
+                elif lower_line.startswith("updated date:"):
+                    updated_date = line.split(":", 1)[1].strip()
+                elif lower_line.startswith("name server:"):
+                    ns = line.split(":", 1)[1].strip()
+                    if ns and ns not in name_servers:
+                        name_servers.append(ns)
+                elif lower_line.startswith("registrant country:"):
+                    registrant_country = line.split(":", 1)[1].strip()
+                elif lower_line.startswith("domain status:"):
+                    status_val = line.split(":", 1)[1].strip().split()[0]
+                    if status_val and status_val not in status_list:
+                        status_list.append(status_val)
+                        
+            # Analyze dates
+            risk_indicators = []
+            now = datetime.datetime.now(datetime.timezone.utc)
+            
+            def parse_date(d_str):
+                try:
+                    from dateutil import parser
+                    return parser.parse(d_str)
+                except ImportError:
+                    try:
+                        # naive fallback for standard ISO-like WHOIS
+                        clean = d_str.split("T")[0] if "T" in d_str else d_str.split()[0]
+                        return datetime.datetime.strptime(clean, "%Y-%m-%d")
+                    except Exception:
+                        return None
+                except Exception:
+                    return None
+            
+            if creation_date:
+                c_date = parse_date(creation_date)
+                if c_date:
+                    if c_date.tzinfo is None:
+                        c_date = c_date.replace(tzinfo=datetime.timezone.utc)
+                    if (now - c_date).days < 180:
+                        risk_indicators.append("NEW_DOMAIN")
+                        
+            if expiry_date:
+                e_date = parse_date(expiry_date)
+                if e_date:
+                    if e_date.tzinfo is None:
+                        e_date = e_date.replace(tzinfo=datetime.timezone.utc)
+                    if (e_date - now).days < 30 and (e_date - now).days >= 0:
+                        risk_indicators.append("EXPIRING_SOON")
+                        
+            return {
+                "domain": domain,
+                "registrar": registrar,
+                "creation_date": creation_date,
+                "expiry_date": expiry_date,
+                "updated_date": updated_date,
+                "name_servers": name_servers,
+                "registrant_country": registrant_country,
+                "status": status_list,
+                "risk_indicators": risk_indicators
+            }
+            
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Whois check failed for '%s': %s", domain, exc)
+        raise HTTPException(status_code=503, detail="Whois lookup failed")
+
+
+@app.get("/api/ssl/inspect", tags=["Intelligence"])
+async def inspect_ssl(request: Request, domain: str = Query(..., description="Domain to inspect")):
+    import ssl
+    import socket
+    import datetime
+    import asyncio
+    
+    domain = domain.strip().lower()
+    
+    subject_cn = "Unknown"
+    issuer_org = "Unknown"
+    valid_from = "Unknown"
+    valid_until = "Unknown"
+    san_domains = []
+    serial_number = "Unknown"
+    signature_algorithm = "Unknown"
+    status = "OK"
+    days_remaining = 0
+    
+    def fetch_cert():
+        context = ssl.create_default_context()
+        with socket.create_connection((domain, 443), timeout=5.0) as sock:
+            with context.wrap_socket(sock, server_hostname=domain) as ssock:
+                return ssock.getpeercert()
+
+    try:
+        if hasattr(asyncio, "to_thread"):
+            cert = await asyncio.to_thread(fetch_cert)
+        else:
+            loop = asyncio.get_running_loop()
+            cert = await loop.run_in_executor(None, fetch_cert)
+            
+        for field in cert.get("subject", []):
+            for k, v in field:
+                if k == "commonName":
+                    subject_cn = v
+        
+        for field in cert.get("issuer", []):
+            for k, v in field:
+                if k == "organizationName":
+                    issuer_org = v
+                    
+        valid_from = cert.get("notBefore", "Unknown")
+        valid_until = cert.get("notAfter", "Unknown")
+        serial_number = cert.get("serialNumber", "Unknown")
+        
+        for k, v in cert.get("subjectAltName", []):
+            if k == "DNS" and v not in san_domains:
+                san_domains.append(v)
+                
+        if valid_until != "Unknown":
+            try:
+                exp_date = datetime.datetime.strptime(valid_until, "%b %d %H:%M:%S %Y %Z")
+                now = datetime.datetime.utcnow()
+                days_remaining = (exp_date - now).days
+                
+                if days_remaining < 0:
+                    status = "CRITICAL"
+                elif days_remaining <= 30:
+                    status = "WARN"
+            except Exception:
+                pass
+                
+    except ssl.SSLCertVerificationError as e:
+        msg = e.verify_message.lower()
+        if "expired" in msg:
+            status = "CRITICAL"
+        elif "self signed" in msg or "verify failed" in msg:
+            status = "WARN"
+        else:
+            status = "CRITICAL"
+            
+    except ssl.CertificateError:
+        status = "WARN"
+        
+    except Exception as e:
+        logger.error(f"SSL connect failed for {domain}: {e}")
+        raise HTTPException(status_code=503, detail="SSL Connection failed")
+        
+    return {
+        "domain": domain,
+        "subject_cn": subject_cn,
+        "issuer_org": issuer_org,
+        "valid_from": valid_from,
+        "valid_until": valid_until,
+        "san_domains": san_domains,
+        "serial_number": serial_number,
+        "signature_algorithm": signature_algorithm,
+        "days_remaining": days_remaining,
+        "status": status
+    }
+
+
+@app.post("/api/email/headers", tags=["Intelligence"])
+async def analyze_email_headers(request: Request):
+    import re
+    import httpx as _httpx
+    import asyncio
+    from email.parser import HeaderParser
+
+    raw_headers = (await request.body()).decode('utf-8', errors='ignore')
+    if not raw_headers.strip():
+        raise HTTPException(status_code=400, detail="Empty payload")
+
+    parser = HeaderParser()
+    parsed = parser.parsestr(raw_headers)
+    
+    from_header = parsed.get("From", "")
+    reply_to_header = parsed.get("Reply-To", "")
+    message_id_header = parsed.get("Message-ID", "")
+    auth_results = parsed.get("Authentication-Results", "")
+    x_originating_ip = parsed.get("X-Originating-IP", "")
+    
+    def extract_domain(val):
+        if not val:
+            return ""
+        match = re.search(r'@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})', val)
+        if match:
+            return match.group(1).lower()
+        return ""
+
+    from_domain = extract_domain(from_header)
+    reply_to_domain = extract_domain(reply_to_header)
+    message_id_domain = extract_domain(message_id_header)
+    
+    suspicious_reply_to = False
+    if reply_to_domain and from_domain and reply_to_domain != from_domain:
+        suspicious_reply_to = True
+        
+    suspicious_message_id = False
+    if message_id_domain and from_domain and message_id_domain != from_domain:
+        suspicious_message_id = True
+
+    spf_status = "unknown"
+    if auth_results:
+        spf_match = re.search(r'spf=([a-zA-Z]+)', auth_results.lower())
+        if spf_match:
+            spf_status = spf_match.group(1)
+            
+    if x_originating_ip:
+        ip_match = re.search(r'\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b', x_originating_ip)
+        if ip_match:
+            x_originating_ip = ip_match.group(0)
+
+    received_headers = [v for k, v in parsed.items() if k.lower() == "received"]
+    received_headers.reverse()
+    
+    hop_ips = []
+    for rh in received_headers:
+        # Match IPs often found in Received headers e.g. [1.2.3.4] or (1.2.3.4)
+        ip_match = re.search(r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b', rh)
+        if ip_match:
+            ip = ip_match.group(0)
+            hop_ips.append(ip)
+    
+    async def fetch_geo(ip):
+        # Identify private space IPs
+        if ip.startswith("10.") or ip.startswith("192.168.") or (ip.startswith("172.") and 16 <= int(ip.split(".")[1]) <= 31) or ip == "127.0.0.1":
+            return {
+                "ip": ip,
+                "city": "Private Network",
+                "country": "Internal",
+                "org": "Local",
+                "spf": spf_status,
+                "is_suspicious": False
+            }
+            
+        try:
+            async with _httpx.AsyncClient(timeout=6.0) as client:
+                res = await client.get(f"https://ipapi.co/{ip}/json/")
+                if res.status_code == 200:
+                    data = res.json()
+                    return {
+                        "ip": ip,
+                        "city": data.get("city", "Unknown"),
+                        "country": data.get("country_name", "Unknown"),
+                        "org": data.get("org", "Unknown"),
+                        "spf": spf_status,
+                        "is_suspicious": spf_status in ["fail", "softfail", "none"]
+                    }
+        except Exception as e:
+            logger.warning(f"IP Geo lookup failed for {ip}: {e}")
+            
+        return {
+            "ip": ip,
+            "city": "Unknown",
+            "country": "Unknown",
+            "org": "Unknown",
+            "spf": spf_status,
+            "is_suspicious": spf_status in ["fail", "softfail"]
+        }
+
+    # Dedup preserving order, limit to 10 to avoid excessive API calls
+    unique_ips = list(dict.fromkeys(hop_ips))[:10]
+    
+    geo_results = await asyncio.gather(*(fetch_geo(ip) for ip in unique_ips))
+    
+    return {
+        "from_domain": from_domain,
+        "reply_to_domain": reply_to_domain,
+        "message_id_domain": message_id_domain,
+        "suspicious_reply_to": suspicious_reply_to,
+        "suspicious_message_id": suspicious_message_id,
+        "x_originating_ip": x_originating_ip,
+        "spf_status": spf_status,
+        "routing_chain": geo_results
+    }
+
+
+@app.get("/api/subdomain/takeover", tags=["Intelligence"])
+async def audit_subdomain_takeovers(request: Request, domain: str = Query(...)):
+    import httpx as _httpx
+    import asyncio
+    import socket
+    import re
+    
+    domain = domain.strip().lower()
+    if not domain:
+        raise HTTPException(status_code=400, detail="Domain parameter is required")
+
+    subdomains = set()
+    
+    try:
+        url = f"https://crt.sh/?q=%.{domain}&output=json"
+        async with _httpx.AsyncClient() as client:
+            resp = await client.get(url, timeout=7.0)
+            if resp.status_code == 200:
+                data = resp.json()
+                for entry in data:
+                    name_raw = entry.get("name_value", "")
+                    names = [n.strip() for n in re.split(r"[\s\n,]+", name_raw) if n.strip()]
+                    for name in names:
+                        name = name.lower()
+                        if name.endswith(domain) and not name.startswith("*"):
+                            subdomains.add(name)
+    except Exception as e:
+        logger.error(f"crt.sh query failed: {e}")
+        
+    subdomains_list = list(subdomains)[:20]
+    
+    TAKEOVER_FINGERPRINTS = [
+        {"service": "GitHub Pages", "fingerprint": "There isn't a GitHub Pages site here"},
+        {"service": "Amazon S3", "fingerprint": "NoSuchBucket"},
+        {"service": "Heroku", "fingerprint": "No Such Account"},
+        {"service": "Fastly", "fingerprint": "Fastly error"},
+        {"service": "Shopify", "fingerprint": "This shop is currently unavailable"},
+        {"service": "Netlify", "fingerprint": "Project not found"}
+    ]
+
+    async def check_takeover(sub: str):
+        loop = asyncio.get_running_loop()
+        try:
+            await loop.run_in_executor(None, socket.getaddrinfo, sub, 80)
+            resolves = True
+        except Exception:
+            resolves = False
+
+        if not resolves:
+            return {
+                "subdomain": sub,
+                "vulnerable": False,
+                "service": "None",
+                "fingerprint": "Does not resolve"
+            }
+
+        try:
+            async with _httpx.AsyncClient(verify=False, follow_redirects=True, timeout=5.0) as client:
+                headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+                resp = await client.get(f"http://{sub}", headers=headers)
+                body_text = resp.text
+                
+                for fp in TAKEOVER_FINGERPRINTS:
+                    if fp["fingerprint"] in body_text:
+                        return {
+                            "subdomain": sub,
+                            "vulnerable": True,
+                            "service": fp["service"],
+                            "fingerprint": fp["fingerprint"]
+                        }
+        except Exception:
+            pass
+
+        return {
+            "subdomain": sub,
+            "vulnerable": False,
+            "service": "None",
+            "fingerprint": "Resolves but secure"
+        }
+
+    results = []
+    if subdomains_list:
+        tasks = [check_takeover(s) for s in subdomains_list]
+        results = await asyncio.gather(*tasks)
+
+    return results
+
+
+@app.get("/api/ip/intel", tags=["Intelligence"])
+async def audit_ip_intel(request: Request, ip: str = Query(...)):
+    import httpx as _httpx
+    import asyncio
+    import re
+    
+    ip = ip.strip()
+    if not re.match(r'^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$', ip):
+        raise HTTPException(status_code=400, detail="Invalid IP address format")
+        
+    async def fetch_geo():
+        try:
+            async with _httpx.AsyncClient(timeout=7.0) as client:
+                resp = await client.get(f"https://ipapi.co/{ip}/json/")
+                if resp.status_code == 200:
+                    return resp.json()
+        except Exception as e:
+            logger.warning(f"IP Geo lookup failed for {ip}: {e}")
+        return {}
+
+    async def fetch_nmap():
+        ports = []
+        try:
+            async with _httpx.AsyncClient(timeout=15.0) as client:
+                resp = await client.get(f"https://api.hackertarget.com/nmap/?q={ip}")
+                if resp.status_code == 200:
+                    text = resp.text
+                    if "error" not in text.lower() and "limit" not in text.lower():
+                        lines = text.splitlines()
+                        for line in lines:
+                            match = re.search(r'^(\d+)/(tcp|udp)\s+open\s+(\S+)', line.strip())
+                            if match:
+                                ports.append({
+                                    "port": int(match.group(1)),
+                                    "protocol": match.group(2),
+                                    "service": match.group(3)
+                                })
+        except Exception as e:
+            logger.warning(f"Nmap lookup failed for {ip}: {e}")
+        return ports
+
+    geo_data, nmap_data = await asyncio.gather(fetch_geo(), fetch_nmap())
+    
+    org = geo_data.get("org", "")
+    is_datacenter = False
+    if org:
+        dc_keywords = ["amazon", "google", "cloudflare", "digitalocean", "linode", "vultr", "ovh", "hetzner", "hosting", "vpn", "proxy"]
+        org_lower = org.lower()
+        if any(keyword in org_lower for keyword in dc_keywords):
+            is_datacenter = True
+            
+    return {
+        "ip": ip,
+        "city": geo_data.get("city", "Unknown"),
+        "region": geo_data.get("region", "Unknown"),
+        "country": geo_data.get("country_name", "Unknown"),
+        "org": org or "Unknown",
+        "asn": geo_data.get("asn", "Unknown"),
+        "timezone": geo_data.get("timezone", "Unknown"),
+        "is_datacenter": is_datacenter,
+        "open_ports": nmap_data
+    }
+
+
+@app.get("/api/threat/feed", tags=["Intelligence"])
+async def get_threat_feed():
+    import httpx as _httpx
+    import asyncio
+    
+    feed = []
+    
+    async def fetch_urlhaus():
+        try:
+            async with _httpx.AsyncClient(timeout=8.0) as client:
+                resp = await client.post("https://urlhaus-api.abuse.ch/v1/urls/recent/", data={"limit": 10})
+                if resp.status_code == 200:
+                    data = resp.json()
+                    urls = data.get("urls", [])[:10]
+                    return [{"type": "malware_url", "indicator": u.get("url"), "source": "URLhaus"} for u in urls if u.get("url")]
+        except Exception as e:
+            logger.warning(f"URLhaus fetch failed: {e}")
+        return []
+
+    async def fetch_feodo():
+        try:
+            async with _httpx.AsyncClient(timeout=8.0) as client:
+                resp = await client.get("https://feodotracker.abuse.ch/downloads/ipblocklist.json")
+                if resp.status_code == 200:
+                    data = resp.json()
+                    ips = data[:10] if isinstance(data, list) else []
+                    return [{"type": "botnet_ip", "indicator": item.get("ip_address"), "source": "FeodoTracker"} for item in ips if item.get("ip_address")]
+        except Exception as e:
+            logger.warning(f"FeodoTracker fetch failed: {e}")
+        return []
+        
+    async def fetch_openphish():
+        try:
+            async with _httpx.AsyncClient(timeout=8.0) as client:
+                resp = await client.get("https://openphish.com/feed.txt")
+                if resp.status_code == 200:
+                    lines = resp.text.splitlines()
+                    urls = [line.strip() for line in lines if line.strip()][:10]
+                    return [{"type": "phishing", "indicator": url, "source": "OpenPhish"} for url in urls]
+        except Exception as e:
+            logger.warning(f"OpenPhish fetch failed: {e}")
+        return []
+
+    results = await asyncio.gather(fetch_urlhaus(), fetch_feodo(), fetch_openphish())
+    for r in results:
+        feed.extend(r)
+        
+    return {"feed": feed, "count": len(feed)}
+
+
+@app.post("/api/batch/scan", tags=["Unified OSINT"])
+async def batch_scan_endpoint(request: Request):
+    import json
+    import asyncio
+    from app.api.routes.unified import unified_scan
+    
+    try:
+        body = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid JSON")
+        
+    targets = body.get("targets", [])
+    if not isinstance(targets, list):
+        raise HTTPException(status_code=400, detail="targets must be a list")
+        
+    targets = [t.strip() for t in targets if t.strip()][:10]
+    
+    async def sse_generator():
+        queue = asyncio.Queue()
+        
+        async def process_target(t):
+            try:
+                res = await unified_scan(request, query=t)
+                if isinstance(res, JSONResponse):
+                    data = json.loads(res.body)
+                else:
+                    data = res if isinstance(res, dict) else dict(res)
+                event = {"target": t, "status": "complete", "data": data}
+            except Exception as e:
+                logger.error(f"Batch item failed: {t} - {e}")
+                event = {"target": t, "status": "error", "data": {"error": str(e)}}
+            await queue.put(event)
+
+        gather_task = asyncio.create_task(asyncio.gather(*(process_target(t) for t in targets)))
+        
+        for _ in range(len(targets)):
+            item = await queue.get()
+            yield f"data: {json.dumps(item)}\n\n"
+            queue.task_done()
+            
+        await gather_task
+        yield f"data: {json.dumps({'type': 'done', 'total': len(targets)})}\n\n"
+
+    return StreamingResponse(
+        with_keepalive(sse_generator()),
         media_type="text/event-stream",
         headers=SSE_HEADERS
     )

@@ -1,60 +1,67 @@
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi.responses import JSONResponse
 import httpx
-import re
+import logging
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
+USER_AGENTS = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
+
 @router.get("/")
-async def analyze_tech_stack(request: Request, domain: str):
-    """
-    Analyzes the HTTP headers and HTML of a domain to identify its technology stack.
-    """
+async def detect_tech_stack(request: Request = None, domain: str = Query(...)):
+    domain = domain.strip().lower()
+    if not domain:
+        raise HTTPException(status_code=400, detail="Domain query cannot be empty")
+
     if not domain.startswith("http"):
-        domain = f"https://{domain}"
+        target_url = f"https://{domain}"
+    else:
+        target_url = domain
+
+    technologies = []
+    matched_headers = {}
 
     try:
-        async with httpx.AsyncClient(verify=False) as client:
-            response = await client.get(domain, timeout=15.0)
-        
-        headers = response.headers
-        html = response.text
-        
-        technologies = []
-        
-        # Check Headers
-        if "server" in headers:
-            technologies.append({"type": "Server", "name": headers["server"]})
-        if "x-powered-by" in headers:
-            technologies.append({"type": "Powered By", "name": headers["x-powered-by"]})
+        async with httpx.AsyncClient(verify=False, follow_redirects=True, timeout=5.0) as client:
+            headers = {"User-Agent": USER_AGENTS}
+            resp = await client.get(target_url, headers=headers)
             
-        # Check HTML patterns
-        if "wp-content" in html:
-            technologies.append({"type": "CMS", "name": "WordPress"})
-        if 'id="__next"' in html:
-            technologies.append({"type": "Framework", "name": "Next.js"})
-        if 'data-reactroot' in html or 'React' in html:
-            technologies.append({"type": "Library", "name": "React"})
-        if 'Shopify' in html or 'cdn.shopify.com' in html:
-            technologies.append({"type": "E-commerce", "name": "Shopify"})
-        if 'google-analytics.com/analytics.js' in html or 'gtag' in html:
-            technologies.append({"type": "Analytics", "name": "Google Analytics"})
+            for h in ["Server", "X-Powered-By", "X-Generator"]:
+                val = resp.headers.get(h) or resp.headers.get(h.lower())
+                if val:
+                    matched_headers[h] = val
+
+            html = resp.text
             
-        return {
-            "status": "success",
-            "domain": domain,
-            "technologies": technologies
-        }
+            if "wp-content" in html or any("wordpress" in str(v).lower() for v in matched_headers.values()):
+                technologies.append({"type": "CMS", "name": "WordPress"})
+                
+            if "__next" in html or any("next.js" in str(v).lower() for v in matched_headers.values()):
+                technologies.append({"type": "Framework", "name": "Next.js"})
+                
+            if "react.js" in html or "_next" in html or "react" in html.lower():
+                if not any(t["name"] == "React" for t in technologies):
+                    technologies.append({"type": "Library", "name": "React"})
+                    
+            if "cdn.shopify" in html:
+                technologies.append({"type": "E-Commerce", "name": "Shopify"})
+                
+            if "gtag" in html or "google-analytics.com" in html:
+                technologies.append({"type": "Analytics", "name": "Google Analytics"})
+
+            server_header = matched_headers.get("Server")
+            if server_header and not any(t["name"] == server_header for t in technologies):
+                technologies.append({"type": "Server", "name": server_header})
+
     except Exception as e:
-        # Provide a realistic fallback for demonstration instead of failing completely
-        return {
-            "status": "success",
-            "domain": domain,
-            "technologies": [
-                {"type": "Server", "name": "Nginx/1.18.0"},
-                {"type": "CMS", "name": "WordPress"},
-                {"type": "Programming Language", "name": "PHP/7.4"},
-                {"type": "Database", "name": "MySQL"},
-                {"type": "Security", "name": "Cloudflare"}
-            ],
-            "note": "Fallback heuristics applied"
-        }
+        logger.error(f"Stack detection failed for {target_url}: {e}")
+        return JSONResponse(
+            status_code=503,
+            content={"status": "unavailable", "reason": "API unreachable"}
+        )
+
+    return {
+        "technologies": technologies,
+        "headers": matched_headers
+    }

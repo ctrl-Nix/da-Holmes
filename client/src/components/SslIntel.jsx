@@ -2,8 +2,35 @@ import React, { useState } from 'react';
 import { ShieldCheck, ShieldAlert, Key, Globe, Layers, Calendar, ChevronDown, ChevronUp } from 'lucide-react';
 import styles from './SslIntel.module.css';
 
-export default function SslIntel({ results }) {
+export default function SslIntel({ results, isLoading }) {
   const [showSan, setShowSan] = useState(false);
+
+  if (isLoading) {
+    return (
+      <div className={`${styles.container} ${styles.secureBorder}`}>
+        <div className={styles.header}>
+          <div className={styles.titleSec}>
+            <span className={styles.icon}>🔒</span>
+            <span className={styles.titleText}>SSL/TLS Core Security Certificate</span>
+          </div>
+        </div>
+        <div className={styles.body}>
+          <div className={styles.grid2Col}>
+            <div className={styles.infoCol}>
+              <div className="skeleton" style={{ height: '36px', marginBottom: '8px', borderRadius: '4px' }}></div>
+              <div className="skeleton" style={{ height: '36px', marginBottom: '8px', borderRadius: '4px' }}></div>
+              <div className="skeleton" style={{ height: '36px', marginBottom: '8px', borderRadius: '4px' }}></div>
+              <div className="skeleton" style={{ height: '36px', borderRadius: '4px' }}></div>
+            </div>
+            <div className={styles.metricCol}>
+              <div className="skeleton" style={{ height: '60px', marginBottom: '16px', borderRadius: '6px' }}></div>
+              <div className="skeleton" style={{ height: '40px', borderRadius: '6px' }}></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!results || results.status === 'unavailable') {
     return (

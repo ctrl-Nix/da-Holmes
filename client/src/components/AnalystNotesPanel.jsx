@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styles from './AnalystNotesPanel.module.css';
 
 export default function AnalystNotesPanel({ query }) {
@@ -19,34 +19,41 @@ export default function AnalystNotesPanel({ query }) {
     }
   }, [query]);
 
-  // Handle note change & autosave
+  const debounceTimer = useRef(null);
+
+  // Handle note change & autosave with 500ms debounce
   const handleNotesChange = (e) => {
     const val = e.target.value;
     setNotes(val);
-    try {
-      const savedNotesObj = JSON.parse(localStorage.getItem('holmes-notes') || '{}');
-      if (val.trim()) {
-        savedNotesObj[query] = val;
-      } else {
-        delete savedNotesObj[query];
-      }
-      localStorage.setItem('holmes-notes', JSON.stringify(savedNotesObj));
-      
-      // Update history list item if present
-      let history = JSON.parse(localStorage.getItem('holmes-history') || '[]');
-      history = history.map(item => {
-        if (item.query === query) {
-          return { ...item, notes: val };
+    
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    
+    debounceTimer.current = setTimeout(() => {
+      try {
+        const savedNotesObj = JSON.parse(localStorage.getItem('holmes-notes') || '{}');
+        if (val.trim()) {
+          savedNotesObj[query] = val;
+        } else {
+          delete savedNotesObj[query];
         }
-        return item;
-      });
-      localStorage.setItem('holmes-history', JSON.stringify(history));
+        localStorage.setItem('holmes-notes', JSON.stringify(savedNotesObj));
+        
+        // Update history list item if present
+        let history = JSON.parse(localStorage.getItem('holmes-history') || '[]');
+        history = history.map(item => {
+          if (item.query === query) {
+            return { ...item, notes: val };
+          }
+          return item;
+        });
+        localStorage.setItem('holmes-history', JSON.stringify(history));
 
-      // Trigger global update
-      window.dispatchEvent(new CustomEvent('holmes-history-updated'));
-    } catch (err) {
-      console.error(err);
-    }
+        // Trigger global update
+        window.dispatchEvent(new CustomEvent('holmes-history-updated'));
+      } catch (err) {
+        console.error(err);
+      }
+    }, 500);
   };
 
   // Toggle Tag selection
@@ -153,15 +160,15 @@ export default function AnalystNotesPanel({ query }) {
 export const getTagColor = (tag) => {
   switch (tag) {
     case '#fraud':
-      return { bg: 'rgba(231, 76, 60, 0.1)', fg: '#e74c3c', border: 'rgba(231, 76, 60, 0.2)' };
+      return { bg: 'rgba(235, 59, 59, 0.1)', fg: '#eb3b3b', border: 'rgba(235, 59, 59, 0.2)' };
     case '#phishing':
-      return { bg: 'rgba(230, 126, 34, 0.1)', fg: '#e67e22', border: 'rgba(230, 126, 34, 0.2)' };
+      return { bg: 'rgba(224, 123, 57, 0.1)', fg: '#e07b39', border: 'rgba(224, 123, 57, 0.2)' };
     case '#malware':
-      return { bg: 'rgba(155, 89, 182, 0.1)', fg: '#9b59b6', border: 'rgba(155, 89, 182, 0.2)' };
+      return { bg: 'rgba(235, 59, 59, 0.1)', fg: '#eb3b3b', border: 'rgba(235, 59, 59, 0.2)' };
     case '#tracking':
-      return { bg: 'rgba(52, 152, 219, 0.1)', fg: '#3498db', border: 'rgba(52, 152, 219, 0.2)' };
+      return { bg: 'rgba(223, 171, 1, 0.1)', fg: '#dfab01', border: 'rgba(223, 171, 1, 0.2)' };
     case '#research':
-      return { bg: 'rgba(46, 204, 113, 0.1)', fg: '#2ecc71', border: 'rgba(46, 204, 113, 0.2)' };
+      return { bg: 'rgba(35, 131, 226, 0.1)', fg: '#2383e2', border: 'rgba(35, 131, 226, 0.2)' };
     default:
       return { bg: '#eaeaea', fg: '#666666', border: '#dddddd' };
   }

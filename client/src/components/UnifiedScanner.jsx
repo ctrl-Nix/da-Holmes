@@ -12,6 +12,9 @@ import SslIntel from './SslIntel';
 import TakeoverIntel from './TakeoverIntel';
 import BreachIntel from './BreachIntel';
 import AnalystNotesPanel from './AnalystNotesPanel';
+import SocialProfilesWidget from './SocialProfilesWidget';
+import SpoofingWidget from './SpoofingWidget';
+import TechStackWidget from './TechStackWidget';
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
@@ -168,8 +171,22 @@ export default function UnifiedScanner({ initialQuery = '' }) {
         // Flatten: use unified.data as the result for rendering
         data = unified.data || unified;
       }
-
       setResult(data);
+      
+      // Save history
+      try {
+        let score = undefined;
+        try { score = computeScore(data); } catch(e) {}
+        const history = JSON.parse(localStorage.getItem('holmes-history') || '[]');
+        const updated = [
+          { query: cleanQuery, type: targetType, timestamp: Date.now(), riskScore: score }, 
+          ...history.filter(h => h.query !== cleanQuery)
+        ].slice(0, 20);
+        localStorage.setItem('holmes-history', JSON.stringify(updated));
+        window.dispatchEvent(new CustomEvent('holmes-history-updated'));
+      } catch (hErr) {
+        console.error('Failed to log history:', hErr);
+      }
     } catch (err) {
       if (err.name === 'AbortError') {
         setError('Scan timed out after 15 seconds. The target may be unreachable.');
@@ -291,48 +308,18 @@ export default function UnifiedScanner({ initialQuery = '' }) {
     if (!res) return 100;
     let score = 100;
 
-    // 1. Domain checks
-    const dns = res.dns || {};
-    const spf = dns.spf_record || dns.txt?.some(t => t.includes('spf1'));
-    if (!spf) score -= 15;
-
-    const dmarc = dns.dmarc_record;
-    if (!dmarc) score -= 15;
+    const spoofing = res.spoofing || {};
+    if (spoofing.spf_vulnerable === true) score -= 20;
+    if (spoofing.dmarc_vulnerable === true) score -= 20;
 
     const subdomainsCount = res.subdomain_count || res.subdomains?.length || 0;
     if (subdomainsCount > 5) {
       score -= (subdomainsCount - 5) * 10;
     }
 
-    // 2. Social checks
     const socialsList = res.social?.platforms || res.platforms || [];
     const foundSocialCount = socialsList.filter(p => p.status === 'found').length;
     score -= foundSocialCount * 15;
-
-    // 3. High risk indicators
-    if (res.risk_level === 'HIGH_RISK') {
-      score -= 50;
-    }
-
-    const whoisRisks = res.whois?.risk_indicators || res.risk_indicators || [];
-    if (whoisRisks.includes("NEW_DOMAIN")) score -= 15;
-    if (whoisRisks.includes("EXPIRING_SOON")) score -= 15;
-
-    // 4. SSL Penalty
-    const sslFlags = res.ssl?.status_flags || [];
-    if (sslFlags.includes("EXPIRED")) score -= 30;
-    if (sslFlags.includes("EXPIRING_SOON")) score -= 15;
-    if (sslFlags.includes("SELF_SIGNED")) score -= 20;
-
-    // 5. Takeover Vulnerabilities
-    const takeovers = res.takeover || [];
-    const vulnerableTakeovers = takeovers.filter(t => t.vulnerable).length;
-    score -= vulnerableTakeovers * 25;
-
-    // 6. Breach Leaks
-    if (res.breaches && res.breaches.length > 0) {
-      score -= res.breaches.length * 20;
-    }
 
     return Math.max(0, Math.min(100, score));
   };
@@ -391,70 +378,7 @@ export default function UnifiedScanner({ initialQuery = '' }) {
       specificCard = <BreachIntel results={singleRes} />;
     } else if (singleRes.social !== undefined && singleRes.social.platforms !== undefined) {
       // Username scan with social platform data
-      const social = singleRes.social;
-      specificCard = (
-        <div className={styles.resultContainer}>
-          <div className={styles.resultHeader}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Terminal size={12} /> SOCIAL FOOTPRINT ANALYSIS
-            </span>
-            <span style={{
-              padding: '2px 8px',
-              borderRadius: '4px',
-              fontSize: '11px',
-              fontWeight: 700,
-              backgroundColor: social.level === 'SECURE' ? 'rgba(14,159,110,0.1)' : social.level === 'VULNERABLE' ? 'rgba(201,117,29,0.1)' : 'rgba(202,44,44,0.1)',
-              color: social.level === 'SECURE' ? '#0e9f6e' : social.level === 'VULNERABLE' ? '#c9751d' : '#ca2c2c'
-            }}>
-              {social.level} — Score: {social.score}/100
-            </span>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '12px 0' }}>
-            {social.platforms.map((p, idx) => (
-              <div key={idx} style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '8px 12px',
-                borderRadius: '6px',
-                backgroundColor: p.status === 'found' ? 'rgba(14,159,110,0.06)' : 'rgba(127,140,141,0.06)',
-                border: `1px solid ${p.status === 'found' ? 'rgba(14,159,110,0.15)' : 'var(--notion-border)'}`,
-                fontSize: '13px'
-              }}>
-                <span style={{ fontWeight: 600 }}>{p.platform}</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  {p.url && p.status === 'found' && (
-                    <a href={p.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', color: '#2383e2' }}>
-                      Open →
-                    </a>
-                  )}
-                  <span style={{
-                    fontSize: '10px',
-                    fontWeight: 700,
-                    padding: '2px 6px',
-                    borderRadius: '3px',
-                    textTransform: 'uppercase',
-                    backgroundColor: p.status === 'found' ? 'rgba(14,159,110,0.12)' : p.status === 'not_found' ? 'rgba(127,140,141,0.12)' : 'rgba(201,117,29,0.12)',
-                    color: p.status === 'found' ? '#0e9f6e' : p.status === 'not_found' ? '#7f8c8d' : '#c9751d'
-                  }}>
-                    {p.status === 'found' ? '✓ FOUND' : p.status === 'not_found' ? '✗ NOT FOUND' : '⚠ UNAVAILABLE'}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-          {singleRes.leaks && singleRes.leaks.length > 0 && (
-            <div style={{ marginTop: '8px', padding: '10px 12px', backgroundColor: 'rgba(202,44,44,0.04)', borderRadius: '6px', border: '1px solid rgba(202,44,44,0.1)' }}>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: '#ca2c2c', marginBottom: '4px', textTransform: 'uppercase' }}>Leak Intelligence</div>
-              {singleRes.leaks.map((leak, idx) => (
-                <div key={idx} style={{ fontSize: '12px', color: 'var(--notion-fg-secondary)' }}>
-                  <strong>{leak.source}:</strong> {leak.match}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      );
+      specificCard = <SocialProfilesWidget social={singleRes.social} singleRes={singleRes} />;
     } else if (singleRes.balance_btc !== undefined || singleRes.explorer_url !== undefined) {
       // BTC wallet results
       specificCard = (
@@ -679,7 +603,6 @@ export default function UnifiedScanner({ initialQuery = '' }) {
           )}
         </div>
       ) : (
-        /* ── SINGLE SCAN INTERFACE ── */
         <>
           <form onSubmit={handleSubmit}>
             <div className={styles.inputWrapper}>
@@ -724,66 +647,43 @@ export default function UnifiedScanner({ initialQuery = '' }) {
             </div>
           )}
 
-          {/* Loading Skeletons based on target types */}
-          {loading && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%', marginTop: '16px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div className="skeletonPulse skeletonTitle" style={{ margin: 0, height: '18px', width: '25%' }}></div>
-              </div>
-              
-              <div className="skeletonPulse" style={{ width: '100%', height: '40px', borderRadius: '6px' }}></div>
-
-              {detectedType === 'network' && (
-                <div style={{ border: '1px solid var(--notion-border)', borderRadius: '6px', overflow: 'hidden', padding: '20px', backgroundColor: '#ffffff' }}>
-                  <div className="skeletonPulse skeletonTitle" style={{ width: '35%', height: '18px', marginBottom: '14px' }}></div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <div className="skeletonPulse skeletonBlock" style={{ height: '24px' }}></div>
-                    <div className="skeletonPulse skeletonBlock" style={{ height: '24px' }}></div>
-                    <div className="skeletonPulse skeletonBlock" style={{ height: '24px' }}></div>
-                  </div>
-                </div>
-              )}
-
-              {detectedType === 'domain' && (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '24px', alignItems: 'start' }}>
-                  <div className="skeletonCard" style={{ margin: 0 }}>
-                    <div className="skeletonPulse skeletonTitle" style={{ width: '50%', height: '18px', marginBottom: '12px' }}></div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      <div className="skeletonPulse skeletonBlock" style={{ height: '20px' }}></div>
-                      <div className="skeletonPulse skeletonBlock" style={{ height: '20px' }}></div>
-                      <div className="skeletonPulse skeletonBlock" style={{ height: '20px' }}></div>
+          <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start', width: '100%', marginTop: '16px' }}>
+            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {/* Loading Skeletons based on target types */}
+              {loading && (
+                <>
+                  {detectedType === 'domain' && (
+                    <>
+                      <TakeoverIntel isLoading={true} />
+                      <SslIntel isLoading={true} />
+                      <SpoofingWidget isLoading={true} />
+                      <TechStackWidget isLoading={true} />
+                    </>
+                  )}
+                  {detectedType === 'email' && (
+                    <BreachIntel isLoading={true} />
+                  )}
+                  {detectedType === 'username' && (
+                    <SocialProfilesWidget isLoading={true} />
+                  )}
+                  {detectedType !== 'domain' && detectedType !== 'email' && detectedType !== 'username' && (
+                    <div className="skeletonCard" style={{ margin: 0 }}>
+                      <div className="skeletonPulse skeletonTitle" style={{ width: '40%', height: '20px', marginBottom: '12px' }}></div>
+                      <div className="skeletonPulse skeletonBlock" style={{ height: '120px' }}></div>
                     </div>
-                  </div>
-                  <div className="skeletonCard" style={{ margin: 0 }}>
-                    <div className="skeletonPulse skeletonTitle" style={{ width: '60%', height: '18px', marginBottom: '12px' }}></div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      <div className="skeletonPulse skeletonBlock" style={{ height: '20px' }}></div>
-                      <div className="skeletonPulse skeletonBlock" style={{ height: '20px' }}></div>
-                      <div className="skeletonPulse skeletonBlock" style={{ height: '20px' }}></div>
-                    </div>
-                  </div>
-                </div>
+                  )}
+                </>
               )}
 
-              {detectedType === 'phone' && (
-                <div className="skeletonCard" style={{ display: 'flex', flexDirection: 'column', gap: '14px', margin: 0 }}>
-                  <div className="skeletonPulse skeletonBlock" style={{ width: '60%', height: '20px' }}></div>
-                  <div className="skeletonPulse skeletonBlock" style={{ width: '80%', height: '16px' }}></div>
-                  <div className="skeletonPulse skeletonBlock" style={{ width: '70%', height: '16px' }}></div>
-                </div>
-              )}
-
-              {detectedType !== 'network' && detectedType !== 'domain' && detectedType !== 'phone' && (
-                <div className="skeletonCard" style={{ margin: 0 }}>
-                  <div className="skeletonPulse skeletonTitle" style={{ width: '40%', height: '20px', marginBottom: '12px' }}></div>
-                  <div className="skeletonPulse skeletonBlock" style={{ height: '120px' }}></div>
-                </div>
-              )}
+              {/* Dynamic Results Display */}
+              {renderResults()}
             </div>
-          )}
 
-          {/* Dynamic Results Display */}
-          {renderResults()}
+            {/* Analyst Notes Panel */}
+            {(loading || result) && (
+              <AnalystNotesPanel query={query} />
+            )}
+          </div>
         </>
       )}
     </div>

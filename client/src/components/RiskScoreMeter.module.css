@@ -85,18 +85,18 @@
 }
 
 .progressSecure {
-  background-color: #0e9f6e; /* green */
-  box-shadow: 0 0 8px rgba(14, 159, 110, 0.2);
+  background-color: #0f7b6c; /* green */
+  box-shadow: 0 0 8px rgba(15, 123, 108, 0.2);
 }
 
 .progressVulnerable {
-  background-color: #f39c12; /* orange */
-  box-shadow: 0 0 8px rgba(243, 156, 18, 0.2);
+  background-color: #e07b39; /* orange */
+  box-shadow: 0 0 8px rgba(224, 123, 57, 0.2);
 }
 
 .progressCritical {
-  background-color: #e74c3c; /* red */
-  box-shadow: 0 0 8px rgba(231, 76, 60, 0.2);
+  background-color: #eb3b3b; /* red */
+  box-shadow: 0 0 8px rgba(235, 59, 59, 0.2);
 }
 
 @keyframes slideDown {

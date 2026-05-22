@@ -1167,7 +1167,7 @@ async def analyze_username(request: Request, username: str = Query(...)):
     if not username:
         raise HTTPException(status_code=400, detail="Username cannot be empty")
 
-    async def check_platform(name, url, username):
+    async def check_platform(name, url):
         try:
             async with httpx.AsyncClient(
                 follow_redirects=True, 
@@ -1185,9 +1185,6 @@ async def analyze_username(request: Request, username: str = Query(...)):
                     if name == "Telegram" and "tgme_page" not in text:
                         return {"type": "platform", "name": name, 
                                 "status": "not_found", "url": url}
-                    if name == "Reddit" and "has no posts" in text:
-                        return {"type": "platform", "name": name, 
-                                "status": "not_found", "url": url}
                     if name == "GitHub" and "Not Found" in text:
                         return {"type": "platform", "name": name, 
                                 "status": "not_found", "url": url}
@@ -1203,21 +1200,16 @@ async def analyze_username(request: Request, username: str = Query(...)):
     async def event_generator():
         platforms = [
             ("Instagram", f"https://instagram.com/{username}"),
-            ("Twitter", f"https://twitter.com/{username}"),
+            ("Twitter/X", f"https://twitter.com/{username}"),
             ("GitHub", f"https://github.com/{username}"),
             ("Reddit", f"https://reddit.com/user/{username}"),
-            ("TikTok", f"https://tiktok.com/@{username}"),
             ("Telegram", f"https://t.me/{username}")
         ]
 
-        tasks = [check_platform(n, u, username) for n, u in platforms]
-        results_list = []
+        tasks = [check_platform(n, u) for n, u in platforms]
+        results_list = await asyncio.gather(*tasks)
 
-        for task in asyncio.as_completed(tasks):
-            result = await task
-            results_list.append(result)
-            
-            # Format event data structure expected by the frontend
+        for result in results_list:
             formatted_data = {
                 "type": "platform",
                 "data": {
@@ -1227,6 +1219,7 @@ async def analyze_username(request: Request, username: str = Query(...)):
                 }
             }
             yield f"data: {json.dumps(formatted_data)}\n\n"
+            await asyncio.sleep(0.1)
 
         # After all concurrent platform checks complete, construct and send final intelligence brief
         found_platforms = [res for res in results_list if res["status"] == "found"]

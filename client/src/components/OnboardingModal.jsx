@@ -4,22 +4,22 @@ import styles from './OnboardingModal.module.css';
 const SLIDES = [
   {
     title: "What is this?",
-    text: "da Holmes is an open-source intelligence platform. Paste any target — domain, username, email, IP address, or Bitcoin wallet — and we investigate it using 100% public data sources.",
+    text: "da Holmes is an open-source intelligence platform. Paste any target — domain, username, email, IP, or Bitcoin wallet — and we investigate using 100% public data.",
     icon: "🔍"
   },
   {
     title: "How to use",
-    text: "Type anything into the search bar. da Holmes automatically detects what you entered and runs the right investigation modules. Try: google.com or your own username.",
+    text: "Type anything into the search bar. da Holmes auto-detects the input type and runs the right modules. Try: google.com or your own username.",
     icon: "⌨️"
   },
   {
     title: "What you'll see",
-    text: "Results stream in real time — subdomains, social profiles, email security, SSL certificates, breach history and more. Export any report as PDF.",
+    text: "Results stream in real time — subdomains, social profiles, email security, SSL certificates, breach history. Export any report as PDF.",
     icon: "📊"
   },
   {
     title: "Stay ethical",
-    text: "This tool uses only public data. Only investigate targets you have permission to investigate or that are your own. Misuse is your responsibility.",
+    text: "This tool uses only public data. Only investigate targets you have permission to investigate. Misuse is your responsibility.",
     icon: "⚖️"
   }
 ];

@@ -1,86 +1,156 @@
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi.responses import JSONResponse
 import httpx
+import re
+import socket
+import asyncio
+import logging
+import os
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
+USER_AGENTS = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
+
 @router.get("/")
-async def get_certificates(request: Request, domain: str):
-    """
-    Queries crt.sh to find subdomains via Certificate Transparency Logs.
-    Falls back to HackerTarget if crt.sh is unavailable.
-    """
-    subdomains = set()
+async def get_domain_certificates(request: Request = None, domain: str = Query(...)):
+    domain = domain.strip().lower()
+    if not domain:
+        raise HTTPException(status_code=400, detail="Domain query cannot be empty")
+
+    results_map = {}
     errors = []
-    
-    # 1. Try crt.sh
+
     try:
-        url = f"https://crt.sh/?q={domain}&output=json"
+        url = f"https://crt.sh/?q=%.{domain}&output=json"
         async with httpx.AsyncClient() as client:
-            response = await client.get(url, timeout=10.0)
-            
-        if response.status_code == 200:
-            data = response.json()
-            for entry in data:
-                name = entry.get("name_value", "")
-                if "*" not in name: # ignore wildcards
-                    subdomains.update(name.split("\n"))
-            
-            return {
-                "status": "success",
-                "source": "crt.sh",
-                "domain": domain,
-                "subdomain_count": len(subdomains),
-                "subdomains": list(subdomains)[:50]
-            }
-        else:
-            errors.append(f"crt.sh returned HTTP {response.status_code}")
+            resp = await client.get(url, timeout=7.0)
+            if resp.status_code == 200:
+                data = resp.json()
+                for entry in data:
+                    name_raw = entry.get("name_value", "")
+                    names = [n.strip() for n in re.split(r"[\s\n,]+", name_raw) if n.strip()]
+                    
+                    first_seen = entry.get("entry_timestamp") or entry.get("not_before") or "N/A"
+                    issuer = entry.get("issuer_name") or "Unknown Issuer"
+                    
+                    for name in names:
+                        name = name.lower()
+                        if name.endswith(domain) and not name.startswith("*"):
+                            if name not in results_map:
+                                results_map[name] = {
+                                    "subdomain": name,
+                                    "first_seen": first_seen,
+                                    "issuer": issuer
+                                }
+                
+                if results_map:
+                    return {
+                        "status": "success",
+                        "source": "crt.sh",
+                        "domain": domain,
+                        "subdomains": list(results_map.values())
+                    }
     except Exception as e:
+        logger.error(f"crt.sh query failed: {e}")
         errors.append(f"crt.sh error: {str(e)}")
-        
-    # 2. Fallback to HackerTarget
+
+    # Fallback to HackerTarget
     try:
         url = f"https://api.hackertarget.com/hostsearch/?q={domain}"
         async with httpx.AsyncClient() as client:
-            response = await client.get(url, timeout=10.0)
-            
-        if response.status_code == 200:
-            text = response.text
-            for line in text.splitlines():
-                if "," in line:
-                    sub = line.split(",")[0].strip()
-                    if sub and not sub.startswith("*"):
-                        subdomains.add(sub)
-                        
-            return {
-                "status": "success",
-                "source": "HackerTarget (Fallback)",
-                "domain": domain,
-                "subdomain_count": len(subdomains),
-                "subdomains": list(subdomains)[:50]
-            }
-        else:
-            errors.append(f"HackerTarget returned HTTP {response.status_code}")
+            resp = await client.get(url, timeout=5.0)
+            if resp.status_code == 200 and "error" not in resp.text.lower():
+                for line in resp.text.splitlines():
+                    if "," in line:
+                        sub = line.split(",")[0].strip().lower()
+                        if sub.endswith(domain) and not sub.startswith("*"):
+                            if sub not in results_map:
+                                results_map[sub] = {
+                                    "subdomain": sub,
+                                    "first_seen": "N/A (HackerTarget)",
+                                    "issuer": "N/A (HackerTarget)"
+                                }
+                if results_map:
+                    return {
+                        "status": "success",
+                        "source": "HackerTarget (Fallback)",
+                        "domain": domain,
+                        "subdomains": list(results_map.values())
+                    }
     except Exception as e:
+        logger.error(f"HackerTarget query failed: {e}")
         errors.append(f"HackerTarget error: {str(e)}")
+
+    return JSONResponse(
+        status_code=503,
+        content={"status": "unavailable", "reason": "API unreachable"}
+    )
+
+TAKEOVER_FINGERPRINTS = [
+    {"service": "GitHub Pages", "fingerprint": "There isn't a GitHub Pages site here", "keyword": "github"},
+    {"service": "Amazon S3", "fingerprint": "NoSuchBucket", "keyword": "s3"},
+    {"service": "Heroku", "fingerprint": "No Such Account", "keyword": "heroku"},
+    {"service": "Fastly", "fingerprint": "Fastly error", "keyword": "fastly"},
+    {"service": "Shopify", "fingerprint": "This shop is currently unavailable", "keyword": "shopify"},
+    {"service": "Netlify", "fingerprint": "Project not found", "keyword": "netlify"}
+]
+
+@router.get("/takeover")
+async def audit_subdomain_takeovers(request: Request, domain: str = Query(...)):
+    domain = domain.strip().lower()
+    if not domain:
+        raise HTTPException(status_code=400, detail="Domain parameter is required")
+
+    cert_res = await get_domain_certificates(request=request, domain=domain)
+    if isinstance(cert_res, JSONResponse):
+        return cert_res
         
-    # If both failed, provide a smart fallback so UI doesn't look empty
-    fallback_subs = [
-        f"www.{domain}",
-        f"mail.{domain}",
-        f"remote.{domain}",
-        f"webmail.{domain}",
-        f"portal.{domain}",
-        f"vpn.{domain}",
-        f"api.{domain}",
-        f"dev.{domain}",
-        f"staging.{domain}",
-        f"admin.{domain}",
-    ]
-    return {
-        "status": "success",
-        "source": "Heuristic Fallback",
-        "domain": domain,
-        "subdomain_count": len(fallback_subs),
-        "subdomains": fallback_subs,
-        "errors": errors
-    }
+    subdomains_list = cert_res.get("subdomains", []) if isinstance(cert_res, dict) else []
+    results = []
+
+    async def check_takeover(sub: str):
+        loop = asyncio.get_running_loop()
+        try:
+            await loop.run_in_executor(None, socket.getaddrinfo, sub, 80)
+            resolves = True
+        except Exception:
+            resolves = False
+
+        if not resolves:
+            return {
+                "subdomain": sub,
+                "vulnerable": False,
+                "service": "None",
+                "fingerprint": "Does not resolve"
+            }
+
+        try:
+            async with httpx.AsyncClient(verify=False, follow_redirects=True, timeout=4.0) as client:
+                headers = {"User-Agent": USER_AGENTS}
+                resp = await client.get(f"http://{sub}", headers=headers)
+                body_text = resp.text
+                
+                for fp in TAKEOVER_FINGERPRINTS:
+                    if fp["fingerprint"] in body_text:
+                        return {
+                            "subdomain": sub,
+                            "vulnerable": True,
+                            "service": fp["service"],
+                            "fingerprint": fp["fingerprint"]
+                        }
+        except Exception as e:
+            pass
+
+        return {
+            "subdomain": sub,
+            "vulnerable": False,
+            "service": "None",
+            "fingerprint": "Resolves but secure"
+        }
+
+    if subdomains_list:
+        tasks = [check_takeover(s["subdomain"]) for s in subdomains_list]
+        results = await asyncio.gather(*tasks)
+
+    return results

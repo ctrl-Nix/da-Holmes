@@ -1,125 +1,99 @@
 from fastapi import APIRouter, HTTPException, Request
 import httpx
+import logging
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
-@router.get("/")
-async def check_spoofing(request: Request, domain: str):
-    """
-    Advanced Email Spoofing & Phishing Vulnerability Analysis.
-    Analyzes SPF and DMARC records with granular risk assessment.
-    """
-    domain = domain.replace("https://", "").replace("http://", "").strip().split("/")[0]
-    
+@router.get("/validate")
+async def get_spf_dmarc_records(request: Request = None, domain: str = ""):
+    domain = domain.replace("https://", "").replace("http://", "").strip().split("/")[0].lower()
+    if not domain:
+        raise HTTPException(status_code=400, detail="Domain query cannot be empty")
+
+    spf_record = None
+    dmarc_record = None
+    recommendations = []
+
     try:
         async with httpx.AsyncClient() as client:
             txt_url = f"https://dns.google/resolve?name={domain}&type=TXT"
             dmarc_url = f"https://dns.google/resolve?name=_dmarc.{domain}&type=TXT"
             
-            txt_res = await client.get(txt_url, timeout=10.0)
-            dmarc_res = await client.get(dmarc_url, timeout=10.0)
+            txt_res = await client.get(txt_url, timeout=5.0)
+            dmarc_res = await client.get(dmarc_url, timeout=5.0)
             
-        spf_record = None
-        dmarc_record = None
-        
-        if txt_res.status_code == 200:
-            answers = txt_res.json().get("Answer", [])
-            for ans in answers:
-                data = ans.get("data", "").strip('"')
-                if "v=spf1" in data:
-                    spf_record = data
-                    
-        if dmarc_res.status_code == 200:
-            answers = dmarc_res.json().get("Answer", [])
-            for ans in answers:
-                data = ans.get("data", "").strip('"')
-                if "v=DMARC1" in data:
-                    dmarc_record = data
-        
-        # --- Analysis Logic ---
-        score = 0
-        risks = []
-        recommendations = []
-        strengths = []
-        
-        # SPF Analysis
-        if not spf_record:
-            risks.append("Missing SPF record. Any server can send emails on behalf of this domain.")
-            recommendations.append("Implement an SPF record to authorize specific mail servers.")
-        else:
-            score += 30
-            strengths.append("SPF record present.")
-            if "-all" in spf_record:
-                score += 20
-                strengths.append("SPF 'Fail' policy (-all) is strictly enforced.")
-            elif "~all" in spf_record:
-                score += 10
-                risks.append("SPF 'SoftFail' policy (~all) is less restrictive than 'Fail'.")
-                recommendations.append("Upgrade SPF policy from '~all' to '-all' for better enforcement.")
-            elif "+all" in spf_record:
-                score -= 20
-                risks.append("SPF record uses '+all', which effectively allows any sender.")
-                recommendations.append("Remove '+all' from SPF record immediately.")
-            
-            if "include:" in spf_record:
-                strengths.append(f"Authorized third-party senders found in SPF.")
-
-        # DMARC Analysis
-        if not dmarc_record:
-            risks.append("Missing DMARC record. No policy for handling failed SPF/DKIM checks.")
-            recommendations.append("Create a DMARC record to monitor and eventually reject spoofed emails.")
-        else:
-            score += 20
-            strengths.append("DMARC record present.")
-            
-            # Policy check
-            if "p=reject" in dmarc_record:
-                score += 30
-                strengths.append("DMARC policy 'reject' is the highest level of protection.")
-            elif "p=quarantine" in dmarc_record:
-                score += 20
-                strengths.append("DMARC policy 'quarantine' moves suspicious emails to spam.")
-                recommendations.append("Consider moving DMARC policy from 'quarantine' to 'reject' once stable.")
-            elif "p=none" in dmarc_record:
-                score += 5
-                risks.append("DMARC policy 'none' provides no protection (monitoring only).")
-                recommendations.append("Transition DMARC policy from 'p=none' to 'p=quarantine' or 'p=reject'.")
-            
-            if "rua=" in dmarc_record:
-                strengths.append("DMARC reporting (RUA) is enabled for visibility into authentication failures.")
-            else:
-                risks.append("DMARC reporting (RUA) is not configured.")
-                recommendations.append("Add 'rua' tag to DMARC record to receive aggregate reports.")
-
-        # Cap score
-        score = max(0, min(100, score))
-        
-        vulnerable = score < 70
-        rating = "CRITICAL" if score < 30 else ("VULNERABLE" if score < 70 else "SECURE")
-        
-        return {
-            "status": "success",
-            "domain": domain,
-            "vulnerable": vulnerable,
-            "score": score,
-            "rating": rating,
-            "analysis": {
-                "spf": {
-                    "record": spf_record,
-                    "status": "Found" if spf_record else "Not Found",
-                    "details": "SPF record defines which mail servers are authorized to send email for your domain."
-                },
-                "dmarc": {
-                    "record": dmarc_record,
-                    "status": "Found" if dmarc_record else "Not Found",
-                    "details": "DMARC leverages SPF and DKIM to provide instructions to receiving mail servers."
-                }
-            },
-            "risk_factors": risks,
-            "strengths": strengths,
-            "recommendations": recommendations,
-            "summary": f"Security Score: {score}/100. " + ("This domain is well-protected against spoofing." if score >= 70 else "This domain is highly susceptible to email phishing and impersonation attacks.")
-        }
-            
+            if txt_res.status_code == 200:
+                answers = txt_res.json().get("Answer", [])
+                for ans in answers:
+                    data = ans.get("data", "").strip('"')
+                    if "v=spf1" in data:
+                        spf_record = data
+                        break
+                        
+            if dmarc_res.status_code == 200:
+                answers = dmarc_res.json().get("Answer", [])
+                for ans in answers:
+                    data = ans.get("data", "").strip('"')
+                    if "v=DMARC1" in data:
+                        dmarc_record = data
+                        break
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"DNS API query failed: {e}")
+
+    # 1. Parse SPF
+    if not spf_record:
+        spf_score = "FAIL"
+        recommendations.append("Missing SPF record! Anyone can spoof emails claiming to originate from your domain.")
+    else:
+        if "-all" in spf_record:
+            spf_score = "PASS"
+        elif "~all" in spf_record:
+            spf_score = "WARN"
+            recommendations.append("SPF record uses softfail (~all). We recommend changing it to hardfail (-all) to reject unauthorized mail strictly.")
+        elif "+all" in spf_record:
+            spf_score = "FAIL"
+            recommendations.append("SPF record explicitly allows any sender (+all). This completely neutralizes domain security!")
+        else:
+            spf_score = "WARN"
+            recommendations.append("SPF record is present, but could not detect strict hardfail (-all) enforcement.")
+
+    # 2. Parse DMARC
+    if not dmarc_record:
+        dmarc_score = "CRITICAL"
+        recommendations.append("Missing DMARC record! Active receivers cannot verify or report SPF/DKIM verification failures.")
+    else:
+        if "p=reject" in dmarc_record:
+            dmarc_score = "PASS"
+        elif "p=quarantine" in dmarc_record:
+            dmarc_score = "WARN"
+            recommendations.append("DMARC uses quarantine (p=quarantine). Once mail flows are trusted, upgrade the policy to strict reject (p=reject).")
+        elif "p=none" in dmarc_record:
+            dmarc_score = "FAIL"
+            recommendations.append("DMARC is set to monitoring only (p=none). Transition to quarantine or reject policies to actively block spoofed messages.")
+        else:
+            dmarc_score = "WARN"
+            recommendations.append("DMARC record found, but policy parameters are loose or misconfigured.")
+
+    # 3. Determine Risk Level
+    if dmarc_score == "CRITICAL" or spf_score == "FAIL" or dmarc_score == "FAIL":
+        risk_level = "CRITICAL"
+    elif spf_score == "PASS" and dmarc_score == "PASS":
+        risk_level = "SECURE"
+    else:
+        risk_level = "VULNERABLE"
+
+    return {
+        "domain": domain,
+        "spf_record": spf_record,
+        "dmarc_record": dmarc_record,
+        "spf_score": spf_score,
+        "dmarc_score": dmarc_score,
+        "risk_level": risk_level,
+        "recommendations": recommendations
+    }
+
+# Ensure the root route is also mapped in case the frontend relies on /api/spoofing/ instead of /api/spoofing/validate
+@router.get("/")
+async def get_spf_dmarc_records_root(request: Request = None, domain: str = ""):
+    return await get_spf_dmarc_records(request, domain)

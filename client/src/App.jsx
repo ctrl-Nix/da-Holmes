@@ -170,29 +170,38 @@ function ThreatTicker({ feed, loading }) {
 
 export default function App() {
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
-  const [bannerVisible, setBannerVisible] = useState(false);
+  const [bannerStatus, setBannerStatus] = useState('waking');
 
   useEffect(() => {
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-    setBannerVisible(true);
-    fetch(`${apiUrl}/health`)
-      .then(res => {
-        if(res.ok) setBannerVisible(false);
-      })
-      .catch(() => {
-        setBannerVisible(true);
-        // retry every 5 seconds until server wakes
-        const interval = setInterval(() => {
-          fetch(`${apiUrl}/health`)
-            .then(res => {
-              if(res.ok) {
-                setBannerVisible(false);
-                clearInterval(interval);
-              }
-            })
-            .catch(() => {});
-        }, 5000);
-      });
+    const startTime = Date.now();
+    let interval;
+
+    const checkServer = () => {
+      fetch(`${apiUrl}/health`)
+        .then(res => {
+          if (res.ok) {
+            setBannerStatus('hidden');
+            clearInterval(interval);
+          } else {
+            if (Date.now() - startTime > 30000) {
+              setBannerStatus('unavailable');
+              clearInterval(interval);
+            }
+          }
+        })
+        .catch(() => {
+          if (Date.now() - startTime > 30000) {
+            setBannerStatus('unavailable');
+            clearInterval(interval);
+          }
+        });
+    };
+
+    checkServer();
+    interval = setInterval(checkServer, 3000);
+
+    return () => clearInterval(interval);
   }, []);
   const [activeView, setActiveView] = useState('dashboard'); // dashboard | reports | unified | spoofing | exif | domain | geoint
   const [activeReportId, setActiveReportId] = useState(null);
@@ -1251,27 +1260,26 @@ export default function App() {
       
       {/* Wakeup Banner */}
 
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: '36px',
-        backgroundColor: '#fbbf24',
-        color: '#000000',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: '13px',
-        fontWeight: 600,
-        zIndex: 9999,
-        boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
-        opacity: bannerVisible ? 1 : 0,
-        pointerEvents: bannerVisible ? 'auto' : 'none',
-        transition: 'opacity 0.5s ease-out'
-      }}>
-        Server waking up, please wait...
-      </div>
+      {bannerStatus !== 'hidden' && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '36px',
+          backgroundColor: bannerStatus === 'unavailable' ? '#ca2c2c' : '#fbbf24',
+          color: bannerStatus === 'unavailable' ? '#ffffff' : '#000000',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '13px',
+          fontWeight: 600,
+          zIndex: 9999,
+          boxShadow: '0 2px 4px rgba(0,0,0,0.08)'
+        }}>
+          {bannerStatus === 'unavailable' ? 'Server unavailable' : '⏳ Server waking up, please wait...'}
+        </div>
+      )}
       
       {/* Mobile Sidebar Backdrop Overlay */}
       {sidebarExpanded && (
@@ -1452,48 +1460,74 @@ export default function App() {
             </div>
             <div className={layoutStyles.historyList}>
               {historyList.map((item, idx) => {
-                const badgeColor = getHistoryBadgeColor(item.type);
+                const getRelativeTime = (ts) => {
+                  if (!ts) return '';
+                  const diff = Date.now() - ts;
+                  const m = Math.floor(diff / 60000);
+                  const h = Math.floor(m / 60);
+                  const d = Math.floor(h / 24);
+                  if (d > 0) return `${d}d ago`;
+                  if (h > 0) return `${h}h ago`;
+                  if (m > 0) return `${m}m ago`;
+                  return 'Just now';
+                };
+                const timeStr = getRelativeTime(item.timestamp);
+                
+                const typeColors = {
+                  domain: { bg: '#2383e2', fg: '#fff' },
+                  username: { bg: '#9065B0', fg: '#fff' },
+                  network: { bg: '#e07b39', fg: '#fff' },
+                  email: { bg: '#dfab01', fg: '#fff' },
+                  btc: { bg: '#0f7b6c', fg: '#fff' }
+                };
+                const colorMap = typeColors[item.type] || { bg: '#5f5e5b', fg: '#fff' };
+                const truncQuery = item.query.length > 24 ? item.query.substring(0, 24) + '...' : item.query;
+
                 return (
                   <div
                     key={idx}
                     onClick={() => handleHistoryClick(item.query, item.type)}
                     className={layoutStyles.historyItem}
-                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: '4px', padding: '8px 14px', height: 'auto', minHeight: '38px' }}
+                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: '4px', padding: '8px 14px', height: 'auto', minHeight: '38px', cursor: 'pointer' }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflow: 'hidden', maxWidth: '85%' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflow: 'hidden' }}>
                         <span style={{
                           padding: '2px 6px',
                           borderRadius: '3px',
                           fontSize: '9px',
                           fontWeight: 700,
-                          backgroundColor: badgeColor.bg,
-                          color: badgeColor.fg,
+                          backgroundColor: colorMap.bg,
+                          color: colorMap.fg,
                           textTransform: 'uppercase',
                           flexShrink: 0
                         }}>
                           {item.type === 'network' ? 'IP' : item.type}
                         </span>
                         <span style={{ 
-                          textOverflow: 'ellipsis', 
-                          overflow: 'hidden', 
-                          whiteSpace: 'nowrap',
                           color: 'var(--notion-fg)',
-                          fontWeight: 500
+                          fontWeight: 500,
+                          fontSize: '13px'
                         }} title={item.query}>
-                          {item.query}
+                          {truncQuery}
                         </span>
                       </div>
-                      {item.riskScore !== undefined && (
-                        <span style={{
-                          fontSize: '10px',
-                          fontWeight: 700,
-                          color: item.riskScore <= 33 ? '#ca2c2c' : item.riskScore <= 66 ? '#f2994a' : '#2ecc71',
-                          flexShrink: 0
-                        }}>
-                          {item.riskScore}
-                        </span>
-                      )}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                        {timeStr && (
+                          <span style={{ fontSize: '10px', color: 'rgba(55, 53, 47, 0.5)', fontWeight: 500 }}>
+                            {timeStr}
+                          </span>
+                        )}
+                        {item.riskScore !== undefined && (
+                          <span style={{
+                            fontSize: '10px',
+                            fontWeight: 700,
+                            color: item.riskScore <= 33 ? '#ca2c2c' : item.riskScore <= 66 ? '#f2994a' : '#2ecc71'
+                          }}>
+                            {item.riskScore}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     
                     {/* Tags Pills */}
@@ -1542,12 +1576,91 @@ export default function App() {
               </button>
             )}
           </div>
+        {/* Notes Section */}
+        {sidebarExpanded && getNotesList().length > 0 && (
+          <div className={layoutStyles.historySection}>
+            <div className={layoutStyles.sectionTitle} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>Analyst Notes</span>
+              <span style={{ backgroundColor: 'rgba(55,53,47,0.08)', padding: '2px 6px', borderRadius: '4px', fontSize: '10px' }}>{notesCount}</span>
+            </div>
+            <div className={layoutStyles.historyList}>
+              {getNotesList().map((item, idx) => {
+                const typeColors = {
+                  domain: { bg: '#2383e2', fg: '#fff' },
+                  username: { bg: '#9065B0', fg: '#fff' },
+                  network: { bg: '#e07b39', fg: '#fff' },
+                  email: { bg: '#dfab01', fg: '#fff' },
+                  btc: { bg: '#0f7b6c', fg: '#fff' }
+                };
+                const colorMap = typeColors[item.type] || { bg: '#5f5e5b', fg: '#fff' };
+                const truncQuery = item.query.length > 24 ? item.query.substring(0, 24) + '...' : item.query;
+
+                return (
+                  <div
+                    key={`note-${idx}`}
+                    onClick={() => handleHistoryClick(item.query, item.type)}
+                    className={layoutStyles.historyItem}
+                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: '4px', padding: '8px 14px', height: 'auto', minHeight: '38px', cursor: 'pointer' }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflow: 'hidden' }}>
+                      <span style={{
+                        padding: '2px 6px',
+                        borderRadius: '3px',
+                        fontSize: '9px',
+                        fontWeight: 700,
+                        backgroundColor: colorMap.bg,
+                        color: colorMap.fg,
+                        textTransform: 'uppercase',
+                        flexShrink: 0
+                      }}>
+                        {item.type === 'network' ? 'IP' : item.type}
+                      </span>
+                      <span style={{ color: 'var(--notion-fg)', fontWeight: 500, fontSize: '13px' }} title={item.query}>
+                        {truncQuery}
+                      </span>
+                    </div>
+                    {item.notes && (
+                      <div style={{ fontSize: '11px', color: 'rgba(55, 53, 47, 0.6)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {item.notes}
+                      </div>
+                    )}
+                    {item.tags && item.tags.length > 0 && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px', marginTop: '2px' }}>
+                        {item.tags.map(tag => {
+                          const colors = getTagColor(tag);
+                          return (
+                            <span
+                              key={tag}
+                              style={{
+                                fontSize: '8px',
+                                fontWeight: 700,
+                                padding: '1px 5px',
+                                borderRadius: '3px',
+                                backgroundColor: colors.bg,
+                                color: colors.fg,
+                                border: `1px solid ${colors.border}`,
+                                textTransform: 'uppercase'
+                              }}
+                            >
+                              {tag.replace('#', '')}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         )}
 
         {/* Footer profile */}
-        <div className={layoutStyles.sidebarFooter}>
-          <div className={layoutStyles.avatar}>H</div>
-          <span className={layoutStyles.username}>Agent Holmes</span>
+        <div className={layoutStyles.sidebarFooter} style={{ justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className={layoutStyles.avatar}>H</div>
+            <span className={layoutStyles.username}>Agent Holmes</span>
+          </div>
         </div>
       </aside>
 
@@ -2950,6 +3063,9 @@ export default function App() {
                         </div>
                       </div>
                       <div className={modStyles.resultsBody} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#fafafa', borderRadius: '6px', overflow: 'hidden', padding: '10px' }}>
+                        <div className={modStyles.desktopOnlyWarning}>
+                          📊 Open on desktop for graph visualization.
+                        </div>
                         <div className={modStyles.graphWrapper} style={{ border: '1px solid var(--notion-border)', borderRadius: '6px', backgroundColor: '#ffffff', overflow: 'hidden', width: '100%', height: '480px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                           <ForceGraph2D
                             graphData={friendResults}

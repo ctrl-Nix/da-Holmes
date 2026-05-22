@@ -12,7 +12,7 @@
   align-items: center;
   border: 1px solid var(--notion-border);
   border-radius: 12px;
-  background-color: var(--notion-light-gray);
+  background-color: var(--notion-bg);
   padding: 6px 16px;
   gap: 12px;
   position: relative;
@@ -23,8 +23,8 @@
 
 .inputWrapper:focus-within {
   border-color: var(--notion-accent);
-  background-color: white;
-  box-shadow: 0 0 0 3px rgba(35, 131, 226, 0.15);
+  background-color: var(--notion-bg);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .inputIcon {
@@ -51,6 +51,10 @@
 
 /* ── Badges ── */
 .badgeContainer {
+  position: absolute;
+  right: 56px;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -566,7 +570,8 @@ body.dark .disclaimerText {
 @media (max-width: 768px) {
   .scannerContainer {
     max-width: 100% !important;
-    padding: 0 4px !important;
+    padding: 0 16px !important;
+    box-sizing: border-box;
   }
 }
 

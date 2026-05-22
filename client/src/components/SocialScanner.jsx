@@ -7,7 +7,27 @@ const API_BASE = import.meta.env.VITE_API_URL;
 // The 6 designated quick check platforms
 const QUICK_PLATFORMS = ['Instagram', 'Twitter', 'GitHub', 'Reddit', 'TikTok', 'Telegram'];
 
-export default function SocialScanner() {
+export default function SocialScanner({ isLoading }) {
+  if (isLoading) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.sectionHeader} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <span>⚡ Quick Check (Instant)</span>
+        </div>
+        <div className={styles.cardGrid}>
+          {[1, 2, 3, 4, 5, 6].map((num) => (
+            <div key={num} className={styles.card} style={{ border: '1px solid var(--notion-border)', backgroundColor: 'transparent', padding: '16px', minHeight: '90px' }}>
+              <div className="skeleton" style={{ width: '80px', height: '18px', borderRadius: '4px' }}></div>
+              <div style={{ marginTop: '24px' }}>
+                <div className="skeleton" style={{ width: '50%', height: '12px', margin: 0, borderRadius: '4px' }}></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(false);
   
@@ -20,7 +40,7 @@ export default function SocialScanner() {
   const [notFoundList, setNotFoundList] = useState([]);
   const [unavailableList, setUnavailableList] = useState([]);
   const [deepState, setDeepState] = useState('idle');
-  const [sitesChecked, setSitesChecked] = useState(0);
+  const [totalChecked, setTotalChecked] = useState(0);
 
   // Collapsible section toggles
   const [foundOpen, setFoundOpen] = useState(true);
@@ -65,7 +85,7 @@ export default function SocialScanner() {
     setFoundList([]);
     setNotFoundList([]);
     setUnavailableList([]);
-    setSitesChecked(0);
+    setTotalChecked(0);
     setError('');
 
     if (timerRef.current) clearInterval(timerRef.current);
@@ -77,7 +97,7 @@ export default function SocialScanner() {
     setNotFoundOpen(false);
     setUnavailableOpen(false);
 
-    const url = `${API_BASE}/api/analyze?username=${encodeURIComponent(cleanUsername)}`;
+    const url = `${API_BASE}/api/username/maigret?username=${encodeURIComponent(cleanUsername)}`;
     const eventSource = new EventSource(url);
     activeAnalyzeSource.current = eventSource;
 
@@ -111,7 +131,7 @@ export default function SocialScanner() {
               });
             }
           }
-          setSitesChecked((prev) => prev + 1);
+          setTotalChecked((prev) => prev + 1);
         } else if (data.type === 'final') {
           eventSource.close();
           activeAnalyzeSource.current = null;
@@ -133,10 +153,10 @@ export default function SocialScanner() {
     };
   };
 
-  const TOTAL_SITES = 1822;
+  const TOTAL_SITES = 3120;
   const quickFoundCount = quickFindings.filter(f => f.status === 'found').length;
   const totalFound = quickFoundCount + foundList.length;
-  const progressPercent = Math.min(100, Math.round((sitesChecked / TOTAL_SITES) * 100));
+  const progressPercent = Math.min(100, Math.round((totalChecked / TOTAL_SITES) * 100));
 
   return (
     <div className={styles.container}>
@@ -241,8 +261,8 @@ export default function SocialScanner() {
             <div className={styles.deepProgressTop}>
               <span className={styles.counterText}>
                 {deepState === 'completed'
-                  ? `✅ Scan complete — ${sitesChecked} sites checked`
-                  : `Scanning... ${sitesChecked} / ${TOTAL_SITES} sites checked`}
+                  ? `✅ Scan complete — ${totalChecked} sites checked`
+                  : `Scanning... ${totalChecked} / ${TOTAL_SITES} sites checked`}
               </span>
               <span className={styles.progressPct}>{progressPercent}%</span>
             </div>

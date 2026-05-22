@@ -1,150 +1,102 @@
 import React, { useState } from 'react';
-import { Search, Copy, Check, ExternalLink, ShieldAlert, FileText, Lock, FolderOpen } from 'lucide-react';
-import styles from './DorkBuilder.module.css';
 
-export default function DorkBuilder() {
-  const [target, setTarget] = useState('example.com');
+const DorkBuilder = ({ target }) => {
   const [copied, setCopied] = useState(false);
+  
+  if (!target) return null;
 
-  // Grouped pre-built Google dorking queries
-  const getDorkCategories = (t) => {
-    const cleanTarget = t.trim() || 'example.com';
-    return [
-      {
-        category: "📄 Exposed Documents & Files",
-        icon: <FileText size={14} />,
-        dorks: [
-          { label: "PDF Documents Audit", query: `site:${cleanTarget} filetype:pdf` },
-          { label: "Excel Sheets (Financials)", query: `site:${cleanTarget} filetype:xls OR filetype:xlsx` },
-          { label: "Word Documents", query: `site:${cleanTarget} filetype:doc OR filetype:docx` }
-        ]
-      },
-      {
-        category: "🔑 Login & Credential Portals",
-        icon: <Lock size={14} />,
-        dorks: [
-          { label: "Public Login Portals", query: `site:${cleanTarget} inurl:login OR inurl:signin OR intitle:login` },
-          { label: "Password Leaks Sniffer", query: `site:${cleanTarget} intext:"password" OR intext:"passwd" OR intext:"credentials"` },
-          { label: "Admin Control Panels", query: `site:${cleanTarget} inurl:admin OR intitle:admin OR inurl:cpanel` }
-        ]
-      },
-      {
-        category: "⚙️ Exposed Config & Code Files",
-        icon: <ShieldAlert size={14} />,
-        dorks: [
-          { label: "Git Repository Exposed", query: `site:${cleanTarget} inurl:.git OR intitle:"index of / .git"` },
-          { label: "Config Files (.env / .json / .yaml)", query: `site:${cleanTarget} filetype:env OR filetype:yml OR filetype:yaml OR filetype:json` },
-          { label: "SQL Backups & Dumps", query: `site:${cleanTarget} filetype:sql OR filetype:backup OR filetype:dump` }
-        ]
-      },
-      {
-        category: "📂 Directory Listing & Indices",
-        icon: <FolderOpen size={14} />,
-        dorks: [
-          { label: "Directory Listing (Index of)", query: `site:${cleanTarget} intitle:"index of /" OR intitle:"index of /admin"` },
-          { label: "Exposed Log Files", query: `site:${cleanTarget} filetype:log OR inurl:logs` },
-          { label: "Backup Directories", query: `site:${cleanTarget} inurl:backup OR inurl:bak OR inurl:backups` }
-        ]
-      },
-      {
-        category: "🌐 Google Cached & Linked Pages",
-        icon: <Search size={14} />,
-        dorks: [
-          { label: "Google Cache Snapshot", query: `cache:${cleanTarget}` },
-          { label: "Related Domain Affiliations", query: `related:${cleanTarget}` },
-          { label: "Backlink Associations", query: `link:${cleanTarget}` }
-        ]
-      }
-    ];
+  const categories = {
+    "Exposed Files": [
+      `site:${target}`,
+      `filetype:pdf site:${target}`,
+      `filetype:xls site:${target}`,
+      `filetype:doc site:${target}`,
+      `"${target}" filetype:sql`
+    ],
+    "Login Pages": [
+      `inurl:login site:${target}`,
+      `inurl:admin site:${target}`
+    ],
+    "Config/Git": [
+      `inurl:config site:${target}`,
+      `inurl:.git site:${target}`
+    ],
+    "Sensitive Dirs": [
+      `intitle:"index of" site:${target}`,
+      `intext:"password" site:${target}`,
+      `intext:"@${target}"`
+    ],
+    "Cached/Related": [
+      `cache:${target}`,
+      `related:${target}`,
+      `link:${target}`
+    ]
   };
 
-  const categories = getDorkCategories(target);
+  const allDorks = Object.values(categories).flat();
 
   const handleCopyAll = () => {
-    const allQueries = categories
-      .flatMap(c => c.dorks)
-      .map(d => d.query)
-      .join('\n');
-    
-    navigator.clipboard.writeText(allQueries);
+    navigator.clipboard.writeText(allDorks.join('\n'));
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleCopyQuery = (queryText) => {
-    navigator.clipboard.writeText(queryText);
-  };
-
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
+    <div className="bg-gray-900 text-gray-100 p-6 rounded-xl border border-gray-700 shadow-xl w-full">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <div>
-          <h1 className={styles.title}>Google Dorking Query Builder</h1>
-          <div className={styles.subtitle}>Auto-generate advanced target intelligence search operators for passive reconnaissance.</div>
+          <h2 className="text-xl font-bold text-blue-400 flex items-center gap-2">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            Google Dork Builder
+          </h2>
+          <p className="text-sm text-gray-400 mt-1">
+            Target: <span className="text-green-400 font-mono font-medium">{target}</span>
+          </p>
         </div>
-        <button className={styles.copyAllBtn} onClick={handleCopyAll}>
-          {copied ? <Check size={14} /> : <Copy size={14} />}
-          <span>{copied ? "All Dorks Copied!" : "Copy All 15 Dorks"}</span>
+        <button
+          onClick={handleCopyAll}
+          className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm flex items-center gap-2 border border-blue-500 shadow-md"
+        >
+          {copied ? (
+            <>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+              Copied!
+            </>
+          ) : (
+            <>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+              Copy All Dorks
+            </>
+          )}
         </button>
       </div>
 
-      {/* Target input */}
-      <div className={styles.inputSection}>
-        <label className={styles.inputLabel}>Recon Target Domain or Username</label>
-        <div className={styles.inputWrapper}>
-          <Search className={styles.searchIcon} size={16} />
-          <input 
-            type="text"
-            className={styles.inputField}
-            placeholder="e.g. google.com or torvalds"
-            value={target}
-            onChange={(e) => setTarget(e.target.value)}
-          />
-        </div>
-      </div>
-
-      {/* Categories stack */}
-      <div className={styles.categoriesStack}>
-        {categories.map((cat, idx) => (
-          <div key={idx} className={styles.categoryCard}>
-            <div className={styles.categoryHeader}>
-              {cat.icon}
-              <span>{cat.category}</span>
-            </div>
-            <div className={styles.chipsGrid}>
-              {cat.dorks.map((dork, dIdx) => {
-                const searchUrl = `https://google.com/search?q=${encodeURIComponent(dork.query)}`;
-                return (
-                  <div key={dIdx} className={styles.dorkChip}>
-                    <div className={styles.chipLeft}>
-                      <span className={styles.chipLabel}>{dork.label}</span>
-                      <code className={styles.chipCode}>{dork.query}</code>
-                    </div>
-                    <div className={styles.chipRight}>
-                      <button 
-                        onClick={() => handleCopyQuery(dork.query)}
-                        className={styles.actionBtn}
-                        title="Copy Query"
-                      >
-                        <Copy size={12} />
-                      </button>
-                      <a 
-                        href={searchUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={styles.actionBtn}
-                        title="Execute in Google"
-                      >
-                        <ExternalLink size={12} />
-                      </a>
-                    </div>
-                  </div>
-                );
-              })}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+        {Object.entries(categories).map(([category, dorkList]) => (
+          <div key={category} className="bg-gray-800 p-4 rounded-lg border border-gray-700 shadow-inner flex flex-col h-full">
+            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 pb-2 border-b border-gray-700">
+              {category}
+            </h3>
+            <div className="flex flex-col gap-2 flex-grow">
+              {dorkList.map((dork, i) => (
+                <a
+                  key={i}
+                  href={`https://google.com/search?q=${encodeURIComponent(dork)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-2 bg-gray-900 border border-gray-600 hover:border-blue-500 hover:bg-gray-750 hover:text-blue-300 rounded text-xs font-mono text-gray-300 transition-all flex items-center justify-between group leading-relaxed break-all"
+                  title="Search in Google"
+                >
+                  <span className="mr-2">{dork}</span>
+                  <svg className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 flex-shrink-0 text-blue-400 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                </a>
+              ))}
             </div>
           </div>
         ))}
       </div>
     </div>
   );
-}
+};
+
+export default DorkBuilder;
