@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { User, Shield, Sparkles, CornerDownLeft, ExternalLink, Terminal, AlertCircle, CheckCircle, ChevronDown, ChevronRight } from 'lucide-react';
 import styles from './SocialScanner.module.css';
 
-const API_BASE = import.meta.env.VITE_API_URL;
+const API_BASE = import.meta.env.VITE_API_URL || '';
 
 // The 6 designated quick check platforms
 const QUICK_PLATFORMS = ['Instagram', 'Twitter', 'GitHub', 'Reddit', 'TikTok', 'Telegram'];

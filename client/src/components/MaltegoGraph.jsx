@@ -3,7 +3,7 @@ import ForceGraph2D from 'react-force-graph-2d';
 import { Search, Loader2, Crosshair, RefreshCw, ZoomIn, ZoomOut, Database, Wifi } from 'lucide-react';
 import modStyles from '../Modules.module.css';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_URL || '';
 
 export default function MaltegoGraph() {
   const [seed, setSeed] = useState('');

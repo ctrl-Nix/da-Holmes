@@ -9,7 +9,10 @@ class EmailScanner:
     Checks if an email is registered on various platforms using holehe.
     """
     def __init__(self):
-        self.executable_path = r"C:\Users\KIIT\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\Scripts\holehe.exe"
+        import shutil
+        import sys
+        self.executable_path = shutil.which("holehe")
+        self.fallback_cmd = [sys.executable, "-m", "holehe"]
 
     async def scan_email(self, email: str) -> Dict[str, Any]:
         """
@@ -26,14 +29,23 @@ class EmailScanner:
             # Run holehe via subprocess
             # Using --only-used to get only positive matches
             # Using --no-color for easier parsing
-            cmd = [self.executable_path, email, "--only-used", "--no-color", "--no-clear"]
+            if self.executable_path:
+                cmd = [self.executable_path, email, "--only-used", "--no-color", "--no-clear"]
+            else:
+                cmd = self.fallback_cmd + [email, "--only-used", "--no-color", "--no-clear"]
             
-            # Run async subprocess
-            process = await asyncio.create_subprocess_exec(
-                *cmd,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
-            )
+            try:
+                # Run async subprocess
+                process = await asyncio.create_subprocess_exec(
+                    *cmd,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE
+                )
+            except FileNotFoundError:
+                logger.warning("Tool holehe is missing, please install it (pip install holehe).")
+                result["status"] = "error"
+                result["message"] = "Holehe scanner tool is not installed on the system."
+                return result
             
             stdout, stderr = await process.communicate()
             

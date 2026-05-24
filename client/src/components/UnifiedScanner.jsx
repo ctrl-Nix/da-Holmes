@@ -16,7 +16,7 @@ import SocialProfilesWidget from './SocialProfilesWidget';
 import SpoofingWidget from './SpoofingWidget';
 import TechStackWidget from './TechStackWidget';
 
-const API_BASE = import.meta.env.VITE_API_URL;
+const API_BASE = import.meta.env.VITE_API_URL || '';
 
 export default function UnifiedScanner({ initialQuery = '' }) {
   const [query, setQuery] = useState(initialQuery);

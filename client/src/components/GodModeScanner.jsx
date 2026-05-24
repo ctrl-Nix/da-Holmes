@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, Loader2, CheckCircle, XCircle, AlertTriangle, Play, ShieldAlert, Download } from 'lucide-react';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_URL || '';
 
 export default function GodModeScanner({ initialQuery = '', onNavigate }) {
   const [target, setTarget] = useState(initialQuery);
