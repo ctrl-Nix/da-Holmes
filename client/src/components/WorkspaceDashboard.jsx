@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Database, Search, Target, Calendar, AlertTriangle, FileText, Activity, Layers, CheckCircle2, XCircle, ArrowRightLeft } from 'lucide-react';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_URL || '';
 
 export default function WorkspaceDashboard() {
   const [scans, setScans] = useState([]);

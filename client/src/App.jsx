@@ -23,7 +23,7 @@ import OnboardingModal from './components/OnboardingModal';
 import HolmesLogo from './components/HolmesLogo';
 
 
-const API_BASE = import.meta.env.VITE_API_URL;
+const API_BASE = import.meta.env.VITE_API_URL || '';
 
 const getTechIcon = (name) => {
   const lower = name.toLowerCase();
@@ -236,7 +236,7 @@ export default function App() {
   const [bannerStatus, setBannerStatus] = useState('waking');
 
   useEffect(() => {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    const apiUrl = import.meta.env.VITE_API_URL || '';
     const startTime = Date.now();
     let interval;
 

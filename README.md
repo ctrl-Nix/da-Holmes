@@ -25,6 +25,13 @@ An advanced, full-stack Open Source Intelligence (OSINT) gathering and relations
 - Node.js (v16+)
 - Git
 
+#### System Dependencies (Non-Docker Setup)
+If you are running the backend directly on your host machine without Docker, some modules (like God Mode, DNS tracking, and traceroute) rely on native OS binaries. 
+You must install these tools on your host OS. For Ubuntu/Debian, you can run:
+```bash
+sudo apt-get update && sudo apt-get install -y nmap whois dnsutils traceroute
+```
+
 ### 1. Backend Setup
 
 Open a terminal in the root directory:

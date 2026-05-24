@@ -542,8 +542,14 @@ async def run_single_monitor(monitor: dict):
                                     "HIGH"
                                 )
                         else:
+                            if raw_breaches and isinstance(raw_breaches[0], list): raw_breaches = raw_breaches[0]
                             for b in raw_breaches:
-                                b_name = b if isinstance(b, str) else b.get("breach", "Unknown Breach")
+                                if isinstance(b, list) and len(b) > 0:
+                                    b_name = str(b[0])
+                                elif isinstance(b, dict):
+                                    b_name = b.get("breach", "Unknown Breach")
+                                else:
+                                    b_name = str(b)
                                 db.save_finding(
                                     new_scan_id, 
                                     "breach", 
@@ -843,6 +849,9 @@ async def sherlock_scan(request: Request, username: str = Query(...)):
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.DEVNULL
         )
+    except FileNotFoundError:
+        logger.warning("Tool sherlock is missing, please install it.")
+        return JSONResponse(status_code=503, content={"error": "Sherlock unavailable"})
     except Exception as e:
         logger.error(f"Sherlock failed to start: {e}")
         return JSONResponse(status_code=503, content={"error": "Sherlock unavailable"})
@@ -1036,7 +1045,13 @@ async def check_email_breach(
                 raw_breaches = data.get("breaches", []) if isinstance(data, dict) else (data if isinstance(data, list) else [])
                 
                 for b in raw_breaches:
-                    name = b if isinstance(b, str) else b.get("breach", "Unknown Breach")
+                    if isinstance(b, list) and len(b) > 0:
+                        name = str(b[0])
+                    elif isinstance(b, dict):
+                        name = b.get("breach", "Unknown Breach")
+                    else:
+                        name = str(b)
+                    
                     breaches.append({
                         "name": name,
                         "date": "2022",
@@ -2043,7 +2058,8 @@ async def generate_pdf_report(
         headers = {
             "Content-Disposition": f"attachment; filename={filename}"
         }
-        return StreamingResponse(buffer, media_type="application/pdf", headers=headers)
+        from fastapi.responses import Response
+        return Response(content=buffer.getvalue(), media_type="application/pdf", headers=headers)
         
     except Exception as e:
         logger.error(f"Failed to compile PDF Report: {e}")
@@ -2072,6 +2088,13 @@ async def maigret_scan(request: Request, username: str = Query(...)):
             "-a",
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.DEVNULL
+        )
+    except FileNotFoundError:
+        logger.warning("Tool maigret is missing, please install it.")
+        return JSONResponse(
+            status_code=503,
+            content={"status": "unavailable", 
+                     "reason": "Maigret engine unavailable"}
         )
     except Exception as e:
         logger.error(f"Failed to start Maigret: {e}")
@@ -4006,6 +4029,9 @@ async def run_dnstwist(domain: str) -> list:
     except asyncio.TimeoutError:
         logger.error("DNSTwist scan timed out after 60s")
         return []
+    except FileNotFoundError:
+        logger.warning("Tool dnstwist is missing, please install it.")
+        return []
     except Exception as e:
         logger.error(f"DNSTwist failed: {e}")
         return []
@@ -5055,32 +5081,7 @@ async def pivot_stream(request: Request, target: str = Query(...), type: str = Q
         import json
         yield f"data: {json.dumps({'type': 'complete'})}\n\n"
         
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
-# ---------------------------------------------------------------------------
-# PDF Report Export
-# ---------------------------------------------------------------------------
-@app.post("/api/report/generate", tags=["Reporting"])
-async def generate_report(request: Request, query: str = Query("")):
-    try:
-        scan_data = await request.json()
-    except:
-        scan_data = {}
-        
-    from app.core.pdf_generator import generate_pdf_report
-    from fastapi.responses import Response
-    
-    try:
-        pdf_bytes = generate_pdf_report(scan_data)
-        
-        headers = {
-            "Content-Disposition": f'attachment; filename="holmes_report_{query}.pdf"'
-        }
-        return Response(content=pdf_bytes, media_type="application/pdf", headers=headers)
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     uvicorn.run(

@@ -46,3 +46,8 @@ python-dateutil==2.9.0
 
 # --- Environment ---
 python-dotenv==1.0.1
+
+# --- Additional OSINT Tools ---
+holehe==1.61
+sherlock-project==0.14.3
+maigret==0.4.4

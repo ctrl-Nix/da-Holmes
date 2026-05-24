@@ -4,7 +4,8 @@ import json
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 
-DATABASE_PATH = "holmes.db"
+import os
+DATABASE_PATH = os.getenv("DATABASE_PATH", "holmes.db")
 
 class HolmesDB:
     def __init__(self):
