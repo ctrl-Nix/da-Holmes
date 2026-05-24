@@ -4908,6 +4908,180 @@ async def subdomains_scan(
         auto_save_scan(investigation_id, "Subdomains", result)
 
     return result
+
+# ---------------------------------------------------------------------------
+# Graph & Pivot Endpoints (Maltego Mode)
+# ---------------------------------------------------------------------------
+@app.get("/api/graph/expand", tags=["Graph Analysis"])
+async def graph_expand(node_id: str = Query(...), node_type: str = Query(...), live: bool = Query(False)):
+    from app.core.database import db
+    import json
+    
+    nodes = []
+    links = []
+    seen_nodes = set()
+    
+    def add_node(nid, ntype):
+        if nid and nid not in seen_nodes:
+            nodes.append({"id": str(nid), "type": str(ntype), "label": str(nid)})
+            seen_nodes.add(nid)
+            
+    def add_link(src, tgt):
+        if src and tgt and src != tgt:
+            links.append({"source": str(src), "target": str(tgt)})
+            
+    add_node(node_id, node_type)
+    
+    c = db.conn.cursor()
+    # 1. Scans where this node is the target
+    c.execute("SELECT id FROM scans WHERE target=?", (node_id,))
+    scan_ids = [row["id"] for row in c.fetchall()]
+    
+    for sid in scan_ids:
+        c.execute("SELECT key, value, module FROM findings WHERE scan_id=?", (sid,))
+        for f in c.fetchall():
+            val = f["value"]
+            mod = f["module"]
+            try:
+                parsed = json.loads(val)
+                if isinstance(parsed, list):
+                    for item in parsed:
+                        if isinstance(item, str):
+                            nt = "ip" if "." in item and any(c.isdigit() for c in item) else "domain"
+                            if "breach" in mod: nt = "breach"
+                            if "github" in mod: nt = "repo"
+                            add_node(item, nt)
+                            add_link(node_id, item)
+            except:
+                nt = "info"
+                kl = f["key"].lower()
+                if "ip" in kl: nt = "ip"
+                elif "domain" in kl or "subdomain" in kl: nt = "domain"
+                elif "email" in kl: nt = "email"
+                elif "breach" in kl or "breach" in mod: nt = "breach"
+                elif "asn" in kl: nt = "asn"
+                elif "location" in kl or "city" in kl: nt = "location"
+                
+                val_str = str(val)
+                if len(val_str) < 100:
+                    add_node(val_str, nt)
+                    add_link(node_id, val_str)
+                    
+    # 2. Scans where this node was a finding (Reverse Lookup)
+    c.execute("SELECT scan_id FROM findings WHERE value LIKE ?", (f"%{node_id}%",))
+    rev_scan_ids = set([row["scan_id"] for row in c.fetchall()])
+    for sid in rev_scan_ids:
+        c.execute("SELECT target, target_type FROM scans WHERE id=?", (sid,))
+        scan_info = c.fetchone()
+        if scan_info:
+            tgt = scan_info["target"]
+            tgt_type = scan_info["target_type"] or "domain"
+            add_node(tgt, tgt_type)
+            add_link(tgt, node_id)
+            
+    return {"nodes": nodes, "links": links}
+
+@app.get("/api/pivot", tags=["Graph Analysis"])
+async def pivot_stream(request: Request, target: str = Query(...), type: str = Query(...), save: bool = Query(False)):
+    from fastapi.responses import StreamingResponse
+    async def event_generator():
+        try:
+            import json, httpx, asyncio
+            import dns.resolver
+            
+            if type == "domain":
+                # crt.sh Subdomains
+                try:
+                    async with httpx.AsyncClient(timeout=8.0) as client:
+                        r = await client.get(f"https://crt.sh/?q=%.{target}&output=json")
+                        if r.status_code == 200:
+                            subs = set()
+                            for entry in r.json()[:30]:
+                                name = entry.get("name_value", "").lower()
+                                if name and not name.startswith("*"): subs.add(name)
+                            for sub in subs:
+                                yield f"data: {json.dumps({'event': 'domain_found', 'value': sub, 'source': target})}\n\n"
+                                await asyncio.sleep(0.05)
+                except: pass
+                # DNS A Record
+                try:
+                    resolver = dns.resolver.Resolver()
+                    resolver.timeout = 2
+                    resolver.lifetime = 2
+                    answers = resolver.resolve(target, 'A')
+                    for rdata in answers:
+                        yield f"data: {json.dumps({'event': 'ip_found', 'value': str(rdata), 'source': target})}\n\n"
+                except: pass
+                
+            elif type == "ip":
+                import dns.reversename
+                try:
+                    rev_name = dns.reversename.from_address(target)
+                    resolver = dns.resolver.Resolver()
+                    resolver.timeout = 2
+                    resolver.lifetime = 2
+                    answers = resolver.resolve(rev_name, 'PTR')
+                    for rdata in answers:
+                        yield f"data: {json.dumps({'event': 'domain_found', 'value': str(rdata).rstrip('.'), 'source': target})}\n\n"
+                except: pass
+                try:
+                    async with httpx.AsyncClient(timeout=5.0) as client:
+                        r = await client.get(f"https://api.hackertarget.com/aslookup/?q={target}")
+                        if r.status_code == 200 and "error" not in r.text.lower():
+                            parts = r.text.split(",")
+                            if len(parts) > 1:
+                                asn = parts[1].strip().replace('"', '')
+                                yield f"data: {json.dumps({'event': 'asn_found', 'value': asn, 'source': target})}\n\n"
+                except: pass
+                
+            elif type == "email":
+                try:
+                    async with httpx.AsyncClient(timeout=6.0) as client:
+                        resp = await client.get(f"https://api.xposedornot.com/v1/check-email/{target}")
+                        if resp.status_code == 200:
+                            data = resp.json()
+                            breaches = data.get("breaches", [])
+                            if breaches and isinstance(breaches[0], list): breaches = breaches[0]
+                            for b in breaches[:15]:
+                                b_name = b if isinstance(b, str) else b.get("breach", "Unknown")
+                                yield f"data: {json.dumps({'event': 'breach_found', 'value': b_name, 'source': target})}\n\n"
+                                await asyncio.sleep(0.05)
+                except: pass
+                
+        except Exception as e:
+            import json
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+            
+        import json
+        yield f"data: {json.dumps({'type': 'complete'})}\n\n"
+        
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+# ---------------------------------------------------------------------------
+# PDF Report Export
+# ---------------------------------------------------------------------------
+@app.post("/api/report/generate", tags=["Reporting"])
+async def generate_report(request: Request, query: str = Query("")):
+    try:
+        scan_data = await request.json()
+    except:
+        scan_data = {}
+        
+    from app.core.pdf_generator import generate_pdf_report
+    from fastapi.responses import Response
+    
+    try:
+        pdf_bytes = generate_pdf_report(scan_data)
+        
+        headers = {
+            "Content-Disposition": f'attachment; filename="holmes_report_{query}.pdf"'
+        }
+        return Response(content=pdf_bytes, media_type="application/pdf", headers=headers)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
 if __name__ == "__main__":
     uvicorn.run(
         "main:app",

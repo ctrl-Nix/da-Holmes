@@ -3,7 +3,7 @@ import { Search, Loader2, CheckCircle, XCircle, AlertTriangle, Play, ShieldAlert
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-export default function GodModeScanner({ initialQuery = '' }) {
+export default function GodModeScanner({ initialQuery = '', onNavigate }) {
   const [target, setTarget] = useState(initialQuery);
   const [saveToWorkspace, setSaveToWorkspace] = useState(true);
   
@@ -99,7 +99,7 @@ export default function GodModeScanner({ initialQuery = '' }) {
   };
 
   const handleDownload = async () => {
-    if (!finalResult || !finalResult.report_url) return;
+    if (!finalResult) return;
     // Download logic via fetch
     try {
       const response = await fetch(`${API_BASE}/api/report/generate?query=${encodeURIComponent(target)}`, {
@@ -263,12 +263,22 @@ export default function GodModeScanner({ initialQuery = '' }) {
           
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h3 style={{ margin: 0, fontSize: '18px' }}>Analysis Complete</h3>
-            <button 
-              onClick={handleDownload}
-              style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', backgroundColor: '#fff', border: '1px solid var(--notion-border)', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}
-            >
-              <Download size={16} /> Export PDF Report
-            </button>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              {onNavigate && (
+                <button 
+                  onClick={() => onNavigate('maltego')}
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', backgroundColor: '#2383e2', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}
+                >
+                  <Search size={16} /> Visualize in Intel Graph
+                </button>
+              )}
+              <button 
+                onClick={handleDownload}
+                style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', backgroundColor: '#fff', border: '1px solid var(--notion-border)', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}
+              >
+                <Download size={16} /> Export PDF Report
+              </button>
+            </div>
           </div>
 
           <div style={{ display: 'flex', gap: '24px' }}>

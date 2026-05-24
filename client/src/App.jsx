@@ -2112,7 +2112,7 @@ export default function App() {
 
             {/* ── UNIFIED SCANNER ── */}
             {activeView === 'unified' && (
-              <GodModeScanner initialQuery={unifiedQuery} />
+              <GodModeScanner initialQuery={unifiedQuery} onNavigate={setActiveView} />
             )}
 
             {/* ── SSE USERNAME SCANNER ── */}
