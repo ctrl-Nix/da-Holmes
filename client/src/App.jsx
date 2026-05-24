@@ -11,6 +11,9 @@ import dashStyles from './Dashboard.module.css';
 import modStyles from './Modules.module.css';
 import repStyles from './Reports.module.css';
 import UnifiedScanner from './components/UnifiedScanner';
+import GodModeScanner from './components/GodModeScanner';
+import WorkspaceDashboard from './components/WorkspaceDashboard';
+import MaltegoGraph from './components/MaltegoGraph';
 import SocialScanner from './components/SocialScanner';
 import EmailHeaderIntel from './components/EmailHeaderIntel';
 import DorkBuilder from './components/DorkBuilder';
@@ -35,10 +38,11 @@ const getTechIcon = (name) => {
 
 
 function ThreatTicker({ feed, loading }) {
-  if (!feed || feed.length === 0) return null;
+  const safeFeed = Array.isArray(feed) ? feed : (feed && feed.feed ? feed.feed : []);
+  if (!safeFeed || safeFeed.length === 0) return null;
 
   // Duplicate feed to make the infinite scroll smooth
-  const doubleFeed = [...feed, ...feed];
+  const doubleFeed = [...safeFeed, ...safeFeed];
 
   return (
     <div style={{
@@ -857,7 +861,7 @@ export default function App() {
     formData.append('file', file);
 
     try {
-      const res = await fetch(`${API_BASE}/api/forensics/exif`, {
+      const res = await fetch(`${API_BASE}/api/forensics/metadata`, {
         method: 'POST',
         body: formData
       });
@@ -1498,6 +1502,14 @@ export default function App() {
           </div>
 
           <div 
+            onClick={() => setActiveView('maltego')} 
+            className={`${layoutStyles.navItem} ${activeView === 'maltego' ? layoutStyles.navItemActive : ''}`}
+          >
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🕸️</div>
+            <span className={layoutStyles.navItemLabel}>Maltego Int Graph</span>
+          </div>
+
+          <div 
             onClick={() => setActiveView('socialStream')} 
             className={`${layoutStyles.navItem} ${activeView === 'socialStream' ? layoutStyles.navItemActive : ''}`}
           >
@@ -1842,174 +1854,14 @@ export default function App() {
         <section className={layoutStyles.scrollPane}>
           <div className={layoutStyles.contentWrapper}>
             
-            {/* ── DASHBOARD VIEW ── */}
+            {/* ── WORKSPACE DASHBOARD VIEW ── */}
             {activeView === 'dashboard' && (
-              <div className="animate-fade-in">
-                <ThreatTicker feed={threatFeed} loading={threatLoading} />
-                <h1 className={dashStyles.title}>Intelligence Portal</h1>
-                <div className={dashStyles.subtitle}>SaaS platform for open-source technical recon & deep correlation.</div>
+              <WorkspaceDashboard />
+            )}
 
-                <div className={dashStyles.calloutBlock}>
-                  <div className={dashStyles.calloutEmoji}>🛡️</div>
-                  <div className={dashStyles.calloutText}>
-                    <strong>Operational Notice:</strong> All scanner requests are directed via passive proxy interfaces to prevent active signature trails. Maintain ethical compliance rules at all times.
-                  </div>
-                </div>
-
-                <div className={dashStyles.grid3Col}>
-                  <div className={dashStyles.statCard}>
-                    <div className={dashStyles.statLabel}>Security Scans</div>
-                    <div className={dashStyles.statValue}>1,482</div>
-                    <div className={dashStyles.statSubtext}>
-                      <span className={dashStyles.statSubtextTrend}>+12.4%</span> this week
-                    </div>
-                  </div>
-                  <div className={dashStyles.statCard}>
-                    <div className={dashStyles.statLabel}>Threat Index</div>
-                    <div className={dashStyles.statValue}>B-</div>
-                    <div className={dashStyles.statSubtext}>Moderate footprint danger</div>
-                  </div>
-                  <div className={dashStyles.statCard}>
-                    <div className={dashStyles.statLabel}>API Pools</div>
-                    <div className={dashStyles.statValue}>8 / 8</div>
-                    <div className={dashStyles.statSubtext}>All integrations online</div>
-                  </div>
-                </div>
-
-                <h2 className={dashStyles.sectionHeader}><Sparkles size={16} /> Quick Launcher</h2>
-                <div className={dashStyles.grid2Col}>
-                  <div onClick={() => setActiveView('unified')} className={dashStyles.launcherCard}>
-                    <div className={dashStyles.launcherIcon}><Sparkles size={18} /></div>
-                    <div className={dashStyles.launcherText}>
-                      <div className={dashStyles.launcherTitle}>Unified Search Engine</div>
-                      <div className={dashStyles.launcherDesc}>Auto-detect targets and stream multi-point correlation telemetry.</div>
-                    </div>
-                  </div>
-                  <div onClick={() => setActiveView('spoofing')} className={dashStyles.launcherCard}>
-                    <div className={`${dashStyles.launcherIcon} ${dashStyles.launcherIconGreen}`}><ShieldCheck size={18} /></div>
-                    <div className={dashStyles.launcherText}>
-                      <div className={dashStyles.launcherTitle}>Email Phishing Audit</div>
-                      <div className={dashStyles.launcherDesc}>Sniff MX, SPF and DMARC settings of any targeted corporate domains.</div>
-                    </div>
-                  </div>
-                  <div onClick={() => setActiveView('exif')} className={dashStyles.launcherCard}>
-                    <div className={`${dashStyles.launcherIcon} ${dashStyles.launcherIconYellow}`}><Camera size={18} /></div>
-                    <div className={dashStyles.launcherText}>
-                      <div className={dashStyles.launcherTitle}>EXIF Image forensics</div>
-                      <div className={dashStyles.launcherDesc}>Upload image files to pull camera specs, capture tags, and map locations.</div>
-                    </div>
-                  </div>
-                  <div onClick={() => setActiveView('domain')} className={dashStyles.launcherCard}>
-                    <div className={`${dashStyles.launcherIcon} ${dashStyles.launcherIconRed}`}><Globe size={18} /></div>
-                    <div className={dashStyles.launcherText}>
-                      <div className={dashStyles.launcherTitle}>Host Stack Auditor</div>
-                      <div className={dashStyles.launcherDesc}>Enumerate SSL-based subdomains and detect frameworks.</div>
-                    </div>
-                  </div>
-                  <div onClick={() => setActiveView('socialStream')} className={dashStyles.launcherCard}>
-                    <div className={`${dashStyles.launcherIcon}`} style={{ backgroundColor: 'rgba(35, 131, 226, 0.1)', color: 'var(--notion-accent)' }}><User size={18} /></div>
-                    <div className={dashStyles.launcherText}>
-                      <div className={dashStyles.launcherTitle}>SSE Username Stream</div>
-                      <div className={dashStyles.launcherDesc}>Live scan target username presence concurrently with event streams.</div>
-                    </div>
-                  </div>
-                  <div onClick={() => setActiveView('friendship')} className={dashStyles.launcherCard}>
-                    <div className={`${dashStyles.launcherIcon}`} style={{ backgroundColor: 'rgba(255, 75, 75, 0.1)', fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🕸️</div>
-                    <div className={dashStyles.launcherText}>
-                      <div className={dashStyles.launcherTitle}>Relation Graph Auditor</div>
-                      <div className={dashStyles.launcherDesc}>Graph mutual follower networks between two target users.</div>
-                    </div>
-                  </div>
-                  <div onClick={() => setActiveView('crypto')} className={dashStyles.launcherCard}>
-                    <div className={`${dashStyles.launcherIcon}`} style={{ backgroundColor: 'rgba(251, 191, 36, 0.1)', color: '#fbbf24', fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🪙</div>
-                    <div className={dashStyles.launcherText}>
-                      <div className={dashStyles.launcherTitle}>Blockchain Tracker</div>
-                      <div className={dashStyles.launcherDesc}>Trace cryptocurrency addresses, transaction flow, and balance metrics.</div>
-                    </div>
-                  </div>
-                  <div onClick={() => setActiveView('reverseip')} className={dashStyles.launcherCard}>
-                    <div className={`${dashStyles.launcherIcon}`} style={{ backgroundColor: 'rgba(99, 102, 241, 0.1)', color: '#6366f1', fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🔄</div>
-                    <div className={dashStyles.launcherText}>
-                      <div className={dashStyles.launcherTitle}>Reverse IP Lookup</div>
-                      <div className={dashStyles.launcherDesc}>Resolve domain lists hosted on any target IP address via passive lookup.</div>
-                    </div>
-                  </div>
-                  <div onClick={() => setActiveView('emailHeaders')} className={dashStyles.launcherCard}>
-                    <div className={`${dashStyles.launcherIcon}`} style={{ backgroundColor: 'rgba(236, 72, 153, 0.1)', color: '#ec4899', fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>📧</div>
-                    <div className={dashStyles.launcherText}>
-                      <div className={dashStyles.launcherTitle}>Email Header Audit</div>
-                      <div className={dashStyles.launcherDesc}>Trace the hop-by-hop delivery timeline and security of raw email headers.</div>
-                    </div>
-                  </div>
-                  <div onClick={() => setActiveView('dorkBuilder')} className={dashStyles.launcherCard}>
-                    <div className={`${dashStyles.launcherIcon}`} style={{ backgroundColor: 'rgba(168, 85, 247, 0.1)', color: '#a855f7', fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🕵️</div>
-                    <div className={dashStyles.launcherText}>
-                      <div className={dashStyles.launcherTitle}>Google Dork Builder</div>
-                      <div className={dashStyles.launcherDesc}>Generate advanced target intelligence search operators for passive OSINT.</div>
-                    </div>
-                  </div>
-                  <div onClick={() => setActiveView('dnsHistory')} className={dashStyles.launcherCard}>
-                    <div className={`${dashStyles.launcherIcon}`} style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>📋</div>
-                    <div className={dashStyles.launcherText}>
-                      <div className={dashStyles.launcherTitle}>DNS History Auditor</div>
-                      <div className={dashStyles.launcherDesc}>Map current DNS records and full sub-domain host histories passively.</div>
-                    </div>
-                  </div>
-                  <div onClick={() => setActiveView('traceroute')} className={dashStyles.launcherCard}>
-                    <div className={`${dashStyles.launcherIcon}`} style={{ backgroundColor: 'rgba(20, 184, 166, 0.1)', color: '#14b8a6', fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🗺️</div>
-                    <div className={dashStyles.launcherText}>
-                      <div className={dashStyles.launcherTitle}>Traceroute Path Map</div>
-                      <div className={dashStyles.launcherDesc}>Visualize the hop-by-hop active network route path to any target host.</div>
-                    </div>
-                  </div>
-                </div>
-
-                <h2 className={dashStyles.sectionHeader}><Database size={16} /> Recent Intelligence Reports</h2>
-                <div className={dashStyles.listContainer}>
-                  {reports.map(rep => (
-                    <div key={rep.id} onClick={() => openReport(rep.id)} className={dashStyles.listItem}>
-                      <div className={dashStyles.listItemLeft}>
-                        <span className={dashStyles.listItemEmoji}>{rep.emoji}</span>
-                        <div>
-                          <div className={dashStyles.listItemTitle}>{rep.title}</div>
-                          <div className={dashStyles.listItemMeta}>Generated on {rep.date} by {rep.author}</div>
-                        </div>
-                      </div>
-                      <span className={`${dashStyles.tag} ${
-                        rep.risk === 'SECURE' ? dashStyles.tagGreen :
-                        rep.risk === 'VULNERABLE' ? dashStyles.tagYellow : dashStyles.tagRed
-                      }`}>
-                        {rep.risk}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                <h2 className={dashStyles.sectionHeader}><Play size={16} /> Operational Logging Frequency</h2>
-                <div className={dashStyles.heatmapCard}>
-                  <div className={dashStyles.heatmapHeader}>
-                    <div className={dashStyles.heatmapTitle}>Correlated Scanning telemetry (7-Day Matrix)</div>
-                    <div className={dashStyles.heatmapLegend}>
-                      <span>Less</span>
-                      <div className={`${dashStyles.heatmapLegendBox} ${dashStyles.heatmapCell}`}></div>
-                      <div className={`${dashStyles.heatmapLegendBox} ${dashStyles.cellLow}`}></div>
-                      <div className={`${dashStyles.heatmapLegendBox} ${dashStyles.cellMedium}`}></div>
-                      <div className={`${dashStyles.heatmapLegendBox} ${dashStyles.cellHigh}`}></div>
-                      <span>More</span>
-                    </div>
-                  </div>
-                  <div className={dashStyles.heatmapGrid}>
-                    {Array.from({ length: 48 }).map((_, i) => {
-                      const val = i % 7;
-                      let cellClass = '';
-                      if (val === 1 || val === 4) cellClass = dashStyles.cellLow;
-                      else if (val === 2 || val === 5) cellClass = dashStyles.cellMedium;
-                      else if (val === 3) cellClass = dashStyles.cellHigh;
-                      return <div key={i} className={`${dashStyles.heatmapCell} ${cellClass}`} title={`Active scans registered: ${val * 3}`}></div>;
-                    })}
-                  </div>
-                </div>
-              </div>
+            {/* ── MALTEGO GRAPH VIEW ── */}
+            {activeView === 'maltego' && (
+              <MaltegoGraph />
             )}
 
             {/* ── REPORTS VIEW ── */}
@@ -2260,13 +2112,7 @@ export default function App() {
 
             {/* ── UNIFIED SCANNER ── */}
             {activeView === 'unified' && (
-              <div className={modStyles.container}>
-                <div>
-                  <h1 className={dashStyles.title}>Unified Multi-Source Scanner</h1>
-                  <div className={dashStyles.subtitle}>Enter any query (e.g. usernames, email domains, or crypto wallets) to auto-detect and resolve.</div>
-                </div>
-                <UnifiedScanner initialQuery={unifiedQuery} />
-              </div>
+              <GodModeScanner initialQuery={unifiedQuery} onNavigate={setActiveView} />
             )}
 
             {/* ── SSE USERNAME SCANNER ── */}
@@ -2595,9 +2441,9 @@ export default function App() {
                       {exifDragActive ? 'Drop your photo here!' : 'Drag & Drop or Click to Select File'}
                     </div>
                     <div className={modStyles.uploadSubtitle} style={{ fontSize: '12px', color: 'rgba(55, 53, 47, 0.5)', marginTop: '4px' }}>
-                      Accepts .jpg or .jpeg images. Processing is completely sandboxed.
+                      Supports JPG, PNG, PDF, DOCX, XLSX, MP4, MP3 formats. Processing is completely sandboxed.
                     </div>
-                    <input type="file" accept=".jpg,.jpeg" onChange={handleExifUpload} style={{ display: 'none' }} id="exif-file-input" />
+                    <input type="file" accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx,.mp4,.mp3" onChange={handleExifUpload} style={{ display: 'none' }} id="exif-file-input" />
                     <button 
                       type="button" 
                       onClick={() => document.getElementById('exif-file-input').click()}
@@ -2664,6 +2510,69 @@ export default function App() {
                       </div>
                       <div className={modStyles.resultsBody} style={{ padding: '16px' }}>
                         
+                        {exifResults.risk_level && (
+                          <div style={{
+                            margin: '0 0 20px 0',
+                            padding: '14px',
+                            backgroundColor: exifResults.risk_level === 'HIGH' || exifResults.risk_level === 'CRITICAL' ? 'rgba(202, 44, 44, 0.04)' : 'rgba(217, 115, 29, 0.04)',
+                            border: `1px solid ${exifResults.risk_level === 'HIGH' || exifResults.risk_level === 'CRITICAL' ? '#ca2c2c' : '#d9731d'}`,
+                            borderRadius: '8px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '10px'
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, fontSize: '13px', color: exifResults.risk_level === 'HIGH' || exifResults.risk_level === 'CRITICAL' ? '#ca2c2c' : '#d9731d' }}>
+                              <AlertTriangle size={18} />
+                              <span>Forensic Security Assessment: {exifResults.risk_level} RISK</span>
+                            </div>
+                            {exifResults.risk_flags && exifResults.risk_flags.length > 0 ? (
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                {exifResults.risk_flags.map(flag => (
+                                  <span key={flag} style={{
+                                    fontSize: '10px',
+                                    fontWeight: 700,
+                                    padding: '2px 8px',
+                                    borderRadius: '4px',
+                                    backgroundColor: exifResults.risk_level === 'HIGH' || exifResults.risk_level === 'CRITICAL' ? 'rgba(202, 44, 44, 0.08)' : 'rgba(217, 115, 29, 0.08)',
+                                    color: exifResults.risk_level === 'HIGH' || exifResults.risk_level === 'CRITICAL' ? '#ca2c2c' : '#d9731d'
+                                  }}>{flag.replace(/_/g, ' ')}</span>
+                                ))}
+                              </div>
+                            ) : (
+                              <div style={{ fontSize: '12px', color: 'rgba(55, 53, 47, 0.6)' }}>No risk flags detected in this file's metadata.</div>
+                            )}
+                          </div>
+                        )}
+
+                        {exifResults.metadata && Object.keys(exifResults.metadata).length > 0 && (
+                          <div style={{ marginBottom: '20px' }}>
+                            <h3 className={dashStyles.sectionHeader} style={{ marginTop: '0', marginBottom: '10px' }}>📋 Document & File Properties</h3>
+                            <div style={{ display: 'flex', flexDirection: 'column', border: '1px solid var(--notion-border)', borderRadius: '6px', overflow: 'hidden', backgroundColor: '#ffffff' }}>
+                              {Object.entries(exifResults.metadata).map(([key, val], idx) => {
+                                if (key === 'gps') return null; // GPS is displayed separately
+                                const displayVal = typeof val === 'object' ? JSON.stringify(val, null, 2) : String(val);
+                                if (!displayVal || displayVal.trim() === '') return null;
+                                return (
+                                  <div 
+                                    key={key} 
+                                    style={{ 
+                                      display: 'flex', 
+                                      justifyContent: 'space-between', 
+                                      alignItems: 'center', 
+                                      padding: '10px 14px', 
+                                      borderBottom: '1px solid #f1f1f0',
+                                      backgroundColor: idx % 2 === 0 ? '#ffffff' : '#fafafa' 
+                                    }}
+                                  >
+                                    <span style={{ fontWeight: 600, fontSize: '12px', color: 'rgba(55, 53, 47, 0.75)', textTransform: 'capitalize' }}>{key.replace(/_/g, ' ')}</span>
+                                    <span className={modStyles.codeFont} style={{ fontSize: '11.5px', color: 'rgba(55, 53, 47, 0.65)', maxWidth: '60%', textAlign: 'right', whiteSpace: 'normal', wordBreak: 'break-all' }}>{displayVal}</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+
                         <div className={modStyles.detailRow}>
                           <span className={modStyles.detailKey}>Device Manufacturer</span>
                           <span className={modStyles.detailValue} style={{ fontWeight: 600 }}>{exifResults.make || 'N/A'}</span>

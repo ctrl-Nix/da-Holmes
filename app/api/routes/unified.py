@@ -49,6 +49,9 @@ async def unified_scan(
 ):
     try:
         results = await _unified_scanner.scan(query, raw_text)
+        from app.core.correlations import CorrelationEngine
+        engine = CorrelationEngine()
+        results["correlations"] = engine.run_all(results.get("data", {}))
         return results
     except Exception as e:
         if isinstance(e, HTTPException):

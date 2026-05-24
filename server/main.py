@@ -2611,14 +2611,193 @@ async def get_traceroute(request: Request, host: str = Query(..., description="T
     return hops
 
 
+# ── APScheduler & Monitor Setup ──
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from monitor_db import db
+
+scheduler = AsyncIOScheduler()
+
+async def run_all_monitors():
+    monitors = db.list_monitors()
+    for monitor in monitors:
+        await run_single_monitor(monitor)
+
+async def run_single_monitor(monitor: dict):
+    target = monitor["target"]
+    checks = json.loads(monitor.get("checks", "[]"))
+    new_findings = {}
+    
+    if "subdomain" in checks:
+        try:
+            url = f"https://crt.sh/?q=%.{target}&output=json"
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(url, timeout=7.0)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    subs = set()
+                    for entry in data:
+                        name_raw = entry.get("name_value", "")
+                        for n in re.split(r"[\s\n,]+", name_raw):
+                            if n.strip() and not n.startswith("*") and n.endswith(target):
+                                subs.add(n.strip().lower())
+                    new_findings["subdomains"] = list(subs)
+        except Exception as e:
+            logger.warning(f"Monitor subdomain check failed: {e}")
+
+    if "ssl" in checks:
+        try:
+            ctx = ssl.create_default_context()
+            conn = ctx.wrap_socket(socket.socket(socket.AF_INET), server_hostname=target)
+            conn.settimeout(5.0)
+            conn.connect((target, 443))
+            cert = conn.getpeercert()
+            not_after = datetime.strptime(cert['notAfter'], '%b %d %H:%M:%S %Y %Z')
+            days_remaining = (not_after - datetime.utcnow()).days
+            new_findings["ssl_days_remaining"] = days_remaining
+            if days_remaining < 30:
+                new_findings["ssl_warning"] = f"SSL expires in {days_remaining} days."
+            conn.close()
+        except Exception as e:
+            logger.warning(f"Monitor SSL check failed: {e}")
+
+    if "breach" in checks:
+        try:
+            url = f"https://api.xposedornot.com/v1/check-email/{target}"
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(url, timeout=6.0)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    breaches = data.get("breaches", []) if isinstance(data, dict) else (data if isinstance(data, list) else [])
+                    if breaches and isinstance(breaches[0], list):
+                        breaches = breaches[0]
+                    new_findings["breaches"] = [b if isinstance(b, str) else b.get("breach", "Unknown") for b in breaches]
+        except Exception as e:
+            logger.warning(f"Monitor breach check failed: {e}")
+
+    if "ransomwatch" in checks:
+        try:
+            # Using standard ransomwatch posts feed
+            url = "https://raw.githubusercontent.com/joshhighet/ransomwatch/main/posts.json"
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(url, timeout=6.0)
+                if resp.status_code == 200:
+                    posts = resp.json()
+                    target_posts = [p for p in posts if target.lower() in p.get("post_title", "").lower()]
+                    if target_posts:
+                        new_findings["ransomwatch"] = [p.get("post_title") for p in target_posts]
+        except Exception as e:
+            logger.warning(f"Monitor ransomwatch check failed: {e}")
+
+    # Process and Alert
+    new_scan_id = db.save_scan(monitor["id"], new_findings)
+    last_scan = db.get_latest_scan_for_target(target)
+    
+    if last_scan and last_scan["id"] != new_scan_id:
+        diff = db.diff_findings(new_scan_id, last_scan["id"])
+        new_items = diff.get("new", [])
+        
+        if new_items and monitor.get("webhook_url"):
+            await send_webhook_alert(
+                monitor["webhook_url"],
+                monitor["webhook_type"],
+                target,
+                new_items
+            )
+            db.save_alert(monitor["id"], new_items)
+
+    db.update_monitor_last_run(monitor["id"])
+
+async def send_webhook_alert(url: str, webhook_type: str, target: str, findings: list):
+    if webhook_type == "discord":
+        fields = [{"name": f["key"], "value": str(f["value"])[:200], "inline": True} for f in findings[:10]]
+        payload = {
+            "embeds": [{
+                "title": f"🚨 Holmes OSINT Alert — {target}",
+                "description": f"{len(findings)} new findings detected",
+                "color": 15158332,
+                "fields": fields,
+                "footer": {"text": "Holmes OSINT Platform"}
+            }]
+        }
+    elif webhook_type == "slack":
+        payload = {
+            "text": f"🚨 *Holmes Alert* — {target}",
+            "blocks": [{
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f"*{len(findings)} new findings* for `{target}`\n" + "\n".join(f"• {f['key']}: {f['value']}" for f in findings[:5])
+                }
+            }]
+        }
+    elif webhook_type == "telegram":
+        bot_token = url.split("/bot")[1].split("/")[0] if "/bot" in url else ""
+        chat_id = url.split("chat_id=")[1] if "chat_id=" in url else ""
+        payload = {
+            "chat_id": chat_id,
+            "text": f"🚨 Holmes Alert — {target}\n{len(findings)} new findings:\n" + "\n".join(f"• {f['key']}: {f['value']}" for f in findings[:5]),
+            "parse_mode": "Markdown"
+        }
+    else:
+        return
+
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            await client.post(url, json=payload)
+    except Exception as e:
+        logger.error(f"Webhook failed: {e}")
+
+@app.on_event("startup")
+async def startup_monitor():
+    scheduler.add_job(
+        run_all_monitors,
+        'interval',
+        hours=6,
+        id='monitor_job',
+        replace_existing=True
+    )
+    scheduler.start()
+    logger.info("APScheduler started")
+
+@app.on_event("shutdown")  
+async def shutdown_monitor():
+    scheduler.shutdown()
+
+# ── API ENDPOINTS FOR MONITORING ──
+class MonitorAddRequest(BaseModel):
+    target: str
+    checks: list
+    webhook_url: str = None
+    webhook_type: str = None
+
+@app.post("/api/monitor/add", tags=["Monitor"])
+async def add_monitor(req: MonitorAddRequest):
+    monitor_id = db.add_monitor(req.target, req.checks, req.webhook_url, req.webhook_type)
+    return {"status": "success", "monitor_id": monitor_id}
+
+@app.get("/api/monitor/list", tags=["Monitor"])
+async def list_monitors():
+    return db.list_monitors()
+
+@app.delete("/api/monitor/{id}", tags=["Monitor"])
+async def delete_monitor(id: int):
+    db.delete_monitor(id)
+    return {"status": "success"}
+
+@app.post("/api/monitor/{id}/run", tags=["Monitor"])
+async def run_monitor_now(id: int):
+    monitor = db.get_monitor(id)
+    if not monitor:
+        raise HTTPException(status_code=404, detail="Monitor not found")
+    
+    # Run in background to not block the request
+    asyncio.create_task(run_single_monitor(monitor))
+    return {"status": "success", "message": "Monitor triggered"}
+
+@app.get("/api/monitor/{id}/history", tags=["Monitor"])
+async def get_monitor_history(id: int):
+    return db.get_monitor_history(id)
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
-
-
-
-
-
-
-
-
