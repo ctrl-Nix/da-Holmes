@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Shield, Search, Info, AlertTriangle } from 'lucide-react';
+import { API_BASE_URL } from '../utils/api';
 
 const CertificatesWidget = () => {
   const [domain, setDomain] = useState('');
@@ -12,7 +13,7 @@ const CertificatesWidget = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`http://localhost:8000/api/certificates/?domain=${domain}`);
+      const response = await fetch(`${API_BASE_URL}/api/certificates/?domain=${domain}`);
       const result = await response.json();
       if (result.status === 'success') {
         setData(result);

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, ShieldCheck, ShieldAlert, AlertTriangle, CheckCircle, Info, ArrowRight, ExternalLink } from 'lucide-react';
+import { API_BASE_URL } from '../utils/api';
 
 const SpoofingWidget = () => {
   const [domain, setDomain] = useState('');
@@ -12,7 +13,7 @@ const SpoofingWidget = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`http://localhost:8000/api/spoofing/?domain=${domain}`);
+      const response = await fetch(`${API_BASE_URL}/api/spoofing/?domain=${domain}`);
       const result = await response.json();
       if (result.status === 'success') {
         setData(result);

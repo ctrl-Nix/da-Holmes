@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Camera, Image, Info, AlertTriangle, FileUp } from 'lucide-react';
+import { API_BASE_URL } from '../utils/api';
 
 const ExifWidget = () => {
   const [data, setData] = useState(null);
@@ -18,7 +19,7 @@ const ExifWidget = () => {
     formData.append('file', file);
 
     try {
-      const response = await fetch('http://localhost:8000/api/forensics/exif', {
+      const response = await fetch(`${API_BASE_URL}/api/forensics/exif`, {
         method: 'POST',
         body: formData,
       });

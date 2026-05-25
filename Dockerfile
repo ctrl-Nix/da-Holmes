@@ -1,22 +1,36 @@
-FROM python:3.10-slim
+# Use official Python 3.11-slim base image
+FROM python:3.11-slim
 
-# Set the working directory
+# Set environment configuration
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV DATABASE_URL="sqlite+aiosqlite:////data/holmes.db"
+
+# Set application home directory
 WORKDIR /app
 
-# Copy requirements file first to leverage Docker cache
-COPY requirements.txt .
+# Install system utilities (essential for network diagnostics and tools like maigret)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    git \
+    nmap \
+    whois \
+    dnsutils \
+    traceroute \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y nmap whois dnsutils traceroute && rm -rf /var/lib/apt/lists/*
+# Install python dependencies
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt gunicorn
 
-# Install dependencies including gunicorn
-RUN pip install --no-cache-dir -r requirements.txt gunicorn
+# Copy source code and data folders
+COPY . /app/
 
-# Copy the rest of the application
-COPY . .
-
-# Expose port 8000
+# Expose FastAPI server port
 EXPOSE 8000
 
-# Run the FastAPI application using Gunicorn with Uvicorn workers
+# Launch FastAPI using Gunicorn with Uvicorn workers
 CMD ["gunicorn", "main:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "-b", "0.0.0.0:8000"]

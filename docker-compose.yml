@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   backend:
     build:
@@ -6,29 +8,29 @@ services:
     container_name: holmes_backend
     ports:
       - "8000:8000"
-    volumes:
-      - holmes_data:/app/data
-    networks:
-      - holmes_network
     environment:
       - PYTHONUNBUFFERED=1
+      - DATABASE_URL=sqlite+aiosqlite:////data/holmes.db
       - DATABASE_PATH=/app/data/holmes.db
+      - HOLMES_SECRET_KEY=holmes-default-secret-key-32bytes-long!
+    volumes:
+      - holmes_data:/data
+      - holmes_data:/app/data
     restart: unless-stopped
 
   frontend:
     build:
-      context: ./client
+      context: ./frontend
       dockerfile: Dockerfile
     container_name: holmes_frontend
     ports:
       - "80:80"
-    networks:
-      - holmes_network
+    depends_on:
+      - backend
+    environment:
+      - VITE_API_URL=
     restart: unless-stopped
-
-networks:
-  holmes_network:
-    driver: bridge
 
 volumes:
   holmes_data:
+    driver: local

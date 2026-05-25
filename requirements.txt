@@ -51,3 +51,12 @@ python-dotenv==1.0.1
 holehe==1.61
 sherlock-project==0.14.3
 maigret==0.4.4
+sqlalchemy>=2.0.0
+aiosqlite>=0.18.0
+cryptography>=42.0.0
+tenacity>=8.0.0
+python-Wappalyzer>=0.3.1
+google-play-scraper>=1.2.7
+asyncpg>=0.29.0
+psycopg2-binary>=2.9.9
+dnspython>=2.6.1

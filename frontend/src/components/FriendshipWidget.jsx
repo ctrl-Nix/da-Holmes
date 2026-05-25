@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_BASE_URL } from '../utils/api';
 
 const FriendshipWidget = () => {
   const [target1, setTarget1] = useState('');
@@ -17,7 +18,7 @@ const FriendshipWidget = () => {
     setError('');
     setData(null);
     try {
-      const response = await fetch(`http://localhost:8000/api/friendship/graph?target1=${target1}&target2=${target2}&platform=${platform}`);
+      const response = await fetch(`${API_BASE_URL}/api/friendship/graph?target1=${target1}&target2=${target2}&platform=${platform}`);
       if (!response.ok) {
         const errData = await response.json();
         throw new Error(errData.detail || 'Failed to fetch data');

@@ -23,9 +23,12 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
-from app.api.routes import analyze, scanner, domain, security, network, forensics, email, crypto, geoint, archive, techstack, spoofing, threatintel, certificates, trackers, friendship, unified
+from app.api.routes import analyze, scanner, domain, security, network, forensics, email, crypto, geoint, archive, techstack, spoofing, threatintel, certificates, trackers, friendship, unified, history, keys, github, report, mobile_recon, corporate_intel
 from app.core.config import settings
 from app.core.keep_alive import start_keep_alive
+from contextlib import asynccontextmanager
+from app.database import engine, Base
+from app.models import models
 
 # Start keep-alive thread to bypass Render free tier sleep
 start_keep_alive()
@@ -88,6 +91,14 @@ def validate_value(val: str, field_name: str = "Input") -> str:
 # Application Factory
 # ---------------------------------------------------------------------------
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Create SQLite database tables if they don't exist
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
+    await engine.dispose()
+
 def create_application() -> FastAPI:
     application = FastAPI(
         title=settings.PROJECT_NAME,
@@ -95,6 +106,7 @@ def create_application() -> FastAPI:
         version=settings.VERSION,
         docs_url="/docs",
         redoc_url="/redoc",
+        lifespan=lifespan,
     )
 
     # --- SlowAPI & Rate Limiting ---
@@ -197,22 +209,24 @@ def create_application() -> FastAPI:
 
     # --- CORS Middleware ---
     import os
-    frontend_url = os.getenv("FRONTEND_URL", "*")
-    origins = ["http://localhost:5173"]
+    frontend_url = os.getenv("FRONTEND_URL", "")
+    origins = [
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "https://your-project.vercel.app"
+    ]
+    
     if frontend_url:
-        if frontend_url == "*":
-            origins.append("*")
-        else:
-            if "," in frontend_url:
-                origins.extend([o.strip() for o in frontend_url.split(",") if o.strip()])
-            else:
-                origins.append(frontend_url)
-    else:
-        origins.append("*")
+        if "," in frontend_url:
+            origins.extend([o.strip() for o in frontend_url.split(",") if o.strip()])
+        elif frontend_url not in origins:
+            origins.append(frontend_url)
 
-    allow_credentials = True
+    # Ensure no wildcards if using credentials
     if "*" in origins:
-        allow_credentials = False
+        origins.remove("*")
+        
+    allow_credentials = True
 
     application.add_middleware(
         CORSMiddleware,
@@ -370,6 +384,42 @@ def create_application() -> FastAPI:
         return application.openapi_schema
 
     application.openapi = custom_openapi
+
+    application.include_router(
+        history.router,
+        prefix="/api",
+        tags=["Investigation History"],
+    )
+
+    application.include_router(
+        keys.router,
+        prefix="/api",
+        tags=["API Key Settings"],
+    )
+
+    application.include_router(
+        github.router,
+        prefix="/api/github",
+        tags=["GitHub Organization Scan"],
+    )
+
+    application.include_router(
+        report.router,
+        prefix="/api",
+        tags=["PDF Reports"],
+    )
+
+    application.include_router(
+        mobile_recon.router,
+        prefix="/api",
+        tags=["Mobile App Recon"],
+    )
+
+    application.include_router(
+        corporate_intel.router,
+        prefix="/api",
+        tags=["Corporate Entity Intel"],
+    )
 
     return application
 
@@ -5085,10 +5135,12 @@ async def pivot_stream(request: Request, target: str = Query(...), type: str = Q
 
 
 if __name__ == "__main__":
+    import os
+    port = int(os.getenv("PORT", 8000))
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
-        port=8000,
-        reload=True,
+        port=port,
+        reload=True if port == 8000 else False,
         log_level="info",
     )

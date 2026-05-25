@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Shield, ShieldAlert, ShieldCheck, Loader2 } from 'lucide-react';
+import { API_BASE_URL } from '../utils/api';
 
 export default function SecurityWidget() {
   const [email, setEmail] = useState('');
@@ -14,7 +15,7 @@ export default function SecurityWidget() {
     setResult(null);
     try {
       // Calls the FastAPI endpoint
-      const response = await fetch(`/api/security/check?email=${encodeURIComponent(email)}`);
+      const response = await fetch(`${API_BASE_URL}/api/security/check?email=${encodeURIComponent(email)}`);
       if (response.ok) {
         const data = await response.json();
         setResult(data);

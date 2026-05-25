@@ -56,12 +56,14 @@ venv/
 env/
 ENV/
 
-# Databases
+# Database files
 *.db
+*.sqlite
+*.sqlite3
+holmes.db
+
 # Scratch directory
 scratch/
+
 # Debug output
 debug_routes.txt
-
-
-holmes.db
