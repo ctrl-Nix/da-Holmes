@@ -276,3 +276,41 @@ body.dark .breachYear {
 body.dark .secureText {
   color: rgba(232, 232, 229, 0.7);
 }
+
+/* Error State */
+.countError {
+  background-color: rgba(234, 88, 12, 0.08);
+  color: #ea580c;
+  border-color: rgba(234, 88, 12, 0.15);
+}
+
+.errorBox {
+  display: flex;
+  gap: 12px;
+  background-color: rgba(234, 88, 12, 0.03);
+  border: 1px solid rgba(234, 88, 12, 0.15);
+  padding: 16px;
+  border-radius: 6px;
+  color: #ea580c;
+}
+
+.errorIcon {
+  color: #ea580c;
+  flex-shrink: 0;
+}
+
+.errorContent {
+  display: flex;
+  flex-direction: column;
+}
+
+.errorText {
+  font-size: 12.5px;
+  margin-top: 4px;
+  color: rgba(55, 53, 47, 0.7);
+  line-height: 1.4;
+}
+
+body.dark .errorText {
+  color: rgba(232, 232, 229, 0.7);
+}

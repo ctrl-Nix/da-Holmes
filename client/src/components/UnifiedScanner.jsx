@@ -93,9 +93,9 @@ export default function UnifiedScanner({ initialQuery = '' }) {
     setResult(null);
     setError('');
 
-    // Abort controller for global 15s timeout
+    // Abort controller for global 35s timeout
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    const timeoutId = setTimeout(() => controller.abort(), 35000);
 
     try {
       let data;
@@ -189,7 +189,7 @@ export default function UnifiedScanner({ initialQuery = '' }) {
       }
     } catch (err) {
       if (err.name === 'AbortError') {
-        setError('Scan timed out after 15 seconds. The target may be unreachable.');
+        setError('Scan timed out after 35 seconds. The target may be unreachable.');
       } else {
         console.error('Unified scanner error:', err);
         setError(err.message || 'Scan connection failed.');

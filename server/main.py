@@ -694,7 +694,8 @@ async def audit_subdomain_takeovers(request: Request, domain: str = Query(...)):
     return results
 
 @app.get("/api/breach/check", tags=["Intelligence"])
-async def check_email_breach(request: Request, email: str = Query(...)):
+def check_email_breach(request: Request, email: str = Query(...)):
+    import requests
     email = email.strip().lower()
     validate_input(email)
     if not email or "@" not in email:
@@ -706,72 +707,78 @@ async def check_email_breach(request: Request, email: str = Query(...)):
     breach_count = 0
 
     try:
-        async with httpx.AsyncClient(timeout=6.0) as client:
-            headers = {"User-Agent": USER_AGENTS}
+        headers = {"User-Agent": USER_AGENTS}
+        
+        # 1. Query xposedornot email check API
+        resp = requests.get(f"https://api.xposedornot.com/v1/check-email/{email}", headers=headers, timeout=15.0)
+        
+        if resp.status_code == 200:
+            data = resp.json()
+            # xposedornot check API returns a list under 'breaches' key or as root object, let's parse safely
+            raw_breaches = data.get("breaches", []) if isinstance(data, dict) else (data if isinstance(data, list) else [])
             
-            # 1. Query xposedornot email check API
-            resp = await client.get(f"https://api.xposedornot.com/v1/check-email/{email}", headers=headers)
-            
-            if resp.status_code == 200:
-                data = resp.json()
-                # xposedornot check API returns a list under 'breaches' key or as root object, let's parse safely
-                raw_breaches = data.get("breaches", []) if isinstance(data, dict) else (data if isinstance(data, list) else [])
+            # Flatten if it's a nested list
+            for b in raw_breaches:
+                if isinstance(b, list) and len(b) > 0:
+                    name = str(b[0])
+                elif isinstance(b, dict):
+                    name = b.get("breach", "Unknown Breach")
+                else:
+                    name = str(b)
                 
-                # Flatten if it's a nested list
-                if raw_breaches and isinstance(raw_breaches[0], list):
-                    raw_breaches = raw_breaches[0]
-                    
-                for b in raw_breaches:
-                    # Depending on API schema: b might be name string or dictionary
-                    name = b if isinstance(b, str) else (b.get("breach", "Unknown Breach") if isinstance(b, dict) else str(b))
+                breaches.append({
+                    "name": name,
+                    "date": "2022", # Placeholder until analytics API fetch
+                    "data_classes": ["email", "password"]
+                })
+                exposed_data_types.add("email")
+                exposed_data_types.add("password")
+            
+        # 2. Query breach-analytics for deeper insights (dates & types)
+        analytics_resp = requests.get(f"https://api.xposedornot.com/v1/breach-analytics?email={email}", headers=headers, timeout=15.0)
+        if analytics_resp.status_code == 200:
+            analytics_data = analytics_resp.json()
+            
+            # Extract breach details
+            metrics = analytics_data.get("BreachMetrics", {})
+            breach_count = metrics.get("number_of_breaches", len(breaches))
+            
+            # Fetch detailed list
+            detailed_breaches = analytics_data.get("BreachesSummary", {}).get("breaches", [])
+            if detailed_breaches:
+                breaches = [] # replace with detailed items
+                for db in detailed_breaches:
+                    b_name = db.get("breach", "Unknown")
                     breaches.append({
-                        "name": name,
-                        "date": "2022", # default if not specified
-                        "data_classes": ["email", "password"] # default common classes
+                        "name": b_name,
+                        "date": db.get("date", "2022"),
+                        "data_classes": db.get("data_classes", ["email", "password"])
                     })
-                    exposed_data_types.add("email")
-                    exposed_data_types.add("password")
-                
-            # 2. Query breach-analytics for deeper insights (dates & types)
-            analytics_resp = await client.get(f"https://api.xposedornot.com/v1/breach-analytics?email={email}", headers=headers)
-            if analytics_resp.status_code == 200:
-                analytics_data = analytics_resp.json()
-                
-                # Extract breach details
-                metrics = analytics_data.get("BreachMetrics", {})
-                breach_count = metrics.get("number_of_breaches", len(breaches))
-                
-                # Fetch detailed list
-                detailed_breaches = analytics_data.get("BreachesSummary", {}).get("breaches", [])
-                if detailed_breaches:
-                    breaches = [] # replace with detailed items
-                    for db in detailed_breaches:
-                        b_name = db.get("breach", "Unknown")
-                        # Detailed analytics returns additional fields
-                        breaches.append({
-                            "name": b_name,
-                            "date": db.get("date", "2022"),
-                            "data_classes": db.get("data_classes", ["email", "password"])
-                        })
-                        for dc in db.get("data_classes", []):
+                    for dc in db.get("data_classes", []):
+                        if dc:
                             exposed_data_types.add(dc.lower())
 
-                # Get most recent breach date
-                most_recent_breach = metrics.get("most_recent_breach", most_recent_breach)
+            most_recent_breach = metrics.get("most_recent_breach", most_recent_breach)
 
-    except Exception as e:
-        logger.error(f"xposedornot API query failed: {e}")
-        raise HTTPException(
-            status_code=503,
-            detail="Breach database API unreachable. Please try again later."
-        )
+    except Exception as exc:
+        logger.error("Breach check failed for '%s': %s", email, exc)
+        return {
+            "email": email,
+            "breach_count": None,
+            "breaches": [],
+            "most_recent_breach": "N/A",
+            "exposed_data_types": [],
+            "error": "Breach database temporarily unavailable. This result may be incomplete.",
+            "status": "api_error"
+        }
 
     return {
         "email": email,
-        "breach_count": breach_count,
+        "breach_count": breach_count if breach_count else len(breaches),
         "breaches": breaches,
         "most_recent_breach": most_recent_breach,
-        "exposed_data_types": list(exposed_data_types)
+        "exposed_data_types": list(exposed_data_types),
+        "status": "success"
     }
 
 @app.get("/api/techstack/detect")
