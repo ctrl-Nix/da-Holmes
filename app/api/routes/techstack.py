@@ -8,7 +8,7 @@ router = APIRouter()
 
 USER_AGENTS = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
 
-@router.get("/")
+@router.get("/detect")
 async def detect_tech_stack(request: Request = None, domain: str = Query(...)):
     domain = domain.strip().lower()
     if not domain:

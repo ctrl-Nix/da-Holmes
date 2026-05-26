@@ -12,7 +12,7 @@ export default function SocialScanner({ isLoading }) {
     return (
       <div className={styles.container}>
         <div className={styles.sectionHeader} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <span>⚡ Quick Check (Instant)</span>
+          <span>⚡ Quick Check</span>
         </div>
         <div className={styles.cardGrid}>
           {[1, 2, 3, 4, 5, 6].map((num) => (
@@ -153,7 +153,7 @@ export default function SocialScanner({ isLoading }) {
     };
   };
 
-  const TOTAL_SITES = 1822;
+  const TOTAL_SITES = 1800;
   const quickFoundCount = quickFindings.filter(f => f.status === 'found').length;
   const totalFound = quickFoundCount + foundList.length;
   const progressPercent = Math.min(100, Math.round((totalChecked / TOTAL_SITES) * 100));
@@ -194,7 +194,7 @@ export default function SocialScanner({ isLoading }) {
       {quickState !== 'idle' && (
         <div className={styles.section}>
           <div className={styles.sectionHeader} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span>⚡ Quick Check (Instant)</span>
+            <span>⚡ Quick Check</span>
             <span style={{ fontSize: '11px', fontWeight: 600 }}>
               {quickState === 'scanning' ? 'Scanning...' : 'Completed'}
             </span>

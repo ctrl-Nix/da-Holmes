@@ -1,6 +1,6 @@
 import os
 import tempfile
-from fastapi import APIRouter, HTTPException, Query, BackgroundTasks
+from fastapi import APIRouter, HTTPException, Query, BackgroundTasks, Request
 from fastapi.responses import FileResponse
 
 from app.services.unified_scanner import UnifiedScanner
@@ -65,3 +65,46 @@ async def download_report(
         media_type="application/pdf",
         filename=safe_filename
     )
+
+@router.post("/generate")
+async def generate_report_from_data(
+    request: Request,
+    background_tasks: BackgroundTasks,
+    query: str = Query(..., description="The target query for the report.")
+):
+    try:
+        json_data = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid JSON payload.")
+
+    target_type = json_data.get("target_type", "Unknown")
+    summary_text = (
+        f"OSINT Investigation for target: {query}\n\n"
+        f"This automated intelligence report covers preliminary footprinting "
+        f"for a {target_type} target. The following pages contain raw metadata, "
+        f"network configurations, and potential public exposures discovered across "
+        f"integrated scanning modules. All findings should be manually verified."
+    )
+
+    fd, temp_path = tempfile.mkstemp(suffix=".pdf")
+    os.close(fd)
+
+    try:
+        generator = PDFReportGenerator()
+        generator.generate_pdf(json_data, summary_text, temp_path)
+    except Exception as e:
+        remove_file(temp_path)
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Failed to compile PDF document: {str(e)}"
+        )
+
+    background_tasks.add_task(remove_file, temp_path)
+    safe_filename = "".join([c if c.isalnum() else "_" for c in query]) + "_osint_report.pdf"
+
+    return FileResponse(
+        path=temp_path,
+        media_type="application/pdf",
+        filename=safe_filename
+    )
+

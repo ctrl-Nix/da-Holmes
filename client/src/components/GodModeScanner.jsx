@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, Loader2, CheckCircle, XCircle, AlertTriangle, Play, ShieldAlert, Download } from 'lucide-react';
+import BreachIntel from './BreachIntel';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
@@ -68,6 +69,21 @@ export default function GodModeScanner({ initialQuery = '', onNavigate }) {
           setIsScanning(false);
           es.close();
           setLogs(prev => [...prev, `[SYSTEM] Scan complete for ${data.target_type} target.`]);
+          
+          // Save to history
+          try {
+            const history = JSON.parse(localStorage.getItem('holmes-history') || '[]');
+            const cleanQuery = target.trim();
+            const updated = [
+              { query: cleanQuery, type: detectedType || 'username', timestamp: Date.now(), riskScore: data.risk_score },
+              ...history.filter(h => h.query !== cleanQuery)
+            ].slice(0, 50);
+            localStorage.setItem('holmes-history', JSON.stringify(updated));
+            window.dispatchEvent(new CustomEvent('holmes-history-updated'));
+          } catch (e) {
+            console.error('Failed to log GodMode history:', e);
+          }
+          
           return;
         }
         
@@ -102,10 +118,18 @@ export default function GodModeScanner({ initialQuery = '', onNavigate }) {
     if (!finalResult) return;
     // Download logic via fetch
     try {
+      const exportPayload = { ...finalResult };
+      if (Object.keys(modules).length > 0) {
+        Object.entries(modules).forEach(([modName, modData]) => {
+          if (modData && modData.status === 'complete' && modData.data) {
+            exportPayload[modName] = modData.data;
+          }
+        });
+      }
       const response = await fetch(`${API_BASE}/api/report/generate?query=${encodeURIComponent(target)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(finalResult)
+        body: JSON.stringify(exportPayload)
       });
       if (!response.ok) throw new Error('Failed to generate PDF');
       const blob = await response.blob();
@@ -332,6 +356,14 @@ export default function GodModeScanner({ initialQuery = '', onNavigate }) {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Detailed Module Insights */}
+          {modules.breach && modules.breach.status === 'complete' && (
+            <div style={{ marginTop: '16px' }}>
+              <h4 style={{ fontSize: '14px', marginBottom: '12px', color: 'var(--notion-fg)' }}>Detailed Breach Intelligence</h4>
+              <BreachIntel results={modules.breach.data} />
             </div>
           )}
         </div>

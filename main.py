@@ -23,7 +23,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
-from app.api.routes import analyze, scanner, domain, security, network, forensics, email, crypto, geoint, archive, techstack, spoofing, threatintel, certificates, trackers, friendship, unified, history, keys, github, report, mobile_recon, corporate_intel
+from app.api.routes import analyze, scanner, domain, security, network, forensics, email, crypto, geoint, archive, techstack, spoofing, threatintel, certificates, trackers, friendship, unified, history, keys, github, report, mobile_recon, corporate_intel, phone, iot, darkweb, metadata, reddit, image_osint, vehicle, aviation, hash, mac, advanced
 from app.core.config import settings
 from app.core.keep_alive import start_keep_alive
 from contextlib import asynccontextmanager
@@ -344,6 +344,12 @@ def create_application() -> FastAPI:
     )
     
     application.include_router(
+        advanced.router,
+        prefix="/api",
+        tags=["Advanced OSINT"],
+    )
+    
+    application.include_router(
         unified.router,
         prefix="/api",
         tags=["Unified OSINT"],
@@ -416,9 +422,75 @@ def create_application() -> FastAPI:
     )
 
     application.include_router(
+        phone.router,
+        prefix="/api",
+        tags=["Phone Intelligence"],
+    )
+
+    application.include_router(
         corporate_intel.router,
         prefix="/api",
         tags=["Corporate Entity Intel"],
+    )
+
+    application.include_router(
+        iot.router,
+        prefix="/api/iot",
+        tags=["IoT OSINT"],
+    )
+
+    application.include_router(
+        darkweb.router,
+        prefix="/api/darkweb",
+        tags=["Dark Web Intelligence"],
+    )
+
+    application.include_router(
+        metadata.router,
+        prefix="/api/metadata",
+        tags=["Document Forensics"],
+    )
+
+    application.include_router(
+        reddit.router,
+        prefix="/api/reddit",
+        tags=["Social Media Intel"],
+    )
+
+    application.include_router(
+        image_osint.router,
+        prefix="/api/image",
+        tags=["Image OSINT"],
+    )
+
+    application.include_router(
+        vehicle.router,
+        prefix="/api/vehicle",
+        tags=["Vehicle OSINT"],
+    )
+
+    application.include_router(
+        aviation.router,
+        prefix="/api/aviation",
+        tags=["Aviation OSINT"],
+    )
+
+    application.include_router(
+        hash.router,
+        prefix="/api/hash",
+        tags=["Cryptography Intel"],
+    )
+
+    application.include_router(
+        mac.router,
+        prefix="/api/mac",
+        tags=["Network Intel"],
+    )
+
+    application.include_router(
+        report.router,
+        prefix="/api/report",
+        tags=["Reporting"],
     )
 
     return application
@@ -1126,7 +1198,9 @@ def check_email_breach(
                     b_name = db.get("breach", "Unknown")
                     breaches.append({
                         "name": b_name,
-                        "date": db.get("date", "2022"),
+                        "date": db.get("breached_date", db.get("date", "Unknown")),
+                        "domain": db.get("domain", "Unknown"),
+                        "description": db.get("description", "No description available"),
                         "data_classes": db.get("data_classes", ["email", "password"])
                     })
                     for dc in db.get("data_classes", []):
@@ -1462,7 +1536,9 @@ async def generate_pdf_report(
             if not isinstance(text, str):
                 text = str(text)
             # Standard HTML entities escaping for ReportLab Paragraph compatibility
-            return text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+            escaped = text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+            # Replace newlines with <br/> for proper formatting in ReportLab Paragraphs
+            return escaped.replace('\n', '<br/>')
 
         target = query or payload.get("target") or payload.get("domain") or payload.get("email") or payload.get("ip") or payload.get("query") or "unknown_target"
         target = target.strip()
@@ -1855,7 +1931,11 @@ async def generate_pdf_report(
         ip_intel = payload.get("ip_intel") or {}
         bgp_data = payload.get("bgp") or {}
         email_intel = payload.get("email_intel") or {}
-        breaches = payload.get("breach", payload.get("breach_results", []))
+        raw_breaches = payload.get("breaches", payload.get("breach", payload.get("breach_results", [])))
+        if isinstance(raw_breaches, dict):
+            breaches_list = raw_breaches.get("breaches", raw_breaches.get("data", {}).get("breaches", []))
+        else:
+            breaches_list = raw_breaches if isinstance(raw_breaches, list) else []
         
         steps = [
             ("INPUT Target", "User Request", target, "INFO"),
@@ -1866,7 +1946,7 @@ async def generate_pdf_report(
             ("Subdomains", "SUBDOMAINS", f"{len(payload.get('subdomains', []))} subdomains resolved" if isinstance(payload.get('subdomains'), list) else "N/A", "MEDIUM" if isinstance(payload.get('subdomains'), list) and len(payload.get('subdomains')) > 5 else "INFO"),
             ("GitHub Intel", "GITHUB", "Repository leaked keys check complete", "INFO"),
             ("Email Audit", "EMAIL", email_intel.get("email", "N/A") if isinstance(email_intel, dict) else "N/A", "INFO" if not isinstance(email_intel, dict) else email_intel.get("risk_level", "INFO")),
-            ("Breach Scans", "BREACH", f"{len(breaches) if isinstance(breaches, list) else 0} breach listings", "HIGH" if (isinstance(breaches, list) and len(breaches) > 0) else "INFO")
+            ("Breach Scans", "BREACH", f"{len(breaches_list)} breach listings", "HIGH" if len(breaches_list) > 0 else "INFO")
         ]
         
         thread_headers = [
@@ -1910,7 +1990,7 @@ async def generate_pdf_report(
                 "dns": ["dns_history", "dns_records"],
                 "whois": ["whois_data"],
                 "mobile": ["phone", "phone_lookup"],
-                "darkweb": ["breach", "breach_results", "ransomwatch"],
+                "darkweb": ["breaches", "breach", "breach_results", "ransomwatch"],
             }
             for alias in aliases.get(mod_name, []):
                 if alias in payload and payload[alias]:
@@ -1939,16 +2019,54 @@ async def generate_pdf_report(
             story.append(Paragraph(f"{mod.upper()} Module Intelligence", section_heading))
             story.append(Spacer(1, 10))
             
+            if mod == 'darkweb':
+                b_list = mod_data.get("breaches", mod_data.get("data", {}).get("breaches", [])) if isinstance(mod_data, dict) else (mod_data if isinstance(mod_data, list) else [])
+                story.append(Paragraph("<b>Known Data Breaches & Dark Web Leaks</b>", ParagraphStyle('BTitle', parent=body_style, fontSize=12, textColor=colors.HexColor('#ca2c2c'))))
+                story.append(Spacer(1, 10))
+                if not b_list:
+                    story.append(Paragraph("No significant breaches detected.", body_style))
+                else:
+                    breach_rows = [[Paragraph("<b>Breach Event</b>", table_header_style), Paragraph("<b>Date</b>", table_header_style), Paragraph("<b>Exposed Data</b>", table_header_style)]]
+                    for b in b_list:
+                        if isinstance(b, dict):
+                            b_name = b.get("name", b.get("breach", "Unknown"))
+                            b_date = b.get("date", b.get("breached_date", "Unknown"))
+                            b_classes = b.get("data_classes", [])
+                            b_classes_str = ", ".join(b_classes) if isinstance(b_classes, list) else str(b_classes)
+                        else:
+                            b_name = str(b)
+                            b_date = "Unknown"
+                            b_classes_str = "Unknown"
+                        
+                        breach_rows.append([Paragraph(f"<b>{escape_pdf_text(b_name)}</b>", body_style), Paragraph(escape_pdf_text(str(b_date)), body_style), Paragraph(escape_pdf_text(b_classes_str), body_style)])
+                    
+                    b_table = Table(breach_rows, colWidths=[150, 80, 270])
+                    b_table.setStyle(TableStyle([
+                        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#fce8e8')),
+                        ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+                        ('VALIGN', (0,0), (-1,-1), 'TOP'),
+                        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#f5c6c6')),
+                        ('TOPPADDING', (0,0), (-1,-1), 8),
+                        ('BOTTOMPADDING', (0,0), (-1,-1), 8),
+                        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor('#f8f9fa')])
+                    ]))
+                    story.append(b_table)
+                story.append(PageBreak())
+                continue
+                
             rows = []
             if isinstance(mod_data, dict):
                 for k, v in mod_data.items():
                     k_clean = k.replace('_', ' ').capitalize()
                     
+                    def format_val(x):
+                        if not isinstance(x, dict): return str(x)
+                        return "\n".join(f"{key.replace('_', ' ').capitalize()}: {(', '.join(str(i) for i in val) if isinstance(val, list) else str(val))}" for key, val in x.items())
+
                     if isinstance(v, list):
-                        v_str = ", ".join(str(x) for x in v[:10])
-                        if len(v) > 10: v_str += " ... [truncated]"
+                        v_str = "\n\n".join(format_val(x) for x in v)
                     elif isinstance(v, dict):
-                        v_str = json.dumps(v, indent=2)
+                        v_str = format_val(v)
                     else:
                         v_str = str(v)
                         
@@ -1960,8 +2078,12 @@ async def generate_pdf_report(
                         Paragraph(escape_pdf_text(v_str), body_style)
                     ])
             elif isinstance(mod_data, list):
-                for i, item in enumerate(mod_data[:20]):
-                    item_str = str(item)
+                for i, item in enumerate(mod_data):
+                    def format_val(x):
+                        if not isinstance(x, dict): return str(x)
+                        return "\n".join(f"{key.replace('_', ' ').capitalize()}: {(', '.join(str(i) for i in val) if isinstance(val, list) else str(val))}" for key, val in x.items())
+                    
+                    item_str = format_val(item)
                     risk_lbl, risk_color = classify_finding_risk("", item_str)
                     badge = create_badge(risk_lbl, risk_color)
                     
@@ -4212,8 +4334,10 @@ async def full_scan_endpoint(
             nonlocal total_findings, modules_run
             await queue.put(f"data: {json.dumps({'module': module_name, 'status': 'running', 'progress': 0})}\n\n")
             try:
-                res = await func(*args, **kwargs)
-                if hasattr(res, "body"): 
+                res = func(*args, **kwargs)
+                if asyncio.iscoroutine(res):
+                    res = await res
+                if hasattr(res, "body"):
                     res = {"status": "unsupported internal type"}
                 
                 count = 0
@@ -4312,7 +4436,7 @@ async def full_scan_endpoint(
         elif target_type == "email":
             tasks = [
                 run_module("email_intel", email_intel, target, False, None),
-                run_module("breach", check_email_breach, target),
+                run_module("breach", check_email_breach, request, target),
                 run_module("paste_check", people_pastes, target, False, None),
                 run_module("spoofing", spoofing.get_spf_dmarc_records, request, target.split("@")[-1]),
                 mock_module("smtp_verify"), mock_module("disposable_check"),

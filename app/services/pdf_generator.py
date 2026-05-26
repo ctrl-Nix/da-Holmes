@@ -1,4 +1,5 @@
 import os
+import html
 from datetime import datetime
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
@@ -108,7 +109,7 @@ class PDFReportGenerator:
                             rows.append([Paragraph(f"{prefix}&nbsp;&nbsp;[{i+1}]", self.styles['TableCell']), ""])
                             rows.extend(self._flatten_data_to_rows(item, prefix + "&nbsp;&nbsp;&nbsp;&nbsp;"))
                     else:
-                        val_str = ", ".join(str(v) for v in value)
+                        val_str = html.escape(", ".join(str(v) for v in value))
                         rows.append([
                             Paragraph(f"{prefix}{clean_key}", self.styles['TableCell']), 
                             Paragraph(val_str, self.styles['TableCell'])
@@ -116,10 +117,10 @@ class PDFReportGenerator:
                 else:
                     rows.append([
                         Paragraph(f"{prefix}{clean_key}", self.styles['TableCell']), 
-                        Paragraph(str(value), self.styles['TableCell'])
+                        Paragraph(html.escape(str(value)), self.styles['TableCell'])
                     ])
         elif isinstance(data, list):
-            val_str = ", ".join(str(v) for v in data)
+            val_str = html.escape(", ".join(str(v) for v in data))
             rows.append([
                 Paragraph(f"{prefix}Values", self.styles['TableCell']), 
                 Paragraph(val_str, self.styles['TableCell'])
@@ -127,7 +128,7 @@ class PDFReportGenerator:
         else:
             rows.append([
                 Paragraph(f"{prefix}Value", self.styles['TableCell']), 
-                Paragraph(str(data), self.styles['TableCell'])
+                Paragraph(html.escape(str(data)), self.styles['TableCell'])
             ])
             
         return rows

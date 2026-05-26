@@ -17,10 +17,26 @@ import MaltegoGraph from './components/MaltegoGraph';
 import SocialScanner from './components/SocialScanner';
 import EmailHeaderIntel from './components/EmailHeaderIntel';
 import DorkBuilder from './components/DorkBuilder';
+import PhoneIntel from './components/PhoneIntel';
+import IotScanner from './components/IotScanner';
+import DarkWebIntel from './components/DarkWebIntel';
+import MetadataExtractor from './components/MetadataExtractor';
+import CorporateIntel from './components/CorporateIntel';
+import RedditAnalyzer from './components/RedditAnalyzer';
+import ImageOsint from './components/ImageOsint';
+import VehicleRecon from './components/VehicleRecon';
+import AviationIntel from './components/AviationIntel';
+import HashAnalyzer from './components/HashAnalyzer';
+import MacDecoder from './components/MacDecoder';
 import ForceGraph2D from 'react-force-graph-2d';
 import AnalystNotesPanel, { getTagColor } from './components/AnalystNotesPanel';
-import OnboardingModal from './components/OnboardingModal';
+
 import HolmesLogo from './components/HolmesLogo';
+
+import WebScraper from './components/WebScraper';
+import SubdomainBrute from './components/SubdomainBrute';
+import GitHubScanner from './components/GitHubScanner';
+import BreachCrawler from './components/BreachCrawler';
 
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
@@ -587,6 +603,366 @@ export default function App() {
   const [reverseIpLoading, setReverseIpLoading] = useState(false);
   const [reverseIpResults, setReverseIpResults] = useState(null);
   const [reverseIpError, setReverseIpError] = useState('');
+
+  // IoT Scanner State
+  const [iotTarget, setIotTarget] = useState('');
+  const [iotLoading, setIotLoading] = useState(false);
+  const [iotResults, setIotResults] = useState(null);
+  const [iotError, setIotError] = useState('');
+
+  const runIotScan = async (e) => {
+    if (e) e.preventDefault();
+    const cleanIp = iotTarget.trim();
+    if (!cleanIp) return;
+
+    setIotLoading(true);
+    setIotResults(null);
+    setIotError('');
+
+    try {
+      const res = await fetch(`${API_BASE}/api/iot/scan?ip=${encodeURIComponent(cleanIp)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setIotResults(data);
+      } else {
+        const errData = await res.json();
+        throw new Error(errData.detail || 'IoT scan failed');
+      }
+    } catch (err) {
+      setIotError(err.message || 'Failed to connect to IoT intelligence servers.');
+    } finally {
+      setIotLoading(false);
+    }
+  };
+
+  // Dark Web Scanner State
+  const [dwTarget, setDwTarget] = useState('');
+  const [dwLoading, setDwLoading] = useState(false);
+  const [dwResults, setDwResults] = useState(null);
+  const [dwError, setDwError] = useState('');
+
+  const runDwScan = async (e) => {
+    if (e) e.preventDefault();
+    const q = dwTarget.trim();
+    if (!q) return;
+
+    setDwLoading(true);
+    setDwResults(null);
+    setDwError('');
+
+    try {
+      const res = await fetch(`${API_BASE}/api/darkweb/scan?query=${encodeURIComponent(q)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setDwResults(data);
+      } else {
+        const errData = await res.json();
+        throw new Error(errData.detail || 'Dark Web scan failed');
+      }
+    } catch (err) {
+      setDwError(err.message || 'Failed to connect to Dark Web intelligence servers.');
+    } finally {
+      setDwLoading(false);
+    }
+  };
+
+  // Metadata Extractor State
+  const [metaFile, setMetaFile] = useState(null);
+  const [metaLoading, setMetaLoading] = useState(false);
+  const [metaResults, setMetaResults] = useState(null);
+  const [metaError, setMetaError] = useState('');
+
+  const runMetaScan = async (e) => {
+    if (e) e.preventDefault();
+    if (!metaFile) return;
+
+    setMetaLoading(true);
+    setMetaResults(null);
+    setMetaError('');
+
+    const formData = new FormData();
+    formData.append('file', metaFile);
+
+    try {
+      const res = await fetch(`${API_BASE}/api/metadata/extract`, {
+        method: 'POST',
+        body: formData,
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setMetaResults(data);
+      } else {
+        const errData = await res.json();
+        throw new Error(typeof errData.detail === 'object' ? JSON.stringify(errData.detail) : (errData.detail || 'Metadata extraction failed'));
+      }
+    } catch (err) {
+      setMetaError(err.message || 'Failed to connect to Metadata extraction servers.');
+    } finally {
+      setMetaLoading(false);
+    }
+  };
+
+  // Corporate Intel State
+  const [corpTarget, setCorpTarget] = useState('');
+  const [corpLoading, setCorpLoading] = useState(false);
+  const [corpResults, setCorpResults] = useState(null);
+  const [corpError, setCorpError] = useState('');
+
+  const runCorpScan = async (e) => {
+    if (e) e.preventDefault();
+    const q = corpTarget.trim();
+    if (!q) return;
+
+    setCorpLoading(true);
+    setCorpResults(null);
+    setCorpError('');
+
+    try {
+      const res = await fetch(`${API_BASE}/api/corporate-intel/${encodeURIComponent(q)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setCorpResults(data);
+      } else {
+        const errData = await res.json();
+        throw new Error(errData.detail || 'Corporate intelligence scan failed');
+      }
+    } catch (err) {
+      setCorpError(err.message || 'Failed to connect to Corporate Intelligence servers.');
+    } finally {
+      setCorpLoading(false);
+    }
+  };
+
+  // Reddit Analyzer State
+  const [redditTarget, setRedditTarget] = useState('');
+  const [redditLoading, setRedditLoading] = useState(false);
+  const [redditResults, setRedditResults] = useState(null);
+  const [redditError, setRedditError] = useState('');
+
+  const runRedditScan = async (e) => {
+    if (e) e.preventDefault();
+    const q = redditTarget.trim();
+    if (!q) return;
+
+    setRedditLoading(true);
+    setRedditResults(null);
+    setRedditError('');
+
+    try {
+      const res = await fetch(`${API_BASE}/api/reddit/analyze/${encodeURIComponent(q)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setRedditResults(data);
+      } else {
+        const errData = await res.json();
+        throw new Error(errData.detail || 'Reddit scan failed');
+      }
+    } catch (err) {
+      setRedditError(err.message || 'Failed to connect to Reddit intelligence servers.');
+    } finally {
+      setRedditLoading(false);
+    }
+  };
+
+  // Image OSINT State
+  const [imageTarget, setImageTarget] = useState('');
+  const [imageLoading, setImageLoading] = useState(false);
+  const [imageResults, setImageResults] = useState(null);
+  const [imageError, setImageError] = useState('');
+
+  const runImageScan = async (e) => {
+    if (e) e.preventDefault();
+    const q = imageTarget.trim();
+    if (!q) return;
+
+    setImageLoading(true);
+    setImageResults(null);
+    setImageError('');
+
+    try {
+      const res = await fetch(`${API_BASE}/api/image/generate?url=${encodeURIComponent(q)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setImageResults(data);
+      } else {
+        const errData = await res.json();
+        throw new Error(errData.detail || 'Image OSINT failed');
+      }
+    } catch (err) {
+      setImageError(err.message || 'Failed to connect to Image Intelligence servers.');
+    } finally {
+      setImageLoading(false);
+    }
+  };
+
+  // Vehicle Recon State
+  const [vinTarget, setVinTarget] = useState('');
+  const [vinLoading, setVinLoading] = useState(false);
+  const [vinResults, setVinResults] = useState(null);
+  const [vinError, setVinError] = useState('');
+
+  const runVinScan = async (e) => {
+    if (e) e.preventDefault();
+    const q = vinTarget.trim();
+    if (!q) return;
+
+    setVinLoading(true);
+    setVinResults(null);
+    setVinError('');
+
+    try {
+      const res = await fetch(`${API_BASE}/api/vehicle/vin/${encodeURIComponent(q)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setVinResults(data);
+      } else {
+        const errData = await res.json();
+        throw new Error(errData.detail || 'Vehicle VIN decoding failed');
+      }
+    } catch (err) {
+      setVinError(err.message || 'Failed to connect to Vehicle Intelligence servers.');
+    } finally {
+      setVinLoading(false);
+    }
+  };
+
+  // Aviation Tracker State
+  const [aviationTarget, setAviationTarget] = useState('');
+  const [aviationLoading, setAviationLoading] = useState(false);
+  const [aviationResults, setAviationResults] = useState(null);
+  const [aviationError, setAviationError] = useState('');
+
+  const runAviationScan = async (e) => {
+    if (e) e.preventDefault();
+    const q = aviationTarget.trim();
+    if (!q) return;
+
+    setAviationLoading(true);
+    setAviationResults(null);
+    setAviationError('');
+
+    try {
+      const res = await fetch(`${API_BASE}/api/aviation/track?tail_number=${encodeURIComponent(q)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setAviationResults(data);
+      } else {
+        const errData = await res.json();
+        throw new Error(errData.detail || 'Aviation tracker failed');
+      }
+    } catch (err) {
+      setAviationError(err.message || 'Failed to connect to Aviation Intelligence servers.');
+    } finally {
+      setAviationLoading(false);
+    }
+  };
+
+  // Hash Analyzer State
+  const [hashTarget, setHashTarget] = useState('');
+  const [hashLoading, setHashLoading] = useState(false);
+  const [hashResults, setHashResults] = useState(null);
+  const [hashError, setHashError] = useState('');
+
+  const runHashScan = async (e) => {
+    if (e) e.preventDefault();
+    const q = hashTarget.trim();
+    if (!q) return;
+
+    setHashLoading(true);
+    setHashResults(null);
+    setHashError('');
+
+    try {
+      const res = await fetch(`${API_BASE}/api/hash/analyze?hash_value=${encodeURIComponent(q)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setHashResults(data);
+      } else {
+        const errData = await res.json();
+        throw new Error(errData.detail || 'Hash analysis failed');
+      }
+    } catch (err) {
+      setHashError(err.message || 'Failed to connect to Cryptography Intelligence servers.');
+    } finally {
+      setHashLoading(false);
+    }
+  };
+
+  // MAC Decoder State
+  const [macTarget, setMacTarget] = useState('');
+  const [macLoading, setMacLoading] = useState(false);
+  const [macResults, setMacResults] = useState(null);
+  const [macError, setMacError] = useState('');
+
+  const runMacScan = async (e) => {
+    if (e) e.preventDefault();
+    const q = macTarget.trim();
+    if (!q) return;
+
+    setMacLoading(true);
+    setMacResults(null);
+    setMacError('');
+
+    try {
+      const res = await fetch(`${API_BASE}/api/mac/decode?mac=${encodeURIComponent(q)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setMacResults(data);
+      } else {
+        const errData = await res.json();
+        throw new Error(errData.detail || 'MAC address decode failed');
+      }
+    } catch (err) {
+      setMacError(err.message || 'Failed to connect to Network Intelligence servers.');
+    } finally {
+      setMacLoading(false);
+    }
+  };
+
+  // Phone OSINT State
+  const [phoneTarget, setPhoneTarget] = useState('');
+  const [phoneLoading, setPhoneLoading] = useState(false);
+  const [phoneResults, setPhoneResults] = useState(null);
+  const [phoneError, setPhoneError] = useState('');
+
+  const runPhoneScan = async (e) => {
+    if (e) e.preventDefault();
+    const cleanNum = phoneTarget.replace(/[\s\-()\[\]\+]/g, '');
+    if (!cleanNum) return;
+
+    setPhoneLoading(true);
+    setPhoneResults(null);
+    setPhoneError('');
+
+    try {
+      const res = await fetch(`${API_BASE}/api/phone?number=${encodeURIComponent(cleanNum)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setPhoneResults(data);
+        
+        // Save history
+        try {
+          const history = JSON.parse(localStorage.getItem('holmes-history') || '[]');
+          const updated = [
+            { query: cleanNum, type: 'phone', timestamp: Date.now(), riskScore: data.risk_level === 'HIGH_RISK' ? 20 : 100 },
+            ...history.filter(item => item.query !== cleanNum)
+          ].slice(0, 50);
+          localStorage.setItem('holmes-history', JSON.stringify(updated));
+          if (typeof updateNotesCount === 'function') updateNotesCount();
+          window.dispatchEvent(new CustomEvent('holmes-history-updated'));
+        } catch (hErr) {
+          console.error('Failed to log phone history:', hErr);
+        }
+      } else {
+        const errData = await res.json();
+        throw new Error(errData.detail || 'Phone scan failed');
+      }
+    } catch (err) {
+      setPhoneError(err.message || 'Failed to connect to phone intelligence servers.');
+    } finally {
+      setPhoneLoading(false);
+    }
+  };
 
   // DNS History State
   const [dnsDomain, setDnsDomain] = useState('');
@@ -1215,15 +1591,15 @@ export default function App() {
         const t2 = friendTarget2.trim().toLowerCase();
         
         const nodes = [
-          { id: t1, type: 'target1' },
-          { id: t2, type: 'target2' },
-          { id: 'sindresorhus', type: 'mutual' },
-          { id: 'yyx990803', type: 'mutual' },
-          { id: 'gaearon', type: 'mutual' },
-          { id: 'tj', type: 'mutual' },
-          { id: 'charlie_dev', type: 'mutual' },
-          ...Array.from({ length: 8 }).map((_, i) => ({ id: `follower_a_${i}`, type: 'follower1' })),
-          ...Array.from({ length: 8 }).map((_, i) => ({ id: `follower_b_${i}`, type: 'follower2' }))
+          { id: t1, type: 'target1', platform: friendPlatform, label: t1 },
+          { id: t2, type: 'target2', platform: friendPlatform, label: t2 },
+          { id: 'sindresorhus', type: 'mutual', platform: friendPlatform, label: 'sindresorhus' },
+          { id: 'yyx990803', type: 'mutual', platform: friendPlatform, label: 'yyx990803' },
+          { id: 'gaearon', type: 'mutual', platform: friendPlatform, label: 'gaearon' },
+          { id: 'tj', type: 'mutual', platform: friendPlatform, label: 'tj' },
+          { id: 'charlie_dev', type: 'mutual', platform: friendPlatform, label: 'charlie_dev' },
+          ...Array.from({ length: 8 }).map((_, i) => ({ id: `follower_a_${i}`, type: 'target1_follower', platform: friendPlatform, label: `follower_a_${i}` })),
+          ...Array.from({ length: 8 }).map((_, i) => ({ id: `follower_b_${i}`, type: 'target2_follower', platform: friendPlatform, label: `follower_b_${i}` }))
         ];
 
         const links = [
@@ -1241,7 +1617,14 @@ export default function App() {
           ...Array.from({ length: 8 }).map((_, i) => ({ source: t2, target: `follower_b_${i}` }))
         ];
 
-        setFriendResults({ nodes, links });
+        setFriendResults({ 
+          nodes, 
+          links, 
+          common_count: 5, 
+          target1_count: 13, 
+          target2_count: 13, 
+          platform: friendPlatform 
+        });
         setFriendLoading(false);
       }, 1000);
     } finally {
@@ -1305,13 +1688,13 @@ export default function App() {
     setReverseIpError('');
 
     try {
-      const res = await fetch(`${API_BASE}/api/reverseip?ip=${encodeURIComponent(reverseIpVal.trim())}`);
+      const res = await fetch(`${API_BASE}/api/reverseip/v2?ip=${encodeURIComponent(reverseIpVal.trim())}`);
       if (res.ok) {
         const data = await res.json();
         setReverseIpResults(data);
       } else {
         const errData = await res.json();
-        throw new Error(errData.detail || 'Reverse IP lookup failed');
+        throw new Error(typeof errData.detail === 'object' ? JSON.stringify(errData.detail) : (errData.detail || 'Reverse IP lookup failed'));
       }
     } catch (err) {
       setReverseIpError(err.message || 'Failed to connect to Reverse IP API.');
@@ -1401,9 +1784,6 @@ export default function App() {
 
   return (
     <div className={layoutStyles.appContainer}>
-      
-      <OnboardingModal />
-      
       {/* Wakeup Banner */}
 
       {bannerStatus !== 'hidden' && (
@@ -1534,6 +1914,94 @@ export default function App() {
           </div>
 
           <div 
+            onClick={() => setActiveView('phone')} 
+            className={`${layoutStyles.navItem} ${activeView === 'phone' ? layoutStyles.navItemActive : ''}`}
+          >
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>📱</div>
+            <span className={layoutStyles.navItemLabel}>Phone Intelligence</span>
+          </div>
+
+          <div 
+            onClick={() => setActiveView('iot')} 
+            className={`${layoutStyles.navItem} ${activeView === 'iot' ? layoutStyles.navItemActive : ''}`}
+          >
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🛰️</div>
+            <span className={layoutStyles.navItemLabel}>IoT & Vuln Scanner</span>
+          </div>
+
+          <div 
+            onClick={() => setActiveView('darkweb')} 
+            className={`${layoutStyles.navItem} ${activeView === 'darkweb' ? layoutStyles.navItemActive : ''}`}
+          >
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>👁️</div>
+            <span className={layoutStyles.navItemLabel}>Dark Web Monitor</span>
+          </div>
+
+          <div 
+            onClick={() => setActiveView('metadata')} 
+            className={`${layoutStyles.navItem} ${activeView === 'metadata' ? layoutStyles.navItemActive : ''}`}
+          >
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🗄️</div>
+            <span className={layoutStyles.navItemLabel}>Document Forensics</span>
+          </div>
+
+          <div 
+            onClick={() => setActiveView('corporate')} 
+            className={`${layoutStyles.navItem} ${activeView === 'corporate' ? layoutStyles.navItemActive : ''}`}
+          >
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🏢</div>
+            <span className={layoutStyles.navItemLabel}>Corporate Intel</span>
+          </div>
+
+          <div 
+            onClick={() => setActiveView('reddit')} 
+            className={`${layoutStyles.navItem} ${activeView === 'reddit' ? layoutStyles.navItemActive : ''}`}
+          >
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🤖</div>
+            <span className={layoutStyles.navItemLabel}>Reddit Analyzer</span>
+          </div>
+
+          <div 
+            onClick={() => setActiveView('imageOsint')} 
+            className={`${layoutStyles.navItem} ${activeView === 'imageOsint' ? layoutStyles.navItemActive : ''}`}
+          >
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🖼️</div>
+            <span className={layoutStyles.navItemLabel}>Reverse Image Pivot</span>
+          </div>
+
+          <div 
+            onClick={() => setActiveView('vehicle')} 
+            className={`${layoutStyles.navItem} ${activeView === 'vehicle' ? layoutStyles.navItemActive : ''}`}
+          >
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🚗</div>
+            <span className={layoutStyles.navItemLabel}>Vehicle Recon</span>
+          </div>
+
+          <div 
+            onClick={() => setActiveView('aviation')} 
+            className={`${layoutStyles.navItem} ${activeView === 'aviation' ? layoutStyles.navItemActive : ''}`}
+          >
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✈️</div>
+            <span className={layoutStyles.navItemLabel}>Aviation Tracker</span>
+          </div>
+
+          <div 
+            onClick={() => setActiveView('hash')} 
+            className={`${layoutStyles.navItem} ${activeView === 'hash' ? layoutStyles.navItemActive : ''}`}
+          >
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🔐</div>
+            <span className={layoutStyles.navItemLabel}>Hash Analyzer</span>
+          </div>
+
+          <div 
+            onClick={() => setActiveView('mac')} 
+            className={`${layoutStyles.navItem} ${activeView === 'mac' ? layoutStyles.navItemActive : ''}`}
+          >
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>💻</div>
+            <span className={layoutStyles.navItemLabel}>MAC Decoder</span>
+          </div>
+
+          <div 
             onClick={() => setActiveView('dorkBuilder')} 
             className={`${layoutStyles.navItem} ${activeView === 'dorkBuilder' ? layoutStyles.navItemActive : ''}`}
           >
@@ -1571,6 +2039,38 @@ export default function App() {
           >
             <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🕸️</div>
             <span className={layoutStyles.navItemLabel}>Relation Graph</span>
+          </div>
+
+          <div 
+            onClick={() => setActiveView('webScraper')} 
+            className={`${layoutStyles.navItem} ${activeView === 'webScraper' ? layoutStyles.navItemActive : ''}`}
+          >
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🕸️</div>
+            <span className={layoutStyles.navItemLabel}>Live Web Scraper</span>
+          </div>
+
+          <div 
+            onClick={() => setActiveView('subdomainBrute')} 
+            className={`${layoutStyles.navItem} ${activeView === 'subdomainBrute' ? layoutStyles.navItemActive : ''}`}
+          >
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>💣</div>
+            <span className={layoutStyles.navItemLabel}>Subdomain Brute</span>
+          </div>
+
+          <div 
+            onClick={() => setActiveView('githubScanner')} 
+            className={`${layoutStyles.navItem} ${activeView === 'githubScanner' ? layoutStyles.navItemActive : ''}`}
+          >
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🐙</div>
+            <span className={layoutStyles.navItemLabel}>GitHub Scanner</span>
+          </div>
+
+          <div 
+            onClick={() => setActiveView('breachCrawler')} 
+            className={`${layoutStyles.navItem} ${activeView === 'breachCrawler' ? layoutStyles.navItemActive : ''}`}
+          >
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>💀</div>
+            <span className={layoutStyles.navItemLabel}>Breach Crawler</span>
           </div>
 
           <div 
@@ -1864,6 +2364,12 @@ export default function App() {
               <MaltegoGraph />
             )}
 
+            {/* ── NEW ADVANCED TOOLS ── */}
+            {activeView === 'webScraper' && <WebScraper />}
+            {activeView === 'subdomainBrute' && <SubdomainBrute />}
+            {activeView === 'githubScanner' && <GitHubScanner />}
+            {activeView === 'breachCrawler' && <BreachCrawler />}
+
             {/* ── REPORTS VIEW ── */}
             {activeView === 'reports' && activeReportId && (
               (() => {
@@ -1976,7 +2482,7 @@ export default function App() {
                     </div>
 
                     <div className={repStyles.reportActions}>
-                      <button onClick={() => window.print()} className={modStyles.btnPrimary}>Print Document</button>
+                      <button onClick={() => window.print()} className={`${modStyles.btn} ${modStyles.btnPrimary}`}>Print Document</button>
                       <button onClick={() => setActiveView('dashboard')} className={modStyles.btn}>Return to Portal</button>
                     </div>
                   </div>
@@ -3714,6 +4220,655 @@ export default function App() {
               </div>
             )}
 
+
+            {/* ── PHONE OSINT ── */}
+            {activeView === 'phone' && (
+              <div className="animate-fade-in">
+                <div>
+                  <h1 className={dashStyles.title}>Telephony Node Intelligence</h1>
+                  <div className={dashStyles.subtitle}>Perform passive technical reconnaissance on mobile and fixed-line phone numbers.</div>
+                </div>
+
+                <form onSubmit={runPhoneScan} className={modStyles.inputGroup}>
+                  <label className={modStyles.inputLabel}>Target Phone Number</label>
+                  <div className={modStyles.actionRow}>
+                    <div className={modStyles.inputWrapper} style={{ flexGrow: 1 }}>
+                      <span className={modStyles.inputIcon}>📞</span>
+                      <input 
+                        className={modStyles.inputField} 
+                        placeholder="e.g. +14155552671" 
+                        value={phoneTarget}
+                        onChange={(e) => {
+                          setPhoneTarget(e.target.value);
+                          setPhoneError('');
+                        }}
+                        disabled={phoneLoading}
+                      />
+                    </div>
+                    <button 
+                      type="submit"
+                      className={`${modStyles.btn} ${modStyles.btnPrimary}`}
+                      disabled={!phoneTarget || phoneLoading}
+                    >
+                      {phoneLoading ? 'Scanning...' : 'Execute Analysis'}
+                    </button>
+                  </div>
+                </form>
+
+                {phoneError && (
+                  <div style={{ padding: '12px 16px', backgroundColor: 'rgba(202, 44, 44, 0.1)', color: '#ca2c2c', borderRadius: '6px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px', border: '1px solid rgba(202,44,44,0.2)' }}>
+                    <AlertTriangle size={16} />
+                    <span>{phoneError}</span>
+                  </div>
+                )}
+
+                {phoneLoading && (
+                  <div style={{ marginTop: '30px' }}>
+                    <div className="skeletonPulse skeletonTitle" style={{ width: '40%', height: '24px', marginBottom: '16px' }}></div>
+                    <div className="skeletonPulse skeletonBlock" style={{ height: '160px' }}></div>
+                  </div>
+                )}
+
+                {phoneResults && !phoneLoading && (
+                  <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start', width: '100%', marginTop: '30px' }}>
+                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                      <PhoneIntel results={phoneResults} />
+                    </div>
+                    <AnalystNotesPanel query={phoneResults.number || phoneTarget} />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── IOT SCANNER ── */}
+            {activeView === 'iot' && (
+              <div className="animate-fade-in">
+                <div>
+                  <h1 className={dashStyles.title}>IoT & Vulnerability Scanner</h1>
+                  <div className={dashStyles.subtitle}>Passively discover open ports, hostnames, and known CVEs for any IP address using InternetDB.</div>
+                </div>
+
+                <form onSubmit={runIotScan} className={modStyles.inputGroup}>
+                  <label className={modStyles.inputLabel}>Target IPv4 Address</label>
+                  <div className={modStyles.actionRow}>
+                    <div className={modStyles.inputWrapper} style={{ flexGrow: 1 }}>
+                      <span className={modStyles.inputIcon}>🛰️</span>
+                      <input 
+                        className={modStyles.inputField} 
+                        placeholder="e.g. 8.8.8.8" 
+                        value={iotTarget}
+                        onChange={(e) => {
+                          setIotTarget(e.target.value);
+                          setIotError('');
+                        }}
+                        disabled={iotLoading}
+                      />
+                    </div>
+                    <button 
+                      type="submit"
+                      className={`${modStyles.btn} ${modStyles.btnPrimary}`}
+                      disabled={!iotTarget || iotLoading}
+                    >
+                      {iotLoading ? 'Scanning...' : 'Execute Scan'}
+                    </button>
+                  </div>
+                </form>
+
+                {iotError && (
+                  <div style={{ padding: '12px 16px', backgroundColor: 'rgba(202, 44, 44, 0.1)', color: '#ca2c2c', borderRadius: '6px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px', border: '1px solid rgba(202,44,44,0.2)' }}>
+                    <AlertTriangle size={16} />
+                    <span>{iotError}</span>
+                  </div>
+                )}
+
+                {iotLoading && (
+                  <div style={{ marginTop: '30px' }}>
+                    <div className="skeletonPulse skeletonTitle" style={{ width: '40%', height: '24px', marginBottom: '16px' }}></div>
+                    <div className="skeletonPulse skeletonBlock" style={{ height: '160px' }}></div>
+                  </div>
+                )}
+
+                {iotResults && !iotLoading && (
+                  <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start', width: '100%', marginTop: '30px' }}>
+                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                      <IotScanner results={iotResults} />
+                    </div>
+                    <AnalystNotesPanel query={iotResults.ip || iotTarget} />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── DARK WEB SCANNER ── */}
+            {activeView === 'darkweb' && (
+              <div className="animate-fade-in">
+                <div>
+                  <h1 className={dashStyles.title}>Dark Web & Tor Monitor</h1>
+                  <div className={dashStyles.subtitle}>Search for leaks, mentions, and hidden services across the Tor network (.onion sites).</div>
+                </div>
+
+                <form onSubmit={runDwScan} className={modStyles.inputGroup}>
+                  <label className={modStyles.inputLabel}>Target Query (Email, Username, Domain)</label>
+                  <div className={modStyles.actionRow}>
+                    <div className={modStyles.inputWrapper} style={{ flexGrow: 1 }}>
+                      <span className={modStyles.inputIcon}>👁️</span>
+                      <input 
+                        className={modStyles.inputField} 
+                        placeholder="e.g. jdoe@example.com or companyname" 
+                        value={dwTarget}
+                        onChange={(e) => {
+                          setDwTarget(e.target.value);
+                          setDwError('');
+                        }}
+                        disabled={dwLoading}
+                      />
+                    </div>
+                    <button 
+                      type="submit"
+                      className={`${modStyles.btn} ${modStyles.btnPrimary}`}
+                      disabled={!dwTarget || dwLoading}
+                    >
+                      {dwLoading ? 'Searching Tor...' : 'Execute Scan'}
+                    </button>
+                  </div>
+                </form>
+
+                {dwError && (
+                  <div style={{ padding: '12px 16px', backgroundColor: 'rgba(202, 44, 44, 0.1)', color: '#ca2c2c', borderRadius: '6px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px', border: '1px solid rgba(202,44,44,0.2)' }}>
+                    <AlertTriangle size={16} />
+                    <span>{dwError}</span>
+                  </div>
+                )}
+
+                {dwLoading && (
+                  <div style={{ marginTop: '30px' }}>
+                    <div className="skeletonPulse skeletonTitle" style={{ width: '40%', height: '24px', marginBottom: '16px' }}></div>
+                    <div className="skeletonPulse skeletonBlock" style={{ height: '160px' }}></div>
+                  </div>
+                )}
+
+                {dwResults && !dwLoading && (
+                  <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start', width: '100%', marginTop: '30px' }}>
+                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                      <DarkWebIntel results={dwResults} />
+                    </div>
+                    <AnalystNotesPanel query={dwResults.query || dwTarget} />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── METADATA EXTRACTOR ── */}
+            {activeView === 'metadata' && (
+              <div className="animate-fade-in">
+                <div>
+                  <h1 className={dashStyles.title}>Document Metadata Forensics</h1>
+                  <div className={dashStyles.subtitle}>Extract hidden metadata (authors, timestamps, software) from PDF, DOCX, and XLSX files.</div>
+                </div>
+
+                <form onSubmit={runMetaScan} className={modStyles.inputGroup}>
+                  <label className={modStyles.inputLabel}>Upload Target Document (.pdf, .docx, .xlsx)</label>
+                  <div className={modStyles.actionRow}>
+                    <div className={modStyles.inputWrapper} style={{ flexGrow: 1, border: '1px dashed var(--notion-border)', padding: '12px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <input 
+                        type="file" 
+                        accept=".pdf,.docx,.xlsx"
+                        onChange={(e) => {
+                          setMetaFile(e.target.files[0]);
+                          setMetaError('');
+                        }}
+                        disabled={metaLoading}
+                        style={{ fontSize: '13px' }}
+                      />
+                    </div>
+                    <button 
+                      type="submit"
+                      className={`${modStyles.btn} ${modStyles.btnPrimary}`}
+                      disabled={!metaFile || metaLoading}
+                    >
+                      {metaLoading ? 'Extracting...' : 'Extract Metadata'}
+                    </button>
+                  </div>
+                </form>
+
+                {metaError && (
+                  <div style={{ padding: '12px 16px', backgroundColor: 'rgba(202, 44, 44, 0.1)', color: '#ca2c2c', borderRadius: '6px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px', border: '1px solid rgba(202,44,44,0.2)' }}>
+                    <AlertTriangle size={16} />
+                    <span>{metaError}</span>
+                  </div>
+                )}
+
+                {metaLoading && (
+                  <div style={{ marginTop: '30px' }}>
+                    <div className="skeletonPulse skeletonTitle" style={{ width: '40%', height: '24px', marginBottom: '16px' }}></div>
+                    <div className="skeletonPulse skeletonBlock" style={{ height: '160px' }}></div>
+                  </div>
+                )}
+
+                {metaResults && !metaLoading && (
+                  <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start', width: '100%', marginTop: '30px' }}>
+                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                      <MetadataExtractor results={metaResults} />
+                    </div>
+                    <AnalystNotesPanel query={metaResults.filename || 'Document'} />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── CORPORATE INTEL ── */}
+            {activeView === 'corporate' && (
+              <div className="animate-fade-in">
+                <div>
+                  <h1 className={dashStyles.title}>Corporate Entity Intelligence</h1>
+                  <div className={dashStyles.subtitle}>Search global registries for company incorporation data, status, and addresses.</div>
+                </div>
+
+                <form onSubmit={runCorpScan} className={modStyles.inputGroup}>
+                  <label className={modStyles.inputLabel}>Target Company Name</label>
+                  <div className={modStyles.actionRow}>
+                    <div className={modStyles.inputWrapper} style={{ flexGrow: 1 }}>
+                      <span className={modStyles.inputIcon}>🏢</span>
+                      <input 
+                        className={modStyles.inputField} 
+                        placeholder="e.g. Apple Inc" 
+                        value={corpTarget}
+                        onChange={(e) => {
+                          setCorpTarget(e.target.value);
+                          setCorpError('');
+                        }}
+                        disabled={corpLoading}
+                      />
+                    </div>
+                    <button 
+                      type="submit"
+                      className={`${modStyles.btn} ${modStyles.btnPrimary}`}
+                      disabled={!corpTarget || corpLoading}
+                    >
+                      {corpLoading ? 'Searching...' : 'Execute Scan'}
+                    </button>
+                  </div>
+                </form>
+
+                {corpError && (
+                  <div style={{ padding: '12px 16px', backgroundColor: 'rgba(202, 44, 44, 0.1)', color: '#ca2c2c', borderRadius: '6px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px', border: '1px solid rgba(202,44,44,0.2)' }}>
+                    <AlertTriangle size={16} />
+                    <span>{corpError}</span>
+                  </div>
+                )}
+
+                {corpLoading && (
+                  <div style={{ marginTop: '30px' }}>
+                    <div className="skeletonPulse skeletonTitle" style={{ width: '40%', height: '24px', marginBottom: '16px' }}></div>
+                    <div className="skeletonPulse skeletonBlock" style={{ height: '160px' }}></div>
+                  </div>
+                )}
+
+                {corpResults && !corpLoading && (
+                  <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start', width: '100%', marginTop: '30px' }}>
+                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                      <CorporateIntel results={corpResults} />
+                    </div>
+                    <AnalystNotesPanel query={corpResults.company_name || corpTarget} />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── REDDIT ANALYZER ── */}
+            {activeView === 'reddit' && (
+              <div className="animate-fade-in">
+                <div>
+                  <h1 className={dashStyles.title}>Reddit Profile Analyzer</h1>
+                  <div className={dashStyles.subtitle}>Extract most active subreddits and estimate timezone based on a Reddit user's comment history.</div>
+                </div>
+
+                <form onSubmit={runRedditScan} className={modStyles.inputGroup}>
+                  <label className={modStyles.inputLabel}>Target Reddit Username</label>
+                  <div className={modStyles.actionRow}>
+                    <div className={modStyles.inputWrapper} style={{ flexGrow: 1 }}>
+                      <span className={modStyles.inputIcon}>🤖</span>
+                      <input 
+                        className={modStyles.inputField} 
+                        placeholder="e.g. spez" 
+                        value={redditTarget}
+                        onChange={(e) => {
+                          setRedditTarget(e.target.value);
+                          setRedditError('');
+                        }}
+                        disabled={redditLoading}
+                      />
+                    </div>
+                    <button 
+                      type="submit"
+                      className={`${modStyles.btn} ${modStyles.btnPrimary}`}
+                      disabled={!redditTarget || redditLoading}
+                    >
+                      {redditLoading ? 'Analyzing...' : 'Execute Scan'}
+                    </button>
+                  </div>
+                </form>
+
+                {redditError && (
+                  <div style={{ padding: '12px 16px', backgroundColor: 'rgba(202, 44, 44, 0.1)', color: '#ca2c2c', borderRadius: '6px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px', border: '1px solid rgba(202,44,44,0.2)' }}>
+                    <AlertTriangle size={16} />
+                    <span>{redditError}</span>
+                  </div>
+                )}
+
+                {redditLoading && (
+                  <div style={{ marginTop: '30px' }}>
+                    <div className="skeletonPulse skeletonTitle" style={{ width: '40%', height: '24px', marginBottom: '16px' }}></div>
+                    <div className="skeletonPulse skeletonBlock" style={{ height: '160px' }}></div>
+                  </div>
+                )}
+
+                {redditResults && !redditLoading && (
+                  <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start', width: '100%', marginTop: '30px' }}>
+                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                      <RedditAnalyzer results={redditResults} />
+                    </div>
+                    <AnalystNotesPanel query={`u/${redditResults.username || redditTarget}`} />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── IMAGE OSINT ── */}
+            {activeView === 'imageOsint' && (
+              <div className="animate-fade-in">
+                <div>
+                  <h1 className={dashStyles.title}>Reverse Image Search Pivot</h1>
+                  <div className={dashStyles.subtitle}>Generate reverse image search queries across multiple platforms (Google Lens, Yandex, Bing, TinEye) from a single image URL.</div>
+                </div>
+
+                <form onSubmit={runImageScan} className={modStyles.inputGroup}>
+                  <label className={modStyles.inputLabel}>Target Image URL</label>
+                  <div className={modStyles.actionRow}>
+                    <div className={modStyles.inputWrapper} style={{ flexGrow: 1 }}>
+                      <span className={modStyles.inputIcon}>🖼️</span>
+                      <input 
+                        className={modStyles.inputField} 
+                        placeholder="e.g. https://example.com/image.jpg" 
+                        value={imageTarget}
+                        onChange={(e) => {
+                          setImageTarget(e.target.value);
+                          setImageError('');
+                        }}
+                        disabled={imageLoading}
+                      />
+                    </div>
+                    <button 
+                      type="submit"
+                      className={`${modStyles.btn} ${modStyles.btnPrimary}`}
+                      disabled={!imageTarget || imageLoading}
+                    >
+                      {imageLoading ? 'Generating...' : 'Generate Pivots'}
+                    </button>
+                  </div>
+                </form>
+
+                {imageError && (
+                  <div style={{ padding: '12px 16px', backgroundColor: 'rgba(202, 44, 44, 0.1)', color: '#ca2c2c', borderRadius: '6px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px', border: '1px solid rgba(202,44,44,0.2)' }}>
+                    <AlertTriangle size={16} />
+                    <span>{imageError}</span>
+                  </div>
+                )}
+
+                {imageLoading && (
+                  <div style={{ marginTop: '30px' }}>
+                    <div className="skeletonPulse skeletonTitle" style={{ width: '40%', height: '24px', marginBottom: '16px' }}></div>
+                    <div className="skeletonPulse skeletonBlock" style={{ height: '160px' }}></div>
+                  </div>
+                )}
+
+                {imageResults && !imageLoading && (
+                  <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start', width: '100%', marginTop: '30px' }}>
+                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                      <ImageOsint results={imageResults} />
+                    </div>
+                    <AnalystNotesPanel query={imageTarget} />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── VEHICLE RECON ── */}
+            {activeView === 'vehicle' && (
+              <div className="animate-fade-in">
+                <div>
+                  <h1 className={dashStyles.title}>Vehicle Intelligence</h1>
+                  <div className={dashStyles.subtitle}>Decode any 17-character VIN to extract manufacturing details, engine specs, and vehicle history constraints.</div>
+                </div>
+
+                <form onSubmit={runVinScan} className={modStyles.inputGroup}>
+                  <label className={modStyles.inputLabel}>Target Vehicle Identification Number (VIN)</label>
+                  <div className={modStyles.actionRow}>
+                    <div className={modStyles.inputWrapper} style={{ flexGrow: 1 }}>
+                      <span className={modStyles.inputIcon}>🚗</span>
+                      <input 
+                        className={modStyles.inputField} 
+                        placeholder="e.g. 1HGCM82633A004XXX" 
+                        value={vinTarget}
+                        onChange={(e) => {
+                          setVinTarget(e.target.value);
+                          setVinError('');
+                        }}
+                        disabled={vinLoading}
+                        maxLength={17}
+                      />
+                    </div>
+                    <button 
+                      type="submit"
+                      className={`${modStyles.btn} ${modStyles.btnPrimary}`}
+                      disabled={vinTarget.length !== 17 || vinLoading}
+                    >
+                      {vinLoading ? 'Decoding...' : 'Execute Scan'}
+                    </button>
+                  </div>
+                </form>
+
+                {vinError && (
+                  <div style={{ padding: '12px 16px', backgroundColor: 'rgba(202, 44, 44, 0.1)', color: '#ca2c2c', borderRadius: '6px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px', border: '1px solid rgba(202,44,44,0.2)' }}>
+                    <AlertTriangle size={16} />
+                    <span>{vinError}</span>
+                  </div>
+                )}
+
+                {vinLoading && (
+                  <div style={{ marginTop: '30px' }}>
+                    <div className="skeletonPulse skeletonTitle" style={{ width: '40%', height: '24px', marginBottom: '16px' }}></div>
+                    <div className="skeletonPulse skeletonBlock" style={{ height: '160px' }}></div>
+                  </div>
+                )}
+
+                {vinResults && !vinLoading && (
+                  <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start', width: '100%', marginTop: '30px' }}>
+                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                      <VehicleRecon results={vinResults} />
+                    </div>
+                    <AnalystNotesPanel query={vinTarget} />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── AVIATION TRACKER ── */}
+            {activeView === 'aviation' && (
+              <div className="animate-fade-in">
+                <div>
+                  <h1 className={dashStyles.title}>Aviation Intelligence</h1>
+                  <div className={dashStyles.subtitle}>Generate live flight tracking and historical registry pivots for civilian and private aircraft using their Tail Number.</div>
+                </div>
+
+                <form onSubmit={runAviationScan} className={modStyles.inputGroup}>
+                  <label className={modStyles.inputLabel}>Target Aircraft Tail Number</label>
+                  <div className={modStyles.actionRow}>
+                    <div className={modStyles.inputWrapper} style={{ flexGrow: 1 }}>
+                      <span className={modStyles.inputIcon}>✈️</span>
+                      <input 
+                        className={modStyles.inputField} 
+                        placeholder="e.g. N12345 or G-ABCD" 
+                        value={aviationTarget}
+                        onChange={(e) => {
+                          setAviationTarget(e.target.value);
+                          setAviationError('');
+                        }}
+                        disabled={aviationLoading}
+                      />
+                    </div>
+                    <button 
+                      type="submit"
+                      className={`${modStyles.btn} ${modStyles.btnPrimary}`}
+                      disabled={!aviationTarget || aviationLoading}
+                    >
+                      {aviationLoading ? 'Generating...' : 'Execute Scan'}
+                    </button>
+                  </div>
+                </form>
+
+                {aviationError && (
+                  <div style={{ padding: '12px 16px', backgroundColor: 'rgba(202, 44, 44, 0.1)', color: '#ca2c2c', borderRadius: '6px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px', border: '1px solid rgba(202,44,44,0.2)' }}>
+                    <AlertTriangle size={16} />
+                    <span>{aviationError}</span>
+                  </div>
+                )}
+
+                {aviationLoading && (
+                  <div style={{ marginTop: '30px' }}>
+                    <div className="skeletonPulse skeletonTitle" style={{ width: '40%', height: '24px', marginBottom: '16px' }}></div>
+                    <div className="skeletonPulse skeletonBlock" style={{ height: '160px' }}></div>
+                  </div>
+                )}
+
+                {aviationResults && !aviationLoading && (
+                  <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start', width: '100%', marginTop: '30px' }}>
+                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                      <AviationIntel results={aviationResults} />
+                    </div>
+                    <AnalystNotesPanel query={aviationTarget} />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── HASH ANALYZER ── */}
+            {activeView === 'hash' && (
+              <div className="animate-fade-in">
+                <div>
+                  <h1 className={dashStyles.title}>Cryptographic Hash Analyzer</h1>
+                  <div className={dashStyles.subtitle}>Identify the encryption algorithm of a hash and generate pivots to plaintext cracking databases.</div>
+                </div>
+
+                <form onSubmit={runHashScan} className={modStyles.inputGroup}>
+                  <label className={modStyles.inputLabel}>Target Cryptographic Hash</label>
+                  <div className={modStyles.actionRow}>
+                    <div className={modStyles.inputWrapper} style={{ flexGrow: 1 }}>
+                      <span className={modStyles.inputIcon}>🔐</span>
+                      <input 
+                        className={modStyles.inputField} 
+                        placeholder="e.g. 5d41402abc4b2a76b9719d911017c592" 
+                        value={hashTarget}
+                        onChange={(e) => {
+                          setHashTarget(e.target.value);
+                          setHashError('');
+                        }}
+                        disabled={hashLoading}
+                      />
+                    </div>
+                    <button 
+                      type="submit"
+                      className={`${modStyles.btn} ${modStyles.btnPrimary}`}
+                      disabled={!hashTarget || hashLoading}
+                    >
+                      {hashLoading ? 'Analyzing...' : 'Execute Scan'}
+                    </button>
+                  </div>
+                </form>
+
+                {hashError && (
+                  <div style={{ padding: '12px 16px', backgroundColor: 'rgba(202, 44, 44, 0.1)', color: '#ca2c2c', borderRadius: '6px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px', border: '1px solid rgba(202,44,44,0.2)' }}>
+                    <AlertTriangle size={16} />
+                    <span>{hashError}</span>
+                  </div>
+                )}
+
+                {hashLoading && (
+                  <div style={{ marginTop: '30px' }}>
+                    <div className="skeletonPulse skeletonTitle" style={{ width: '40%', height: '24px', marginBottom: '16px' }}></div>
+                    <div className="skeletonPulse skeletonBlock" style={{ height: '160px' }}></div>
+                  </div>
+                )}
+
+                {hashResults && !hashLoading && (
+                  <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start', width: '100%', marginTop: '30px' }}>
+                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                      <HashAnalyzer results={hashResults} />
+                    </div>
+                    <AnalystNotesPanel query={hashTarget} />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── MAC DECODER ── */}
+            {activeView === 'mac' && (
+              <div className="animate-fade-in">
+                <div>
+                  <h1 className={dashStyles.title}>MAC Address Vendor Decoder</h1>
+                  <div className={dashStyles.subtitle}>Identify the hardware manufacturer of a device using its MAC Address (OUI Lookup).</div>
+                </div>
+
+                <form onSubmit={runMacScan} className={modStyles.inputGroup}>
+                  <label className={modStyles.inputLabel}>Target MAC Address</label>
+                  <div className={modStyles.actionRow}>
+                    <div className={modStyles.inputWrapper} style={{ flexGrow: 1 }}>
+                      <span className={modStyles.inputIcon}>💻</span>
+                      <input 
+                        className={modStyles.inputField} 
+                        placeholder="e.g. 00:1A:2B:3C:4D:5E" 
+                        value={macTarget}
+                        onChange={(e) => {
+                          setMacTarget(e.target.value);
+                          setMacError('');
+                        }}
+                        disabled={macLoading}
+                      />
+                    </div>
+                    <button 
+                      type="submit"
+                      className={`${modStyles.btn} ${modStyles.btnPrimary}`}
+                      disabled={!macTarget || macLoading}
+                    >
+                      {macLoading ? 'Decoding...' : 'Execute Scan'}
+                    </button>
+                  </div>
+                </form>
+
+                {macError && (
+                  <div style={{ padding: '12px 16px', backgroundColor: 'rgba(202, 44, 44, 0.1)', color: '#ca2c2c', borderRadius: '6px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px', border: '1px solid rgba(202,44,44,0.2)' }}>
+                    <AlertTriangle size={16} />
+                    <span>{macError}</span>
+                  </div>
+                )}
+
+                {macLoading && (
+                  <div style={{ marginTop: '30px' }}>
+                    <div className="skeletonPulse skeletonTitle" style={{ width: '40%', height: '24px', marginBottom: '16px' }}></div>
+                    <div className="skeletonPulse skeletonBlock" style={{ height: '160px' }}></div>
+                  </div>
+                )}
+
+                {macResults && !macLoading && (
+                  <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start', width: '100%', marginTop: '30px' }}>
+                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                      <MacDecoder results={macResults} />
+                    </div>
+                    <AnalystNotesPanel query={macTarget} />
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* ── TRACEROUTE PATH MAP ── */}
             {activeView === 'traceroute' && (

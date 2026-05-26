@@ -2390,7 +2390,8 @@ async def generate_pdf_report(
         if len(raw_json_str) > 1500:
             raw_json_str = raw_json_str[:1500] + "\n... [truncated for print layout]"
             
-        story.append(Paragraph(raw_json_str.replace('\n', '<br/>').replace(' ', '&nbsp;'), code_style))
+        escaped_json_str = raw_json_str.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+        story.append(Paragraph(escaped_json_str.replace('\n', '<br/>').replace(' ', '&nbsp;'), code_style))
         
         doc.build(story)
         buffer.seek(0)
@@ -2804,6 +2805,9 @@ async def run_monitor_now(id: int):
 @app.get("/api/monitor/{id}/history", tags=["Monitor"])
 async def get_monitor_history(id: int):
     return db.get_monitor_history(id)
+
+from advanced_routes import router as advanced_router
+app.include_router(advanced_router)
 
 if __name__ == "__main__":
     import uvicorn
