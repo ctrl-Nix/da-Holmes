@@ -650,12 +650,13 @@ async def run_single_monitor(monitor: dict):
                         analytics_resp = await client.get(f"https://api.xposedornot.com/v1/breach-analytics?email={target}", headers=headers)
                         detailed_breaches = []
                         if analytics_resp.status_code == 200:
-                            detailed_breaches = analytics_resp.json().get("BreachesSummary", {}).get("breaches", [])
+                            detailed_breaches = analytics_resp.json().get("ExposedBreaches", {}).get("breaches_details", [])
                             
                         if detailed_breaches:
                             for db_item in detailed_breaches:
                                 b_name = db_item.get("breach", "Unknown")
-                                dc_list = db_item.get("data_classes", ["email", "password"])
+                                x_data = db_item.get("xposed_data", "email;password")
+                                dc_list = [c.strip() for c in x_data.split(";") if c.strip()]
                                 db.save_finding(
                                     new_scan_id, 
                                     "breach", 
@@ -1186,28 +1187,34 @@ def check_email_breach(
         if analytics_resp.status_code == 200:
             analytics_data = analytics_resp.json()
             
-            # Extract breach details
-            metrics = analytics_data.get("BreachMetrics", {})
-            breach_count = metrics.get("number_of_breaches", len(breaches))
-            
             # Fetch detailed list
-            detailed_breaches = analytics_data.get("BreachesSummary", {}).get("breaches", [])
+            detailed_breaches = analytics_data.get("ExposedBreaches", {}).get("breaches_details", [])
             if detailed_breaches:
                 breaches = [] # replace with detailed items
                 for db in detailed_breaches:
                     b_name = db.get("breach", "Unknown")
+                    b_date = str(db.get("xposed_date") or db.get("date") or "Unknown")
+                    x_data = db.get("xposed_data", "email;password")
+                    b_data_classes = [c.strip() for c in x_data.split(";") if c.strip()]
                     breaches.append({
                         "name": b_name,
-                        "date": db.get("breached_date", db.get("date", "Unknown")),
+                        "date": b_date,
                         "domain": db.get("domain", "Unknown"),
-                        "description": db.get("description", "No description available"),
-                        "data_classes": db.get("data_classes", ["email", "password"])
+                        "description": db.get("details") or f"Exposed: {x_data}",
+                        "data_classes": b_data_classes
                     })
-                    for dc in db.get("data_classes", []):
+                    for dc in b_data_classes:
                         if dc:
                             exposed_data_types.add(dc.lower())
-
-            most_recent_breach = metrics.get("most_recent_breach", most_recent_breach)
+                
+                # Sort breaches to find most recent
+                try:
+                    sorted_breaches = sorted(breaches, key=lambda x: x["date"], reverse=True)
+                    most_recent_breach = sorted_breaches[0]["name"]
+                except Exception:
+                    pass
+            
+            breach_count = len(breaches)
 
     except Exception as exc:
         logger.error("Breach check failed for '%s': %s", email, exc)

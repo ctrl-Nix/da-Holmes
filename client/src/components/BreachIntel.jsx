@@ -31,10 +31,16 @@ export default function BreachIntel({ results, isLoading }) {
   // Custom coloring chips helper
   const getBadgeClass = (dataType) => {
     const dt = dataType.toLowerCase();
-    if (dt.includes('password') || dt.includes('credential')) return styles.badgeRed;
-    if (dt.includes('email') || dt.includes('username')) return styles.badgeOrange;
-    if (dt.includes('phone') || dt.includes('mobile')) return styles.badgeYellow;
-    return styles.badgeNeutral;
+    if (dt.includes('password') || dt.includes('credential')) {
+      return { className: styles.badgeRed, icon: '🔑' };
+    }
+    if (dt.includes('email') || dt.includes('username')) {
+      return { className: styles.badgeOrange, icon: '📧' };
+    }
+    if (dt.includes('phone') || dt.includes('mobile')) {
+      return { className: styles.badgeYellow, icon: '📱' };
+    }
+    return { className: styles.badgeNeutral, icon: '📄' };
   };
 
   // Error State Handling
@@ -107,8 +113,8 @@ export default function BreachIntel({ results, isLoading }) {
                 <span className={styles.sectionTitle}>Identified Compromised Data Vectors</span>
                 <div className={styles.typesGrid}>
                   {exposed_data_types.map((type, idx) => (
-                    <span key={idx} className={`${styles.dataTypeChip} ${getBadgeClass(type)}`}>
-                      {type}
+                    <span key={idx} className={`${styles.dataTypeChip} ${getBadgeClass(type).className}`}>
+                      {getBadgeClass(type).icon} {type}
                     </span>
                   ))}
                 </div>

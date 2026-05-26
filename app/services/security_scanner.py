@@ -16,18 +16,31 @@ class SecurityScanner:
         
         try:
             headers = {"User-Agent": "OSINT-Educational-Tool"}
-            async with httpx.AsyncClient(timeout=5.0) as client:
-                response = await client.get(f"https://haveibeenpwned.com/api/v3/breachedaccount/{email}", headers=headers)
+            async with httpx.AsyncClient(timeout=8.0) as client:
+                response = await client.get(
+                    f"https://api.xposedornot.com/v1/breach-analytics?email={email}",
+                    headers=headers
+                )
                 
                 if response.status_code == 200:
                     data = response.json()
-                    return {
-                        "status": "compromised",
-                        "breach_count": len(data),
-                        "details": [{"name": breach.get("Name"), "description": breach.get("Description", "No details"), "date": breach.get("BreachDate")} for breach in data]
-                    }
-                elif response.status_code == 404:
-                    return {"status": "safe", "breach_count": 0, "details": []}
+                    exposed = data.get("ExposedBreaches", {})
+                    if isinstance(exposed, dict) and "breaches_details" in exposed:
+                        breaches_list = exposed.get("breaches_details", [])
+                        details = []
+                        for item in breaches_list:
+                            details.append({
+                                "name": item.get("breach") or "Unknown",
+                                "description": item.get("details") or f"Exposed: {item.get('xposed_data', 'Unknown data')}",
+                                "date": str(item.get("xposed_date") or "Unknown")
+                            })
+                        return {
+                            "status": "compromised",
+                            "breach_count": len(details),
+                            "details": details
+                        }
+                    else:
+                        return {"status": "safe", "breach_count": 0, "details": []}
                 else:
                     logger.warning("Breach API returned %d.", response.status_code)
                     raise HTTPException(status_code=503, detail={"status": "unavailable", "reason": "API unreachable"})
