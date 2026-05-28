@@ -11,31 +11,46 @@ An advanced, full-stack Open Source Intelligence (OSINT) gathering and relations
 - **Email & Breach Checks**: Guesses corporate email formats using Hunter.io patterns, validates SMTP, and cross-references addresses against known Dark Web data breaches and Pastebin leaks.
 - **Username Sherlock**: Streams live results tracking username presence across hundreds of social media platforms.
 - **Interactive Intel Graph**: A dynamic, force-directed React graph component (`IntelGraph.jsx`) that visualizes the complex relationships between domains, IPs, breached emails, GitHub repos, and infrastructure vulnerabilities.
+- **PDF Export**: Generate professional PDF reports summarizing all discovered intelligence and vulnerabilities for offline analysis.
+- **Vulnerability Correlation Engine**: Checks targets against 14 correlation rules (e.g., exposed databases, missing security headers, DNS misconfigurations) and renders status badges.
 
 ## 🛠️ Technology Stack
 
 - **Backend**: Python 3, FastAPI, Uvicorn, APScheduler, SQLite, HTTPX, BeautifulSoup4, DNSResolver.
 - **Frontend**: React.js, Vite, SVG-based Custom Force Graphs.
+- **Containerization**: Docker & Docker Compose.
 - **Database**: SQLite (`holmes.db`) for persistent workspaces, scan histories, and findings.
 
 ## 🚀 Installation & Setup
 
-### Prerequisites
+### Option 1: Docker Compose (Recommended for Production/Quick Start)
+
+The easiest way to run the entire stack is using Docker Compose. Ensure you have Docker installed, then run:
+
+```bash
+# Build and run the backend (port 8000) and frontend (port 80)
+docker-compose up --build -d
+```
+*Once running, navigate to [http://localhost](http://localhost) in your browser to access the frontend, and [http://localhost:8000/docs](http://localhost:8000/docs) for the API documentation.*
+
+---
+
+### Option 2: Local Development Setup (Non-Docker)
+
+#### Prerequisites
 - Python 3.9+
 - Node.js (v16+)
 - Git
 
-#### System Dependencies (Non-Docker Setup)
+#### System Dependencies
 If you are running the backend directly on your host machine without Docker, some modules (like God Mode, DNS tracking, and traceroute) rely on native OS binaries. 
 You must install these tools on your host OS. For Ubuntu/Debian, you can run:
 ```bash
 sudo apt-get update && sudo apt-get install -y nmap whois dnsutils traceroute
 ```
 
-### 1. Backend Setup
-
+#### 1. Backend Setup
 Open a terminal in the root directory:
-
 ```bash
 # Install required Python dependencies
 pip install -r requirements.txt
@@ -45,28 +60,27 @@ python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 *The backend API and Swagger documentation will be available at [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs).*
 
-### 2. Frontend Setup
-
+#### 2. Frontend Setup
 Open a separate terminal and navigate to the `client` directory:
-
 ```bash
 cd client
 
 # Install Node dependencies
 npm install
 
-# Start the Vite development server
+# Start the Vite development server (Vite is preconfigured with a proxy to port 8000)
 npm run dev
 ```
 *The frontend application will be available at [http://localhost:5173/](http://localhost:5173/).*
 
 ## 📖 Usage Guide
 
-1. **Access the Dashboard**: Navigate to `http://localhost:5173/` in your browser.
+1. **Access the Dashboard**: Navigate to `http://localhost:5173/` (local dev) or `http://localhost` (Docker).
 2. **Create a Workspace**: Organize your investigations into persistent workspaces.
 3. **Launch a Scan**: Use the central search bar to enter a Target (e.g., `example.com`, `admin@example.com`, `8.8.8.8`, or a username). The engine will automatically detect the target type and fire the appropriate modules.
 4. **View Live Results**: Results stream in via Server-Sent Events (SSE) so you don't have to wait for the entire scan to finish.
-5. **Explore the Graph**: Click the **"Show Intelligence Graph"** button on the results page to visually explore the relationships between your target and the discovered assets (Subdomains, IPs, Leaks, Repositories). Click on individual nodes to see detailed descriptions and remediation recommendations.
+5. **Explore the Graph**: Click the **"Show Intelligence Graph"** button on the results page to visually explore the relationships between your target and the discovered assets. Click on individual nodes to see detailed descriptions and remediation recommendations.
+6. **Export Report**: Export the entire scan intelligence findings as a PDF report for offline storage.
 
 ## ⚠️ Disclaimer
 
