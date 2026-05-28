@@ -297,7 +297,7 @@ export default function App() {
   const fetchThreatFeed = async () => {
     setThreatLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/api/threat/feed`);
+      const response = await fetch(`${API_BASE}/api/threatintel/feed`);
       if (response.ok) {
         const data = await response.json();
         setThreatFeed(data);

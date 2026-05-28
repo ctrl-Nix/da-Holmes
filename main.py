@@ -54,13 +54,16 @@ class AutoSaveMiddleware(BaseHTTPMiddleware):
             try:
                 data = json.loads(body)
                 module_name = request.url.path.split("/")[-1]
-                from app.core.database import db
-                if isinstance(data, dict):
-                    for k, v in data.items():
-                        db.save_finding(scan_id, module_name, str(k), v)
-                elif isinstance(data, list):
-                    for i, v in enumerate(data):
-                        db.save_finding(scan_id, module_name, f"item_{i}", v)
+                try:
+                    from app.core.database import db
+                    if isinstance(data, dict):
+                        for k, v in data.items():
+                            db.save_finding(scan_id, module_name, str(k), v)
+                    elif isinstance(data, list):
+                        for i, v in enumerate(data):
+                            db.save_finding(scan_id, module_name, f"item_{i}", v)
+                except ImportError:
+                    pass  # app.core.database not available, skip auto-save
             except Exception as e:
                 pass
                 
@@ -487,11 +490,7 @@ def create_application() -> FastAPI:
         tags=["Network Intel"],
     )
 
-    application.include_router(
-        report.router,
-        prefix="/api/report",
-        tags=["Reporting"],
-    )
+    # Note: report.router already registered above at /api prefix — do not register again.
 
     return application
 
@@ -524,7 +523,7 @@ async def send_webhook_alert(url: str, webhook_type: str, target: str, findings:
         ]
         payload = {
             "embeds": [{
-                "title": f"🚨 Holmes OSINT Alert — {target}",
+                "title": f"[Holmes OSINT] Alert: {target}",
                 "description": f"{len(findings)} new findings detected",
                 "color": 15158332,
                 "fields": fields,
@@ -533,14 +532,14 @@ async def send_webhook_alert(url: str, webhook_type: str, target: str, findings:
         }
     elif webhook_type == "slack":
         payload = {
-            "text": f"🚨 *Holmes Alert* — {target}",
+            "text": f"[Holmes Alert] {target}",
             "blocks": [{
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
                     "text": (
                         f"*{len(findings)} new findings* for `{target}`\n"
-                        + "\n".join(f"• {f.get('key', '')}: {f.get('value', '')}" for f in findings[:5])
+                        + "\n".join(f"- {f.get('key', '')}: {f.get('value', '')}" for f in findings[:5])
                     )
                 }
             }]

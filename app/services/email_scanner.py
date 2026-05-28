@@ -43,8 +43,8 @@ class EmailScanner:
                 )
             except FileNotFoundError:
                 logger.warning("Tool holehe is missing, please install it (pip install holehe).")
-                result["status"] = "error"
-                result["message"] = "Holehe scanner tool is not installed on the system."
+                result["status"] = "unavailable"
+                result["message"] = "Holehe scanner tool is not installed. Run: pip install holehe"
                 return result
             
             stdout, stderr = await process.communicate()

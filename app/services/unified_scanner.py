@@ -165,7 +165,7 @@ class UnifiedScanner:
                             for entry in data:
                                 name = entry.get("name_value", "")
                                 if "*" not in name:
-                                    uniq_subs.update(name.split("\\n"))
+                                    uniq_subs.update(name.split("\n"))
                             subdomains = list(uniq_subs)[:8]
                 except Exception:
                     pass # ignore crt.sh fail in god-mode
@@ -206,7 +206,7 @@ class UnifiedScanner:
                     if resp.status_code == 200:
                         text = resp.text.strip()
                         if "error" not in text.lower() and "no records" not in text.lower() and "not found" not in text.lower():
-                            domains = [line.strip() for line in text.split("\\n") if line.strip()]
+                            domains = [line.strip() for line in text.split("\n") if line.strip()]
                         else:
                             domains = []
                         results["data"] = {
@@ -263,7 +263,7 @@ class UnifiedScanner:
 
             elif target_type == "phone":
                 # Basic fallback logic for phone 
-                clean_num = re.sub(r'[\\s\\-()\[\\]\\+]', '', query)
+                clean_num = re.sub(r'[\s\-\(\)\[\]\+]', '', query)
                 results["data"] = {
                     "number": clean_num,
                     "carrier": "Nmap Scanning Host",

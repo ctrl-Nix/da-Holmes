@@ -28,7 +28,7 @@ async def with_keepalive(generator, interval: int = 15):
             last_yield = time.monotonic()
             yield data
         except asyncio.TimeoutError:
-            yield ": keepalive\\n\\n"
+            yield ": keepalive\n\n"
             last_yield = time.monotonic()
         except StopAsyncIteration:
             break
