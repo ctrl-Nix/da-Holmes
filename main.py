@@ -81,6 +81,8 @@ class AutoSaveMiddleware(BaseHTTPMiddleware):
 limiter = Limiter(key_func=get_remote_address, default_limits=["10/minute"])
 
 def validate_value(val: str, field_name: str = "Input") -> str:
+    if not val or not str(val).strip():
+        return f"{field_name} cannot be empty."
     if len(val) > 100:
         return f"{field_name} exceeds maximum length of 100 characters."
     

@@ -29,7 +29,8 @@ import AviationIntel from './components/AviationIntel';
 import HashAnalyzer from './components/HashAnalyzer';
 import MacDecoder from './components/MacDecoder';
 import ForceGraph2D from 'react-force-graph-2d';
-import AnalystNotesPanel, { getTagColor } from './components/AnalystNotesPanel';
+import AnalystNotesPanel from './components/AnalystNotesPanel';
+import { getTagColor } from './utils/tagColors';
 
 import HolmesLogo from './components/HolmesLogo';
 
@@ -248,6 +249,26 @@ const mapHistoryToReports = (historyArray) => {
 };
 
 export default function App() {
+  const getInitialReports = () => {
+    try {
+      const saved = localStorage.getItem('holmes-history');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return mapHistoryToReports(parsed);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load initial reports:', err);
+    }
+    return [
+      { id: 'rep-mock-1', emoji: '🏢', title: 'Corporate Security Audit (kiit.ac.in)', date: '2026-05-17', target: 'kiit.ac.in', type: 'Domain Audit', author: 'Agent Holmes', risk: 'VULNERABLE', score: 65 },
+      { id: 'rep-mock-2', emoji: '👤', title: 'Subject Profile Brief (torvalds)', date: '2026-05-16', target: 'torvalds', type: 'Username Footprint', author: 'Agent Holmes', risk: 'SECURE', score: 92 },
+      { id: 'rep-mock-3', emoji: '💰', title: 'High-Value Asset Tracing (1A1zP1eP...)', date: '2026-05-15', target: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa', type: 'Blockchain Intel', author: 'System Sentinel', risk: 'CRITICAL', score: 20 },
+    ];
+  };
+
+  const [reports, setReports] = useState(getInitialReports);
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
   const [bannerStatus, setBannerStatus] = useState('waking');
 
@@ -975,27 +996,6 @@ export default function App() {
   const exifMapRef = useRef(null);
 
   // Simulated Database Reports
-  const getInitialReports = () => {
-    try {
-      const saved = localStorage.getItem('holmes-history');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return mapHistoryToReports(parsed);
-        }
-      }
-    } catch (err) {
-      console.error('Failed to load initial reports:', err);
-    }
-    return [
-      { id: 'rep-mock-1', emoji: '🏢', title: 'Corporate Security Audit (kiit.ac.in)', date: '2026-05-17', target: 'kiit.ac.in', type: 'Domain Audit', author: 'Agent Holmes', risk: 'VULNERABLE', score: 65 },
-      { id: 'rep-mock-2', emoji: '👤', title: 'Subject Profile Brief (torvalds)', date: '2026-05-16', target: 'torvalds', type: 'Username Footprint', author: 'Agent Holmes', risk: 'SECURE', score: 92 },
-      { id: 'rep-mock-3', emoji: '💰', title: 'High-Value Asset Tracing (1A1zP1eP...)', date: '2026-05-15', target: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa', type: 'Blockchain Intel', author: 'System Sentinel', risk: 'CRITICAL', score: 20 },
-    ];
-  };
-
-  const [reports, setReports] = useState(getInitialReports);
-
   // Collapsible toggle
   const toggleSidebar = () => setSidebarExpanded(!sidebarExpanded);
 

@@ -68,15 +68,6 @@ export default function UnifiedScanner({ initialQuery = '' }) {
     return 'username';
   };
 
-  useEffect(() => {
-    if (initialQuery) {
-      setQuery(initialQuery);
-      const type = detectType(initialQuery);
-      setDetectedType(type);
-      triggerScan(initialQuery, type);
-    }
-  }, [initialQuery]);
-
   const handleInputChange = (e) => {
     const val = e.target.value;
     setQuery(val);
@@ -351,6 +342,15 @@ export default function UnifiedScanner({ initialQuery = '' }) {
       }
     }
   }, [result]);
+
+  useEffect(() => {
+    if (initialQuery) {
+      setQuery(initialQuery);
+      const type = detectType(initialQuery);
+      setDetectedType(type);
+      triggerScan(initialQuery, type);
+    }
+  }, [initialQuery]);
 
   // Helper to determine what layout/card to render based on the results structure
   const renderSingleTargetResult = (singleRes, queryVal) => {

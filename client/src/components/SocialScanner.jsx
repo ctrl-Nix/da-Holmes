@@ -8,25 +8,6 @@ const API_BASE = import.meta.env.VITE_API_URL || '';
 const QUICK_PLATFORMS = ['Instagram', 'Twitter', 'GitHub', 'Reddit', 'TikTok', 'Telegram'];
 
 export default function SocialScanner({ isLoading }) {
-  if (isLoading) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.sectionHeader} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <span>⚡ Quick Check</span>
-        </div>
-        <div className={styles.cardGrid}>
-          {[1, 2, 3, 4, 5, 6].map((num) => (
-            <div key={num} className={styles.card} style={{ border: '1px solid var(--notion-border)', backgroundColor: 'transparent', padding: '16px', minHeight: '90px' }}>
-              <div className="skeleton" style={{ width: '80px', height: '18px', borderRadius: '4px' }}></div>
-              <div style={{ marginTop: '24px' }}>
-                <div className="skeleton" style={{ width: '50%', height: '12px', margin: 0, borderRadius: '4px' }}></div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
 
   const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(false);
@@ -58,6 +39,26 @@ export default function SocialScanner({ isLoading }) {
       if (activeAnalyzeSource.current) activeAnalyzeSource.current.close();
     };
   }, []);
+
+  if (isLoading) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.sectionHeader} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <span>⚡ Quick Check</span>
+        </div>
+        <div className={styles.cardGrid}>
+          {[1, 2, 3, 4, 5, 6].map((num) => (
+            <div key={num} className={styles.card} style={{ border: '1px solid var(--notion-border)', backgroundColor: 'transparent', padding: '16px', minHeight: '90px' }}>
+              <div className="skeleton" style={{ width: '80px', height: '18px', borderRadius: '4px' }}></div>
+              <div style={{ marginTop: '24px' }}>
+                <div className="skeleton" style={{ width: '50%', height: '12px', margin: 0, borderRadius: '4px' }}></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   const getPlatformDetails = (name) => {
     switch (name) {
