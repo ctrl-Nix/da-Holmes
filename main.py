@@ -510,62 +510,12 @@ import logging
 logger = logging.getLogger("main")
 scheduler = AsyncIOScheduler()
 
-async def send_webhook_alert(url: str, webhook_type: str, target: str, findings: list):
-    if not url: return
-    
-    payload = {}
-    if webhook_type == "discord":
-        fields = [
-            {
-                "name": f.get("key", "Unknown"),
-                "value": str(f.get("value", ""))[:200],
-                "inline": True
-            }
-            for f in findings[:10]
-        ]
-        payload = {
-            "embeds": [{
-                "title": f"[Holmes OSINT] Alert: {target}",
-                "description": f"{len(findings)} new findings detected",
-                "color": 15158332,
-                "fields": fields,
-                "footer": {"text": "Holmes OSINT Platform"}
-            }]
-        }
-    elif webhook_type == "slack":
-        payload = {
-            "text": f"[Holmes Alert] {target}",
-            "blocks": [{
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": (
-                        f"*{len(findings)} new findings* for `{target}`\n"
-                        + "\n".join(f"- {f.get('key', '')}: {f.get('value', '')}" for f in findings[:5])
-                    )
-                }
-            }]
-        }
-    elif webhook_type == "telegram":
-        if "/bot" in url and "chat_id=" in url:
-            bot_token = url.split("/bot")[1].split("/")[0]
-            chat_id = url.split("chat_id=")[1]
-            payload = {
-                "chat_id": chat_id,
-                "text": (
-                    f"🚨 Holmes Alert — {target}\n"
-                    f"{len(findings)} new findings:\n"
-                    + "\n".join(f"• {f.get('key', '')}: {f.get('value', '')}" for f in findings[:5])
-                ),
-                "parse_mode": "Markdown"
-            }
-            url = url.split("?")[0] # clean url
+from app.modules.webhook_dispatcher import webhook_dispatcher
 
-    try:
-        async with httpx.AsyncClient(timeout=5) as client:
-            await client.post(url, json=payload)
-    except Exception as e:
-        logger.error(f"Webhook failed: {e}")
+async def send_webhook_alert(url: str, webhook_type: str, target: str, findings: list):
+    if not url or not findings: return
+    details = "\n".join(f"- {f.get('key', '')}: {f.get('value', '')}" for f in findings[:10])
+    await webhook_dispatcher.dispatch(webhook_type, url, target, details, "HIGH")
 
 async def run_single_monitor(monitor: dict):
     target = monitor["target"]
@@ -5301,3 +5251,4 @@ if __name__ == "__main__":
         reload=True if port == 8000 else False,
         log_level="info",
     )
+

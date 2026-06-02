@@ -90,6 +90,17 @@ class HolmesDB:
             updated_at TEXT
         );
         """)
+
+        c.execute("""
+        CREATE TABLE IF NOT EXISTS vault_secrets (
+            id TEXT PRIMARY KEY,
+            owner_id TEXT,
+            service TEXT NOT NULL,
+            encrypted_key TEXT NOT NULL,
+            created_at TEXT,
+            updated_at TEXT
+        );
+        """)
         self.conn.commit()
         
         # Self-healing migrations for older database instances
@@ -325,6 +336,41 @@ class HolmesDB:
         c = self.conn.cursor()
         c.execute("SELECT * FROM monitor_logs WHERE monitor_id=? ORDER BY created_at DESC LIMIT ?", (monitor_id, limit))
         return [dict(row) for row in c.fetchall()]
+
+    # --- Vault Secrets ---
+    def save_secret(self, owner_id: str, service: str, encrypted_key: str):
+        now = datetime.utcnow().isoformat()
+        c = self.conn.cursor()
+        # Check if exists
+        c.execute("SELECT id FROM vault_secrets WHERE owner_id=? AND service=?", (owner_id, service))
+        row = c.fetchone()
+        if row:
+            c.execute("UPDATE vault_secrets SET encrypted_key=?, updated_at=? WHERE id=?", (encrypted_key, now, row["id"]))
+        else:
+            v_id = str(uuid.uuid4())
+            c.execute(
+                "INSERT INTO vault_secrets (id, owner_id, service, encrypted_key, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+                (v_id, owner_id, service, encrypted_key, now, now)
+            )
+        self.conn.commit()
+
+    def get_secret(self, owner_id: str, service: str) -> Optional[str]:
+        c = self.conn.cursor()
+        c.execute("SELECT encrypted_key FROM vault_secrets WHERE owner_id=? AND service=?", (owner_id, service))
+        row = c.fetchone()
+        if row:
+            return row["encrypted_key"]
+        return None
+
+    def list_secrets(self, owner_id: str) -> List[str]:
+        c = self.conn.cursor()
+        c.execute("SELECT service FROM vault_secrets WHERE owner_id=?", (owner_id,))
+        return [row["service"] for row in c.fetchall()]
+
+    def delete_secret(self, owner_id: str, service: str):
+        c = self.conn.cursor()
+        c.execute("DELETE FROM vault_secrets WHERE owner_id=? AND service=?", (owner_id, service))
+        self.conn.commit()
 
 # Singleton instance
 db = HolmesDB()

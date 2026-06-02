@@ -12,6 +12,7 @@ import modStyles from './Modules.module.css';
 import repStyles from './Reports.module.css';
 import UnifiedScanner from './components/UnifiedScanner';
 import GodModeScanner from './components/GodModeScanner';
+import ContinuousMonitor from './components/ContinuousMonitor';
 import WorkspaceDashboard from './components/WorkspaceDashboard';
 import MaltegoGraph from './components/MaltegoGraph';
 import SocialScanner from './components/SocialScanner';
@@ -1946,6 +1947,14 @@ export default function App() {
           </div>
 
           <div 
+            onClick={() => setActiveView('monitor')} 
+            className={`${layoutStyles.navItem} ${activeView === 'monitor' ? layoutStyles.navItemActive : ''}`}
+          >
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🕒</div>
+            <span className={layoutStyles.navItemLabel}>24/7 Monitoring</span>
+          </div>
+
+          <div 
             onClick={() => setActiveView('metadata')} 
             className={`${layoutStyles.navItem} ${activeView === 'metadata' ? layoutStyles.navItemActive : ''}`}
           >
@@ -2377,6 +2386,7 @@ export default function App() {
             )}
 
             {/* ── NEW ADVANCED TOOLS ── */}
+            {activeView === 'monitor' && <ContinuousMonitor />}
             {activeView === 'webScraper' && <WebScraper />}
             {activeView === 'subdomainBrute' && <SubdomainBrute />}
             {activeView === 'githubScanner' && <GitHubScanner />}

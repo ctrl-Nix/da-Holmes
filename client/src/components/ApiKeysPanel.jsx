@@ -30,14 +30,27 @@ export default function ApiKeysPanel() {
     setStatus('');
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     try {
       localStorage.setItem('holmes-api-keys', JSON.stringify(keys));
+      
+      // Push to backend Enterprise Vault for background tasks
+      for (const [service, key] of Object.entries(keys)) {
+        if (key.trim()) {
+          try {
+            await fetch('/api/vault/store', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ service, api_key: key.trim() })
+            });
+          } catch (err) {
+            console.error(`Failed to push ${service} key to vault`, err);
+          }
+        }
+      }
+
       setStatus('saved');
-      
-      // Update custom event so other components know keys updated
       window.dispatchEvent(new CustomEvent('holmes-api-keys-updated'));
-      
       setTimeout(() => setStatus(''), 3000);
     } catch (e) {
       console.error("Failed to save API keys", e);

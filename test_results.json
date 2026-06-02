@@ -1,0 +1,830 @@
+[
+  {
+    "tool": "SpoofingValidate",
+    "bug": "Timeout (Hang) on Unicode/Special input (No fast validation)",
+    "steps": "Send GET request to /api/spoofing/validate with Unicode/Special input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "SpoofingValidate",
+    "bug": "Timeout (Hang) on Binary Payload Text input (No fast validation)",
+    "steps": "Send GET request to /api/spoofing/validate with Binary Payload Text input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "Certificates",
+    "bug": "Timeout (Hang) on Empty String input (No fast validation)",
+    "steps": "Send GET request to /api/certificates with Empty String input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "Certificates",
+    "bug": "Timeout (Hang) on Very Long Input input (No fast validation)",
+    "steps": "Send GET request to /api/certificates with Very Long Input input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "Certificates",
+    "bug": "Timeout (Hang) on Unicode/Special input (No fast validation)",
+    "steps": "Send GET request to /api/certificates with Unicode/Special input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "Certificates",
+    "bug": "Timeout (Hang) on Binary Payload Text input (No fast validation)",
+    "steps": "Send GET request to /api/certificates with Binary Payload Text input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "TechstackDetect",
+    "bug": "Timeout (Hang) on Empty String input (No fast validation)",
+    "steps": "Send GET request to /api/techstack/detect with Empty String input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "TechstackDetect",
+    "bug": "Timeout (Hang) on Very Long Input input (No fast validation)",
+    "steps": "Send GET request to /api/techstack/detect with Very Long Input input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "TechstackDetect",
+    "bug": "Timeout (Hang) on Unicode/Special input (No fast validation)",
+    "steps": "Send GET request to /api/techstack/detect with Unicode/Special input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "TechstackDetect",
+    "bug": "Timeout (Hang) on Binary Payload Text input (No fast validation)",
+    "steps": "Send GET request to /api/techstack/detect with Binary Payload Text input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "Crypto",
+    "bug": "Timeout (Hang) on Empty String input (No fast validation)",
+    "steps": "Send GET request to /api/crypto/{} with Empty String input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "Crypto",
+    "bug": "Timeout (Hang) on Very Long Input input (No fast validation)",
+    "steps": "Send GET request to /api/crypto/{} with Very Long Input input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "Crypto",
+    "bug": "Timeout (Hang) on Unicode/Special input (No fast validation)",
+    "steps": "Send GET request to /api/crypto/{} with Unicode/Special input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "Crypto",
+    "bug": "Timeout (Hang) on Binary Payload Text input (No fast validation)",
+    "steps": "Send GET request to /api/crypto/{} with Binary Payload Text input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "GeoInt",
+    "bug": "Timeout (Hang) on Empty String input (No fast validation)",
+    "steps": "Send GET request to /api/geoint with Empty String input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "GeoInt",
+    "bug": "Timeout (Hang) on Very Long Input input (No fast validation)",
+    "steps": "Send GET request to /api/geoint with Very Long Input input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "GeoInt",
+    "bug": "Timeout (Hang) on Unicode/Special input (No fast validation)",
+    "steps": "Send GET request to /api/geoint with Unicode/Special input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "GeoInt",
+    "bug": "Timeout (Hang) on Binary Payload Text input (No fast validation)",
+    "steps": "Send GET request to /api/geoint with Binary Payload Text input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "GeoIntBSSID",
+    "bug": "Timeout (Hang) on Empty String input (No fast validation)",
+    "steps": "Send GET request to /api/geoint/bssid with Empty String input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "GeoIntBSSID",
+    "bug": "Timeout (Hang) on Very Long Input input (No fast validation)",
+    "steps": "Send GET request to /api/geoint/bssid with Very Long Input input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "GeoIntBSSID",
+    "bug": "Timeout (Hang) on Unicode/Special input (No fast validation)",
+    "steps": "Send GET request to /api/geoint/bssid with Unicode/Special input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "GeoIntBSSID",
+    "bug": "Timeout (Hang) on Binary Payload Text input (No fast validation)",
+    "steps": "Send GET request to /api/geoint/bssid with Binary Payload Text input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "ReverseIP",
+    "bug": "Timeout (Hang) on Empty String input (No fast validation)",
+    "steps": "Send GET request to /api/reverseip/v2 with Empty String input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "ReverseIP",
+    "bug": "Timeout (Hang) on Very Long Input input (No fast validation)",
+    "steps": "Send GET request to /api/reverseip/v2 with Very Long Input input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "ReverseIP",
+    "bug": "Timeout (Hang) on Unicode/Special input (No fast validation)",
+    "steps": "Send GET request to /api/reverseip/v2 with Unicode/Special input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "ReverseIP",
+    "bug": "Timeout (Hang) on Binary Payload Text input (No fast validation)",
+    "steps": "Send GET request to /api/reverseip/v2 with Binary Payload Text input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "DNSHistory",
+    "bug": "Timeout (Hang) on Empty String input (No fast validation)",
+    "steps": "Send GET request to /api/dns/history with Empty String input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "DNSHistory",
+    "bug": "Timeout (Hang) on Very Long Input input (No fast validation)",
+    "steps": "Send GET request to /api/dns/history with Very Long Input input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "DNSHistory",
+    "bug": "Timeout (Hang) on Unicode/Special input (No fast validation)",
+    "steps": "Send GET request to /api/dns/history with Unicode/Special input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "DNSHistory",
+    "bug": "Timeout (Hang) on Binary Payload Text input (No fast validation)",
+    "steps": "Send GET request to /api/dns/history with Binary Payload Text input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "BreachCrawler",
+    "bug": "Timeout (Hang) on Empty String input (No fast validation)",
+    "steps": "Send GET request to /api/breach/crawler with Empty String input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "BreachCrawler",
+    "bug": "Timeout (Hang) on Very Long Input input (No fast validation)",
+    "steps": "Send GET request to /api/breach/crawler with Very Long Input input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "BreachCrawler",
+    "bug": "Timeout (Hang) on Unicode/Special input (No fast validation)",
+    "steps": "Send GET request to /api/breach/crawler with Unicode/Special input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "BreachCrawler",
+    "bug": "Timeout (Hang) on Binary Payload Text input (No fast validation)",
+    "steps": "Send GET request to /api/breach/crawler with Binary Payload Text input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "GitHubScanner",
+    "bug": "Timeout (Hang) on Empty String input (No fast validation)",
+    "steps": "Send GET request to /api/github/scan with Empty String input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "GitHubScanner",
+    "bug": "Timeout (Hang) on Very Long Input input (No fast validation)",
+    "steps": "Send GET request to /api/github/scan with Very Long Input input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "GitHubScanner",
+    "bug": "Timeout (Hang) on Unicode/Special input (No fast validation)",
+    "steps": "Send GET request to /api/github/scan with Unicode/Special input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "GitHubScanner",
+    "bug": "Timeout (Hang) on Binary Payload Text input (No fast validation)",
+    "steps": "Send GET request to /api/github/scan with Binary Payload Text input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "GodModeScanner",
+    "bug": "Timeout (Hang) on Empty String input (No fast validation)",
+    "steps": "Send GET request to /api/scan/full with Empty String input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "GodModeScanner",
+    "bug": "Timeout (Hang) on Very Long Input input (No fast validation)",
+    "steps": "Send GET request to /api/scan/full with Very Long Input input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "GodModeScanner",
+    "bug": "Timeout (Hang) on Unicode/Special input (No fast validation)",
+    "steps": "Send GET request to /api/scan/full with Unicode/Special input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "GodModeScanner",
+    "bug": "Timeout (Hang) on Binary Payload Text input (No fast validation)",
+    "steps": "Send GET request to /api/scan/full with Binary Payload Text input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "MaltegoGraphExpand",
+    "bug": "Timeout (Hang) on Empty String input (No fast validation)",
+    "steps": "Send GET request to /api/graph/expand with Empty String input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "MaltegoGraphExpand",
+    "bug": "Timeout (Hang) on Very Long Input input (No fast validation)",
+    "steps": "Send GET request to /api/graph/expand with Very Long Input input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "MaltegoGraphExpand",
+    "bug": "Timeout (Hang) on Unicode/Special input (No fast validation)",
+    "steps": "Send GET request to /api/graph/expand with Unicode/Special input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "MaltegoGraphExpand",
+    "bug": "Timeout (Hang) on Binary Payload Text input (No fast validation)",
+    "steps": "Send GET request to /api/graph/expand with Binary Payload Text input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "IpIntel",
+    "bug": "Timeout (Hang) on Empty String input (No fast validation)",
+    "steps": "Send GET request to /api/ip/intel with Empty String input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "IpIntel",
+    "bug": "Timeout (Hang) on Very Long Input input (No fast validation)",
+    "steps": "Send GET request to /api/ip/intel with Very Long Input input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "IpIntel",
+    "bug": "Timeout (Hang) on Unicode/Special input (No fast validation)",
+    "steps": "Send GET request to /api/ip/intel with Unicode/Special input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "IpIntel",
+    "bug": "Timeout (Hang) on Binary Payload Text input (No fast validation)",
+    "steps": "Send GET request to /api/ip/intel with Binary Payload Text input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "WaybackArchive",
+    "bug": "Timeout (Hang) on Empty String input (No fast validation)",
+    "steps": "Send GET request to /api/archive/wayback with Empty String input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "WaybackArchive",
+    "bug": "Timeout (Hang) on Very Long Input input (No fast validation)",
+    "steps": "Send GET request to /api/archive/wayback with Very Long Input input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "WaybackArchive",
+    "bug": "Timeout (Hang) on Unicode/Special input (No fast validation)",
+    "steps": "Send GET request to /api/archive/wayback with Unicode/Special input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "WaybackArchive",
+    "bug": "Timeout (Hang) on Binary Payload Text input (No fast validation)",
+    "steps": "Send GET request to /api/archive/wayback with Binary Payload Text input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "Whois",
+    "bug": "Timeout (Hang) on Empty String input (No fast validation)",
+    "steps": "Send GET request to /api/whois with Empty String input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "Whois",
+    "bug": "Timeout (Hang) on Very Long Input input (No fast validation)",
+    "steps": "Send GET request to /api/whois with Very Long Input input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "Whois",
+    "bug": "Timeout (Hang) on Unicode/Special input (No fast validation)",
+    "steps": "Send GET request to /api/whois with Unicode/Special input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "Whois",
+    "bug": "Timeout (Hang) on Binary Payload Text input (No fast validation)",
+    "steps": "Send GET request to /api/whois with Binary Payload Text input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "SSLInspect",
+    "bug": "Timeout (Hang) on Empty String input (No fast validation)",
+    "steps": "Send GET request to /api/ssl/inspect with Empty String input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "SSLInspect",
+    "bug": "Timeout (Hang) on Very Long Input input (No fast validation)",
+    "steps": "Send GET request to /api/ssl/inspect with Very Long Input input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "SSLInspect",
+    "bug": "Timeout (Hang) on Unicode/Special input (No fast validation)",
+    "steps": "Send GET request to /api/ssl/inspect with Unicode/Special input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "SSLInspect",
+    "bug": "Timeout (Hang) on Binary Payload Text input (No fast validation)",
+    "steps": "Send GET request to /api/ssl/inspect with Binary Payload Text input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "SubdomainTakeover",
+    "bug": "Timeout (Hang) on Empty String input (No fast validation)",
+    "steps": "Send GET request to /api/subdomain/takeover with Empty String input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "SubdomainTakeover",
+    "bug": "Timeout (Hang) on Very Long Input input (No fast validation)",
+    "steps": "Send GET request to /api/subdomain/takeover with Very Long Input input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "SubdomainTakeover",
+    "bug": "Timeout (Hang) on Unicode/Special input (No fast validation)",
+    "steps": "Send GET request to /api/subdomain/takeover with Unicode/Special input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "SubdomainTakeover",
+    "bug": "Timeout (Hang) on Binary Payload Text input (No fast validation)",
+    "steps": "Send GET request to /api/subdomain/takeover with Binary Payload Text input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "UnifiedScanner",
+    "bug": "Timeout (Hang) on Very Long Input input (No fast validation)",
+    "steps": "Send GET request to /api/unified/scan with Very Long Input input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "UnifiedScanner",
+    "bug": "Timeout (Hang) on Empty String input (No fast validation)",
+    "steps": "Send GET request to /api/unified/scan with Empty String input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "UnifiedScanner",
+    "bug": "Timeout (Hang) on Binary Payload Text input (No fast validation)",
+    "steps": "Send GET request to /api/unified/scan with Binary Payload Text input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "UnifiedScanner",
+    "bug": "Timeout (Hang) on Unicode/Special input (No fast validation)",
+    "steps": "Send GET request to /api/unified/scan with Unicode/Special input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "WebScraper",
+    "bug": "Timeout (Hang) on Empty String input (No fast validation)",
+    "steps": "Send GET request to /api/scraper/live with Empty String input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "WebScraper",
+    "bug": "Timeout (Hang) on Very Long Input input (No fast validation)",
+    "steps": "Send GET request to /api/scraper/live with Very Long Input input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "WebScraper",
+    "bug": "Timeout (Hang) on Unicode/Special input (No fast validation)",
+    "steps": "Send GET request to /api/scraper/live with Unicode/Special input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "ThreatTicker",
+    "bug": "Timeout (Hang) on Empty String input (No fast validation)",
+    "steps": "Send GET request to /api/threatintel/feed with Empty String input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "SubdomainBrute",
+    "bug": "Timeout (Hang) on Unicode/Special input (No fast validation)",
+    "steps": "Send GET request to /api/subdomain/bruteforce with Unicode/Special input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "SubdomainBrute",
+    "bug": "Timeout (Hang) on Empty String input (No fast validation)",
+    "steps": "Send GET request to /api/subdomain/bruteforce with Empty String input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "NetworkTraceroute",
+    "bug": "Timeout (Hang) on Empty String input (No fast validation)",
+    "steps": "Send GET request to /api/network/traceroute with Empty String input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "NetworkTraceroute",
+    "bug": "Timeout (Hang) on Binary Payload Text input (No fast validation)",
+    "steps": "Send GET request to /api/network/traceroute with Binary Payload Text input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "NetworkTraceroute",
+    "bug": "Timeout (Hang) on Very Long Input input (No fast validation)",
+    "steps": "Send GET request to /api/network/traceroute with Very Long Input input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "ThreatTicker",
+    "bug": "Timeout (Hang) on Very Long Input input (No fast validation)",
+    "steps": "Send GET request to /api/threatintel/feed with Very Long Input input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "ThreatTicker",
+    "bug": "Timeout (Hang) on Unicode/Special input (No fast validation)",
+    "steps": "Send GET request to /api/threatintel/feed with Unicode/Special input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "SubdomainBrute",
+    "bug": "Timeout (Hang) on Very Long Input input (No fast validation)",
+    "steps": "Send GET request to /api/subdomain/bruteforce with Very Long Input input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "SubdomainBrute",
+    "bug": "Timeout (Hang) on Binary Payload Text input (No fast validation)",
+    "steps": "Send GET request to /api/subdomain/bruteforce with Binary Payload Text input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "WebScraper",
+    "bug": "Timeout (Hang) on Binary Payload Text input (No fast validation)",
+    "steps": "Send GET request to /api/scraper/live with Binary Payload Text input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "ThreatTicker",
+    "bug": "Timeout (Hang) on Binary Payload Text input (No fast validation)",
+    "steps": "Send GET request to /api/threatintel/feed with Binary Payload Text input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "ReportGenerate",
+    "bug": "Timeout (Hang) on Binary Payload Text input (No fast validation)",
+    "steps": "Send POST request to /api/report/generate with Binary Payload Text input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "NetworkTraceroute",
+    "bug": "Timeout (Hang) on Unicode/Special input (No fast validation)",
+    "steps": "Send GET request to /api/network/traceroute with Unicode/Special input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "IotScanner",
+    "bug": "Timeout (Hang) on Very Long Input input (No fast validation)",
+    "steps": "Send GET request to /api/iot/scan with Very Long Input input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "IotScanner",
+    "bug": "Timeout (Hang) on Unicode/Special input (No fast validation)",
+    "steps": "Send GET request to /api/iot/scan with Unicode/Special input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "IotScanner",
+    "bug": "Timeout (Hang) on Binary Payload Text input (No fast validation)",
+    "steps": "Send GET request to /api/iot/scan with Binary Payload Text input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "DarkwebScan",
+    "bug": "Timeout (Hang) on Empty String input (No fast validation)",
+    "steps": "Send GET request to /api/darkweb/scan with Empty String input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "DarkwebScan",
+    "bug": "Timeout (Hang) on Binary Payload Text input (No fast validation)",
+    "steps": "Send GET request to /api/darkweb/scan with Binary Payload Text input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "IotScanner",
+    "bug": "Timeout (Hang) on Empty String input (No fast validation)",
+    "steps": "Send GET request to /api/iot/scan with Empty String input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "DarkwebScan",
+    "bug": "Timeout (Hang) on Very Long Input input (No fast validation)",
+    "steps": "Send GET request to /api/darkweb/scan with Very Long Input input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "DarkwebScan",
+    "bug": "Timeout (Hang) on Unicode/Special input (No fast validation)",
+    "steps": "Send GET request to /api/darkweb/scan with Unicode/Special input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "ReportGenerate",
+    "bug": "Timeout (Hang) on Unicode/Special input (No fast validation)",
+    "steps": "Send POST request to /api/report/generate with Unicode/Special input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "ReportGenerate",
+    "bug": "Timeout (Hang) on Empty String input (No fast validation)",
+    "steps": "Send POST request to /api/report/generate with Empty String input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "ReportGenerate",
+    "bug": "Timeout (Hang) on Very Long Input input (No fast validation)",
+    "steps": "Send POST request to /api/report/generate with Very Long Input input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "CorporateIntel",
+    "bug": "Timeout (Hang) on Binary Payload Text input (No fast validation)",
+    "steps": "Send GET request to /api/corporate-intel/{} with Binary Payload Text input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "CorporateIntel",
+    "bug": "Timeout (Hang) on Unicode/Special input (No fast validation)",
+    "steps": "Send GET request to /api/corporate-intel/{} with Unicode/Special input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "RedditAnalyze",
+    "bug": "Timeout (Hang) on Empty String input (No fast validation)",
+    "steps": "Send GET request to /api/reddit/analyze/{} with Empty String input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "RedditAnalyze",
+    "bug": "Timeout (Hang) on Very Long Input input (No fast validation)",
+    "steps": "Send GET request to /api/reddit/analyze/{} with Very Long Input input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "ImageOSINT",
+    "bug": "Timeout (Hang) on Very Long Input input (No fast validation)",
+    "steps": "Send GET request to /api/image/generate with Very Long Input input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "RedditAnalyze",
+    "bug": "Timeout (Hang) on Unicode/Special input (No fast validation)",
+    "steps": "Send GET request to /api/reddit/analyze/{} with Unicode/Special input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "RedditAnalyze",
+    "bug": "Timeout (Hang) on Binary Payload Text input (No fast validation)",
+    "steps": "Send GET request to /api/reddit/analyze/{} with Binary Payload Text input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "ImageOSINT",
+    "bug": "Timeout (Hang) on Unicode/Special input (No fast validation)",
+    "steps": "Send GET request to /api/image/generate with Unicode/Special input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "ImageOSINT",
+    "bug": "Timeout (Hang) on Binary Payload Text input (No fast validation)",
+    "steps": "Send GET request to /api/image/generate with Binary Payload Text input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "VehicleVIN",
+    "bug": "Timeout (Hang) on Empty String input (No fast validation)",
+    "steps": "Send GET request to /api/vehicle/vin/{} with Empty String input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "CorporateIntel",
+    "bug": "Timeout (Hang) on Very Long Input input (No fast validation)",
+    "steps": "Send GET request to /api/corporate-intel/{} with Very Long Input input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "ImageOSINT",
+    "bug": "Timeout (Hang) on Empty String input (No fast validation)",
+    "steps": "Send GET request to /api/image/generate with Empty String input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "CorporateIntel",
+    "bug": "Timeout (Hang) on Empty String input (No fast validation)",
+    "steps": "Send GET request to /api/corporate-intel/{} with Empty String input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "VehicleVIN",
+    "bug": "Timeout (Hang) on Very Long Input input (No fast validation)",
+    "steps": "Send GET request to /api/vehicle/vin/{} with Very Long Input input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "VehicleVIN",
+    "bug": "Timeout (Hang) on Binary Payload Text input (No fast validation)",
+    "steps": "Send GET request to /api/vehicle/vin/{} with Binary Payload Text input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "VehicleVIN",
+    "bug": "Timeout (Hang) on Unicode/Special input (No fast validation)",
+    "steps": "Send GET request to /api/vehicle/vin/{} with Unicode/Special input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "AviationTrack",
+    "bug": "Timeout (Hang) on Empty String input (No fast validation)",
+    "steps": "Send GET request to /api/aviation/track with Empty String input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "MacDecode",
+    "bug": "Timeout (Hang) on Very Long Input input (No fast validation)",
+    "steps": "Send GET request to /api/mac/decode with Very Long Input input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "AviationTrack",
+    "bug": "Timeout (Hang) on Very Long Input input (No fast validation)",
+    "steps": "Send GET request to /api/aviation/track with Very Long Input input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "AviationTrack",
+    "bug": "Timeout (Hang) on Binary Payload Text input (No fast validation)",
+    "steps": "Send GET request to /api/aviation/track with Binary Payload Text input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "HashAnalyze",
+    "bug": "Timeout (Hang) on Very Long Input input (No fast validation)",
+    "steps": "Send GET request to /api/hash/analyze with Very Long Input input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "HashAnalyze",
+    "bug": "Timeout (Hang) on Empty String input (No fast validation)",
+    "steps": "Send GET request to /api/hash/analyze with Empty String input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "MacDecode",
+    "bug": "Timeout (Hang) on Unicode/Special input (No fast validation)",
+    "steps": "Send GET request to /api/mac/decode with Unicode/Special input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "HashAnalyze",
+    "bug": "Timeout (Hang) on Binary Payload Text input (No fast validation)",
+    "steps": "Send GET request to /api/hash/analyze with Binary Payload Text input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "AviationTrack",
+    "bug": "Timeout (Hang) on Unicode/Special input (No fast validation)",
+    "steps": "Send GET request to /api/aviation/track with Unicode/Special input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "MacDecode",
+    "bug": "Timeout (Hang) on Empty String input (No fast validation)",
+    "steps": "Send GET request to /api/mac/decode with Empty String input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "HashAnalyze",
+    "bug": "Timeout (Hang) on Unicode/Special input (No fast validation)",
+    "steps": "Send GET request to /api/hash/analyze with Unicode/Special input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "PhoneIntel",
+    "bug": "Timeout (Hang) on Empty String input (No fast validation)",
+    "steps": "Send GET request to /api/phone with Empty String input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "MacDecode",
+    "bug": "Timeout (Hang) on Binary Payload Text input (No fast validation)",
+    "steps": "Send GET request to /api/mac/decode with Binary Payload Text input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "PhoneIntel",
+    "bug": "Timeout (Hang) on Very Long Input input (No fast validation)",
+    "steps": "Send GET request to /api/phone with Very Long Input input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "PhoneIntel",
+    "bug": "Timeout (Hang) on Unicode/Special input (No fast validation)",
+    "steps": "Send GET request to /api/phone with Unicode/Special input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "PhoneIntel",
+    "bug": "Timeout (Hang) on Binary Payload Text input (No fast validation)",
+    "steps": "Send GET request to /api/phone with Binary Payload Text input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "SpoofingValidate",
+    "bug": "Timeout (Hang) on Very Long Input input (No fast validation)",
+    "steps": "Send GET request to /api/spoofing/validate with Very Long Input input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "SpoofingValidate",
+    "bug": "Timeout (Hang) on Empty String input (No fast validation)",
+    "steps": "Send GET request to /api/spoofing/validate with Empty String input",
+    "severity": "Medium"
+  },
+  {
+    "tool": "MetadataExtractor",
+    "bug": "Timeout (Hang) on Valid file input",
+    "steps": "Upload file with Valid content",
+    "severity": "Medium"
+  },
+  {
+    "tool": "MetadataExtractor",
+    "bug": "Timeout (Hang) on Invalid file input",
+    "steps": "Upload file with Invalid content",
+    "severity": "Medium"
+  },
+  {
+    "tool": "MetadataExtractor",
+    "bug": "Timeout (Hang) on Empty String file input",
+    "steps": "Upload file with Empty String content",
+    "severity": "Medium"
+  },
+  {
+    "tool": "MetadataExtractor",
+    "bug": "Timeout (Hang) on Very Long Input file input",
+    "steps": "Upload file with Very Long Input content",
+    "severity": "Medium"
+  },
+  {
+    "tool": "MetadataExtractor",
+    "bug": "Timeout (Hang) on Unicode/Special file input",
+    "steps": "Upload file with Unicode/Special content",
+    "severity": "Medium"
+  },
+  {
+    "tool": "MetadataExtractor",
+    "bug": "Timeout (Hang) on Binary Payload Text file input",
+    "steps": "Upload file with Binary Payload Text content",
+    "severity": "Medium"
+  }
+]

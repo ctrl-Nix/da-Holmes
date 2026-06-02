@@ -25,6 +25,7 @@ from pathlib import Path
 from typing import Optional
 
 import httpx
+from app.modules.proxy_manager import proxy_manager
 
 from app.core.config import settings
 
@@ -255,10 +256,7 @@ class SocialScanner:
         username = username.strip().lstrip("@")  # Normalise input
         logger.info("Starting social scan for username: '%s'", username)
 
-        async with httpx.AsyncClient(
-            headers=_HEADERS,
-            timeout=httpx.Timeout(self._timeout),
-        ) as client:
+        async with proxy_manager.get_client(headers=_HEADERS, timeout=httpx.Timeout(self._timeout)) as client:
             tasks = [
                 self._bounded_check(client, platform, username)
                 for platform in self._platforms
@@ -279,10 +277,7 @@ class SocialScanner:
         username = username.strip().lstrip("@")
         logger.info("Starting streaming social scan for username: '%s'", username)
 
-        async with httpx.AsyncClient(
-            headers=_HEADERS,
-            timeout=httpx.Timeout(self._timeout),
-        ) as client:
+        async with proxy_manager.get_client(headers=_HEADERS, timeout=httpx.Timeout(self._timeout)) as client:
             tasks = [
                 self._bounded_check(client, platform, username)
                 for platform in self._platforms
@@ -309,3 +304,4 @@ class SocialScanner:
         """Wraps _check_platform with a concurrency semaphore."""
         async with self._semaphore:
             return await _check_platform(client, platform, username)
+
