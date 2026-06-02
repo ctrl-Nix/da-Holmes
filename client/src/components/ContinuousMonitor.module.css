@@ -1,0 +1,147 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--notion-fg);
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #666;
+}
+
+.formCard {
+  background: #fff;
+  border: 1px solid var(--notion-border);
+  border-radius: 8px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+
+.input {
+  padding: 10px 12px;
+  border: 1px solid var(--notion-border);
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input:focus {
+  border-color: #2383e2;
+}
+
+.checksContainer {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.checkOption {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.button {
+  background: #2383e2;
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: background 0.2s;
+}
+
+.button:hover {
+  background: #1c6ebd;
+}
+
+.button:disabled {
+  background: #a0cbf5;
+  cursor: not-allowed;
+}
+
+.monitorsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.monitorCard {
+  background: #fff;
+  border: 1px solid var(--notion-border);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.monitorInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.monitorTarget {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--notion-fg);
+}
+
+.monitorDetails {
+  font-size: 12px;
+  color: #666;
+  display: flex;
+  gap: 12px;
+}
+
+.deleteBtn {
+  background: transparent;
+  color: #e74c3c;
+  border: 1px solid #e74c3c;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.deleteBtn:hover {
+  background: #e74c3c;
+  color: #fff;
+}

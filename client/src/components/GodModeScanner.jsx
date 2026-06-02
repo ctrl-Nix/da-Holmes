@@ -136,6 +136,7 @@ export default function GodModeScanner({ initialQuery = '', onNavigate }) {
           }
         }
     };
+  };
 
   const handleDownload = async () => {
     if (!finalResult) return;
