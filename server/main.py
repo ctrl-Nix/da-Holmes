@@ -450,6 +450,132 @@ async def batch_scan(request: Request, body: BatchScanRequest):
         headers=SSE_HEADERS
     )
 
+# ── ENDPOINT: God-Mode Full Scan Stream (SSE with BYOK) ──
+@app.get("/api/scan/full", tags=["Scanner"])
+async def scan_full_stream(request: Request, target: str = Query(..., description="Target to scan"), save: bool = Query(True)):
+    validate_input(target)
+    target = target.strip()
+    if not target:
+        raise HTTPException(status_code=400, detail="Target cannot be empty")
+        
+    # Extract API Keys from headers
+    api_keys = {}
+    keys_header = request.headers.get("X-Holmes-API-Keys", "{}")
+    try:
+        api_keys = json.loads(keys_header)
+    except:
+        pass
+        
+    # Determine type
+    target_type = "username"
+    if re.match(r'^(1|3|bc1)[a-zA-HJ-NP-Z0-9]{25,62}$', target):
+        target_type = "btc"
+    elif re.match(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$', target):
+        target_type = "email"
+    elif re.match(r'^(\d{1,3}\.){3}\d{1,3}(\/\d{1,2})?$', target):
+        target_type = "network"
+    elif re.match(r'^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$', target, re.IGNORECASE):
+        target_type = "domain"
+    
+    async def generate_scan():
+        # Start notification
+        yield f"data: {json.dumps({'module': 'init', 'status': 'complete', 'data': {'target_type': target_type}})}\n\n"
+        
+        # Example modules based on target type
+        modules_run = 0
+        total_findings = 0
+        
+        if target_type == "domain":
+            # 1. DNS History
+            yield f"data: {json.dumps({'module': 'dns', 'status': 'running'})}\n\n"
+            await asyncio.sleep(1) # Simulate
+            modules_run += 1
+            total_findings += 3
+            yield f"data: {json.dumps({'module': 'dns', 'status': 'complete', 'data': {'a_records': ['1.1.1.1']}})}\n\n"
+            
+            # 2. VirusTotal (Premium)
+            vt_key = api_keys.get("virustotal")
+            yield f"data: {json.dumps({'module': 'virustotal', 'status': 'running'})}\n\n"
+            if vt_key:
+                try:
+                    async with httpx.AsyncClient() as client:
+                        resp = await client.get(
+                            f"https://www.virustotal.com/api/v3/domains/{target}",
+                            headers={"x-apikey": vt_key},
+                            timeout=5.0
+                        )
+                    if resp.status_code == 200:
+                        vt_data = resp.json()
+                        stats = vt_data.get("data", {}).get("attributes", {}).get("last_analysis_stats", {})
+                        yield f"data: {json.dumps({'module': 'virustotal', 'status': 'complete', 'data': stats})}\n\n"
+                        total_findings += sum(stats.values())
+                    else:
+                        yield f"data: {json.dumps({'module': 'virustotal', 'status': 'error', 'error': 'VT API Error or Invalid Key'})}\n\n"
+                except Exception as e:
+                    yield f"data: {json.dumps({'module': 'virustotal', 'status': 'error', 'error': str(e)})}\n\n"
+            else:
+                yield f"data: {json.dumps({'module': 'virustotal', 'status': 'error', 'error': 'No VirusTotal key provided in BYOK'})}\n\n"
+            modules_run += 1
+            
+        elif target_type == "network":
+            # 1. Shodan (Premium)
+            shodan_key = api_keys.get("shodan")
+            yield f"data: {json.dumps({'module': 'shodan', 'status': 'running'})}\n\n"
+            if shodan_key:
+                try:
+                    async with httpx.AsyncClient() as client:
+                        resp = await client.get(
+                            f"https://api.shodan.io/shodan/host/{target}?key={shodan_key}",
+                            timeout=5.0
+                        )
+                    if resp.status_code == 200:
+                        sh_data = resp.json()
+                        yield f"data: {json.dumps({'module': 'shodan', 'status': 'complete', 'data': {'ports': sh_data.get('ports', []), 'org': sh_data.get('org', '')}})}\n\n"
+                        total_findings += len(sh_data.get('ports', []))
+                    else:
+                        yield f"data: {json.dumps({'module': 'shodan', 'status': 'error', 'error': 'Shodan API Error or Invalid Key'})}\n\n"
+                except Exception as e:
+                    yield f"data: {json.dumps({'module': 'shodan', 'status': 'error', 'error': str(e)})}\n\n"
+            else:
+                yield f"data: {json.dumps({'module': 'shodan', 'status': 'error', 'error': 'No Shodan key provided in BYOK'})}\n\n"
+            modules_run += 1
+            
+        elif target_type == "email":
+            # 1. Breach
+            yield f"data: {json.dumps({'module': 'breach', 'status': 'running'})}\n\n"
+            await asyncio.sleep(1) # Simulate API
+            modules_run += 1
+            yield f"data: {json.dumps({'module': 'breach', 'status': 'complete', 'data': {'breaches': ['Example_Breach_2021']}})}\n\n"
+            
+        else:
+            yield f"data: {json.dumps({'module': 'basic_intel', 'status': 'running'})}\n\n"
+            await asyncio.sleep(1)
+            modules_run += 1
+            yield f"data: {json.dumps({'module': 'basic_intel', 'status': 'complete', 'data': {'info': 'Basic target logged'}})}\n\n"
+
+        # Final Risk Dashboard Payload
+        risk_score = 45 if total_findings > 0 else 10
+        risk_level = "HIGH" if risk_score > 70 else ("MEDIUM" if risk_score > 30 else "LOW")
+        
+        final_payload = {
+            "type": "complete",
+            "target": target,
+            "target_type": target_type,
+            "risk_score": risk_score,
+            "risk_level": risk_level,
+            "modules_run": modules_run,
+            "total_findings": total_findings,
+            "correlations": []
+        }
+        
+        yield f"data: {json.dumps(final_payload)}\n\n"
+
+    return StreamingResponse(
+        with_keepalive(generate_scan()),
+        media_type="text/event-stream",
+        headers=SSE_HEADERS
+    )
+
 # ── ENDPOINT: Email Spoofing Auditor (SPF/DMARC DNS sniffer) ──
 @app.get("/api/spoofing/validate")
 async def get_spf_dmarc_records(request: Request = None, domain: str = ""):

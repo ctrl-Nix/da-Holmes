@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, CornerDownLeft, Terminal, AlertCircle, ChevronDown, ChevronUp, Layers, Play } from 'lucide-react';
+import { Search, CornerDownLeft, Terminal, AlertCircle, ChevronDown, ChevronUp, Layers, Play, Network } from 'lucide-react';
 import styles from './UnifiedScanner.module.css';
 import ReverseIP from './ReverseIP';
 import DNSHistory from './DNSHistory';
@@ -15,6 +15,7 @@ import AnalystNotesPanel from './AnalystNotesPanel';
 import SocialProfilesWidget from './SocialProfilesWidget';
 import SpoofingWidget from './SpoofingWidget';
 import TechStackWidget from './TechStackWidget';
+import IntelligenceGraph from './IntelligenceGraph';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
@@ -32,6 +33,9 @@ export default function UnifiedScanner({ initialQuery = '' }) {
   const [batchLoading, setBatchLoading] = useState(false);
   const [batchProgress, setBatchProgress] = useState(0);
   const [expandedTarget, setExpandedTarget] = useState(null);
+
+  // ── View Mode State ──
+  const [viewMode, setViewMode] = useState('list'); // 'list' or 'graph'
 
   // ── Frontend Real-time Detection Logic ──
   const detectType = (val) => {
@@ -90,7 +94,13 @@ export default function UnifiedScanner({ initialQuery = '' }) {
 
     try {
       let data;
-      const fetchOpts = { signal: controller.signal };
+      const savedKeys = localStorage.getItem('holmes-api-keys') || '{}';
+      const fetchOpts = { 
+        signal: controller.signal,
+        headers: {
+          'X-Holmes-API-Keys': savedKeys
+        }
+      };
 
       if (targetType === 'network') {
         const [intelRes, reverseRes] = await Promise.all([
@@ -213,7 +223,8 @@ export default function UnifiedScanner({ initialQuery = '' }) {
       const response = await fetch(`${API_BASE}/api/batch/scan`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-Holmes-API-Keys': localStorage.getItem('holmes-api-keys') || '{}'
         },
         body: JSON.stringify({ targets: rawTargets })
       });
@@ -352,6 +363,93 @@ export default function UnifiedScanner({ initialQuery = '' }) {
     }
   }, [initialQuery]);
 
+  const generateGraphData = (data, queryVal, type) => {
+    const nodes = [];
+    const links = [];
+    const nodeSet = new Set();
+    
+    const addNode = (id, label, nType) => {
+      if (!nodeSet.has(id)) {
+        nodes.push({ id, label: label || id, type: nType });
+        nodeSet.add(id);
+      }
+    };
+
+    const addLink = (source, target, label) => {
+      if (nodeSet.has(source) && nodeSet.has(target)) {
+        links.push({ source, target, label });
+      }
+    };
+
+    addNode(queryVal, queryVal, type || 'unknown');
+
+    if (!data) return { nodes, links };
+
+    if (data.dns) {
+      if (data.dns.a_records) {
+        data.dns.a_records.forEach(ip => {
+          addNode(ip, ip, 'ip');
+          addLink(queryVal, ip, 'Resolves To');
+        });
+      }
+      if (data.dns.mx_records) {
+        data.dns.mx_records.forEach(mx => {
+          addNode(mx, mx, 'domain');
+          addLink(queryVal, mx, 'Mail Server');
+        });
+      }
+    }
+    
+    if (data.reverse && data.reverse.domains) {
+      data.reverse.domains.forEach(d => {
+        addNode(d, d, 'domain');
+        addLink(queryVal, d, 'Hosted On');
+      });
+    }
+
+    if (data.ports_scan || data.ports) {
+      const ports = data.ports_scan || data.ports || [];
+      ports.forEach(p => {
+        const pId = `${queryVal}:${p.port}`;
+        addNode(pId, `Port ${p.port}`, 'service');
+        addLink(queryVal, pId, 'Has Port');
+      });
+    }
+
+    if (data.breaches || data.breach_count) {
+      const bList = data.breaches || data;
+      if (Array.isArray(bList)) {
+        bList.forEach(b => {
+          const bName = typeof b === 'string' ? b : (b.breach || b[0]);
+          addNode(bName, bName, 'breach');
+          addLink(queryVal, bName, 'Found In');
+        });
+      } else if (typeof bList === 'object') {
+        Object.keys(bList).forEach(k => {
+          if (k.startsWith('breach_')) {
+             const bName = k.replace('breach_', '');
+             addNode(bName, bName, 'breach');
+             addLink(queryVal, bName, 'Found In');
+          }
+        });
+      }
+    }
+    
+    if (data.social && data.social.platforms) {
+      data.social.platforms.filter(p => p.status === 'found').forEach(p => {
+        addNode(p.name, p.name, 'domain');
+        addLink(queryVal, p.name, 'Has Profile');
+      });
+    }
+
+    if (data.carrier) {
+      addNode(data.carrier, data.carrier, 'domain');
+      addLink(queryVal, data.carrier, 'Carrier');
+    }
+
+    return { nodes, links };
+  };
+
   // Helper to determine what layout/card to render based on the results structure
   const renderSingleTargetResult = (singleRes, queryVal) => {
     if (!singleRes) return null;
@@ -435,7 +533,8 @@ export default function UnifiedScanner({ initialQuery = '' }) {
         const response = await fetch(`${API_BASE}/api/report/generate?query=${encodeURIComponent(queryVal)}`, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'X-Holmes-API-Keys': localStorage.getItem('holmes-api-keys') || '{}'
           },
           body: JSON.stringify(singleRes)
         });
@@ -471,8 +570,29 @@ export default function UnifiedScanner({ initialQuery = '' }) {
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ fontSize: '13px', fontWeight: 600, color: 'rgba(55, 53, 47, 0.6)' }}>
-              Telemetry Node Analysis Map
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: 'rgba(55, 53, 47, 0.6)' }}>
+                Telemetry Node Analysis Map
+              </div>
+              <button 
+                onClick={() => setViewMode(viewMode === 'list' ? 'graph' : 'list')}
+                style={{
+                  padding: '4px 8px',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  backgroundColor: viewMode === 'graph' ? '#2383e2' : 'transparent',
+                  color: viewMode === 'graph' ? '#fff' : '#666',
+                  border: '1px solid var(--notion-border)',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <Network size={12} /> {viewMode === 'list' ? 'Switch to Graph View' : 'Back to List View'}
+              </button>
             </div>
             <button 
               onClick={handleExportReport}
@@ -495,7 +615,14 @@ export default function UnifiedScanner({ initialQuery = '' }) {
             </button>
           </div>
           <RiskScoreMeter score={computedScore} />
-          {specificCard}
+          
+          {viewMode === 'graph' ? (
+            <div style={{ height: '600px', marginTop: '20px' }}>
+              <IntelligenceGraph data={generateGraphData(singleRes, queryVal, detectedType)} />
+            </div>
+          ) : (
+            specificCard
+          )}
         </div>
         
         {/* Analyst Notes collapsible panel */}

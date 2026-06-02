@@ -2757,10 +2757,19 @@ async def audit_ip_intel(request: Request, ip: str = Query(...)):
     import httpx as _httpx
     import asyncio
     import re
+    import json
     
     ip = ip.strip()
     if not re.match(r'^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$', ip):
         raise HTTPException(status_code=400, detail="Invalid IP address format")
+        
+    api_keys = {}
+    keys_header = request.headers.get("X-Holmes-API-Keys", "{}")
+    try:
+        api_keys = json.loads(keys_header)
+    except:
+        pass
+    shodan_key = api_keys.get("shodan")
         
     async def fetch_geo():
         try:
@@ -2777,6 +2786,22 @@ async def audit_ip_intel(request: Request, ip: str = Query(...)):
         ports = []
         known_vulns = []
         vuln_risk = "LOW"
+        
+        # If BYOK Shodan Key is provided, use the premium Shodan API
+        if shodan_key:
+            try:
+                async with httpx.AsyncClient(timeout=6.0) as client:
+                    r = await client.get(f"https://api.shodan.io/shodan/host/{ip_addr}?key={shodan_key}")
+                if r.status_code == 200:
+                    data = r.json()
+                    for p in data.get("ports", []):
+                        ports.append({"port": p, "protocol": "tcp", "service": "unknown"})
+                    known_vulns = data.get("vulns", [])
+                    if known_vulns:
+                        vuln_risk = "CRITICAL"
+                    return {"ports": ports, "vulns": known_vulns, "vuln_risk": vuln_risk, "source": "shodan_premium"}
+            except Exception as e:
+                logger.warning(f"Premium Shodan failed for {ip_addr}: {e}. Falling back...")
 
         # Primary: Shodan InternetDB (free, no key needed)
         try:

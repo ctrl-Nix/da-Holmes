@@ -56,18 +56,52 @@ export default function GodModeScanner({ initialQuery = '', onNavigate }) {
     // Connect to SSE
     const queryUrl = `${API_BASE}/api/scan/full?target=${encodeURIComponent(target)}&save=${saveToWorkspace}`;
     
-    const es = new EventSource(queryUrl);
-    eventSourceRef.current = es;
-    
-    es.onmessage = (event) => {
+    const runScan = async () => {
       try {
-        const data = JSON.parse(event.data);
+        const savedKeys = localStorage.getItem('holmes-api-keys') || '{}';
         
+        const response = await fetch(queryUrl, {
+          headers: {
+            'X-Holmes-API-Keys': savedKeys
+          }
+        });
+        
+        if (!response.body) throw new Error('ReadableStream not yet supported in this browser.');
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let buffer = '';
+        
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n\n');
+          buffer = lines.pop() || '';
+          
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const dataStr = line.substring(6);
+              try {
+                const data = JSON.parse(dataStr);
+                handleEventData(data);
+              } catch (e) {}
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Fetch Stream Error", err);
+        setLogs(prev => [...prev, `[FATAL] Stream connection lost or terminated abnormally: ${err.message}`]);
+        setIsScanning(false);
+      }
+    };
+    
+    runScan();
+    
+    const handleEventData = (data) => {
         if (data.type === 'complete') {
           setFinalResult(data);
           setScanComplete(true);
           setIsScanning(false);
-          es.close();
           setLogs(prev => [...prev, `[SYSTEM] Scan complete for ${data.target_type} target.`]);
           
           // Save to history
@@ -101,18 +135,7 @@ export default function GodModeScanner({ initialQuery = '', onNavigate }) {
             setLogs(prev => [...prev, `[FAIL] Module ${data.module.toUpperCase()} failed: ${data.error}`]);
           }
         }
-      } catch (err) {
-        console.error("SSE Parse Error", err);
-      }
     };
-    
-    es.onerror = (err) => {
-      console.error("SSE Connection Error", err);
-      setLogs(prev => [...prev, `[FATAL] Stream connection lost or terminated abnormally.`]);
-      es.close();
-      setIsScanning(false);
-    };
-  };
 
   const handleDownload = async () => {
     if (!finalResult) return;

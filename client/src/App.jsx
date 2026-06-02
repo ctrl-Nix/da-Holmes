@@ -3,7 +3,7 @@ import {
   LayoutGrid, FileText, ShieldCheck, Mail, Globe, Camera,
   MapPin, Settings, HelpCircle, ChevronLeft, ChevronRight, Menu,
   Search, ArrowRight, Upload, Play, CheckCircle2, AlertTriangle, Info,
-  Sparkles, ExternalLink, Calendar, User, Database, Shield, Copy, ArrowUpDown
+  Sparkles, ExternalLink, Calendar, User, Database, Shield, Copy, ArrowUpDown, Key
 } from 'lucide-react';
 
 import layoutStyles from './Layout.module.css';
@@ -31,6 +31,7 @@ import MacDecoder from './components/MacDecoder';
 import ForceGraph2D from 'react-force-graph-2d';
 import AnalystNotesPanel from './components/AnalystNotesPanel';
 import { getTagColor } from './utils/tagColors';
+import ApiKeysPanel from './components/ApiKeysPanel';
 
 import HolmesLogo from './components/HolmesLogo';
 
@@ -1839,6 +1840,13 @@ export default function App() {
             <span className={layoutStyles.navItemLabel}>Dashboard</span>
           </div>
           <div 
+            onClick={() => { setActiveView('apiKeys'); if (window.innerWidth <= 768) setSidebarExpanded(false); }}
+            className={`${layoutStyles.navItem} ${activeView === 'apiKeys' ? layoutStyles.navItemActive : ''}`}
+          >
+            <div className={layoutStyles.navItemIcon}><Key size={16} /></div>
+            <span className={layoutStyles.navItemLabel}>API Keys (BYOK)</span>
+          </div>
+          <div 
             onClick={() => openReport('rep-01')} 
             className={`${layoutStyles.navItem} ${activeView === 'reports' ? layoutStyles.navItemActive : ''}`}
           >
@@ -2357,6 +2365,10 @@ export default function App() {
             {/* ── WORKSPACE DASHBOARD VIEW ── */}
             {activeView === 'dashboard' && (
               <WorkspaceDashboard />
+            )}
+
+            {activeView === 'apiKeys' && (
+              <ApiKeysPanel />
             )}
 
             {/* ── MALTEGO GRAPH VIEW ── */}
