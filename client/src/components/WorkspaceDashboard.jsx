@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Database, Search, Target, Calendar, AlertTriangle, FileText, Activity, Layers, CheckCircle2, XCircle, ArrowRightLeft } from 'lucide-react';
+import EntityLinkGraph from './EntityLinkGraph';
+import CanaryChecker from './CanaryChecker';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
@@ -162,9 +164,14 @@ export default function WorkspaceDashboard() {
       {/* Right Content: Details */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {!activeScan ? (
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', color: '#999', gap: '12px' }}>
-            <Layers size={48} style={{ opacity: 0.5 }} />
-            <div style={{ fontSize: '14px' }}>Select a scan from the workspace to view details.</div>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px 40px 20px' }}>
+            <div style={{ textAlign: 'center', margin: '40px 0', color: '#999' }}>
+              <Layers size={48} style={{ opacity: 0.5, marginBottom: '12px' }} />
+              <div style={{ fontSize: '14px' }}>Select a scan from the workspace to view details, or explore intelligence below.</div>
+            </div>
+            <CanaryChecker />
+            <div style={{ height: '40px' }}></div>
+            <EntityLinkGraph />
           </div>
         ) : loadingDetails ? (
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999' }}>Loading details...</div>
@@ -355,3 +362,4 @@ export default function WorkspaceDashboard() {
     </div>
   );
 }
+

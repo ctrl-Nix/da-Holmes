@@ -16,6 +16,12 @@ import SocialProfilesWidget from './SocialProfilesWidget';
 import SpoofingWidget from './SpoofingWidget';
 import TechStackWidget from './TechStackWidget';
 import IntelligenceGraph from './IntelligenceGraph';
+import GeoMap from './GeoMap';
+import InvestigationNotebook from './InvestigationNotebook';
+import TimelineView from './TimelineView';
+import GeoMap from './GeoMap';
+import InvestigationNotebook from './InvestigationNotebook';
+import TimelineView from './TimelineView';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
@@ -615,6 +621,7 @@ export default function UnifiedScanner({ initialQuery = '' }) {
             </button>
           </div>
           <RiskScoreMeter score={computedScore} />
+            <GeoMap findings={[]} />
           
           {viewMode === 'graph' ? (
             <div style={{ height: '600px', marginTop: '20px' }}>
@@ -816,5 +823,10 @@ export default function UnifiedScanner({ initialQuery = '' }) {
     </div>
   );
 }
+
+
+
+
+
 
 

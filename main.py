@@ -707,6 +707,14 @@ async def startup_event():
     scheduler.start()
     logger.info("APScheduler for Holmes monitors started.")
 
+    try:
+        from app.modules.telegram_bot import run_bot_polling
+        import asyncio
+        asyncio.create_task(run_bot_polling())
+        logger.info("Telegram bot polling task created.")
+    except Exception as e:
+        logger.error(f"Failed to start telegram bot: {e}")
+
 @app.on_event("shutdown")  
 async def shutdown_event():
     scheduler.shutdown()
@@ -5251,4 +5259,6 @@ if __name__ == "__main__":
         reload=True if port == 8000 else False,
         log_level="info",
     )
+
+
 

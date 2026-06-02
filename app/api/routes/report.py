@@ -32,13 +32,16 @@ async def download_report(
         
     # 2. Extract context for Executive Summary
     target_type = json_data.get("target_type", "Unknown")
-    summary_text = (
-        f"OSINT Investigation for target: {domain}\n\n"
-        f"This automated intelligence report covers preliminary footprinting "
-        f"for a {target_type} target. The following pages contain raw metadata, "
-        f"network configurations, and potential public exposures discovered across "
-        f"integrated scanning modules. All findings should be manually verified."
-    )
+
+    summary_text = f"OSINT Investigation for target: {domain}\n\nThis automated intelligence report covers preliminary footprinting for a {target_type} target. All findings should be manually verified."
+    try:
+        import g4f
+        prompt = f"Act as a Senior Cyber Intelligence Analyst. Write a 2-paragraph executive summary of these OSINT findings for target {domain}: {str(json_data)[:1000]}"
+        ai_response = g4f.ChatCompletion.create(model=g4f.models.gpt_35_turbo, messages=[{"role": "user", "content": prompt}], provider=g4f.Provider.Blackbox)
+        if ai_response:
+            summary_text = f"AI EXECUTIVE SUMMARY:\n\n{ai_response}\n\n" + summary_text
+    except Exception as ai_err:
+        print(f"AI Summary failed: {ai_err}")
     
     # 3. Generate PDF to a temporary file
     fd, temp_path = tempfile.mkstemp(suffix=".pdf")
@@ -78,13 +81,16 @@ async def generate_report_from_data(
         raise HTTPException(status_code=400, detail="Invalid JSON payload.")
 
     target_type = json_data.get("target_type", "Unknown")
-    summary_text = (
-        f"OSINT Investigation for target: {query}\n\n"
-        f"This automated intelligence report covers preliminary footprinting "
-        f"for a {target_type} target. The following pages contain raw metadata, "
-        f"network configurations, and potential public exposures discovered across "
-        f"integrated scanning modules. All findings should be manually verified."
-    )
+
+    summary_text = f"OSINT Investigation for target: {domain}\n\nThis automated intelligence report covers preliminary footprinting for a {target_type} target. All findings should be manually verified."
+    try:
+        import g4f
+        prompt = f"Act as a Senior Cyber Intelligence Analyst. Write a 2-paragraph executive summary of these OSINT findings for target {domain}: {str(json_data)[:1000]}"
+        ai_response = g4f.ChatCompletion.create(model=g4f.models.gpt_35_turbo, messages=[{"role": "user", "content": prompt}], provider=g4f.Provider.Blackbox)
+        if ai_response:
+            summary_text = f"AI EXECUTIVE SUMMARY:\n\n{ai_response}\n\n" + summary_text
+    except Exception as ai_err:
+        print(f"AI Summary failed: {ai_err}")
 
     fd, temp_path = tempfile.mkstemp(suffix=".pdf")
     os.close(fd)
@@ -107,4 +113,5 @@ async def generate_report_from_data(
         media_type="application/pdf",
         filename=safe_filename
     )
+
 
