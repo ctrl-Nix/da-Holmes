@@ -19,9 +19,6 @@ import IntelligenceGraph from './IntelligenceGraph';
 import GeoMap from './GeoMap';
 import InvestigationNotebook from './InvestigationNotebook';
 import TimelineView from './TimelineView';
-import GeoMap from './GeoMap';
-import InvestigationNotebook from './InvestigationNotebook';
-import TimelineView from './TimelineView';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 

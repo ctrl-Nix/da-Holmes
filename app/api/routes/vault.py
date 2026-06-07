@@ -47,3 +47,42 @@ def get_decrypted_secrets(owner_id: str = "default_user") -> Dict[str, str]:
             if dec:
                 secrets[s] = dec
     return secrets
+
+
+@router.get("/instagram/status")
+async def instagram_status():
+    """
+    Returns whether Instagram session credentials are configured.
+    Checks both .env settings and the encrypted vault — does NOT expose cookie values.
+    """
+    owner_id = "default_user"
+
+    # Check .env settings first
+    try:
+        from app.core.config import settings
+        env_session = bool(settings.INSTAGRAM_SESSION_ID)
+    except Exception:
+        env_session = False
+
+    # Check vault override
+    vault_session = False
+    try:
+        enc = db.get_secret(owner_id, "instagram_sessionid")
+        if enc:
+            dec = decrypt_secret(enc)
+            vault_session = bool(dec and dec.strip())
+    except Exception:
+        pass
+
+    configured = env_session or vault_session
+    source = "env" if env_session else ("vault" if vault_session else "none")
+
+    return {
+        "configured": configured,
+        "source": source,
+        "message": (
+            "✅ Instagram session active — authenticated scraping enabled."
+            if configured else
+            "⚠️  No Instagram session found. Configure cookies in Settings → Credentials for reliable monitoring."
+        ),
+    }

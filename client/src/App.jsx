@@ -37,6 +37,7 @@ import ApiKeysPanel from './components/ApiKeysPanel';
 import HolmesLogo from './components/HolmesLogo';
 
 import WebScraper from './components/WebScraper';
+import LocalMLIntel from './components/LocalMLIntel';
 import SubdomainBrute from './components/SubdomainBrute';
 import GitHubScanner from './components/GitHubScanner';
 import BreachCrawler from './components/BreachCrawler';
@@ -2060,7 +2061,10 @@ export default function App() {
 
           <div 
             onClick={() => setActiveView('webScraper')} 
-            className={`${layoutStyles.navItem} ${activeView === 'webScraper' ? layoutStyles.navItemActive : ''}`}
+            className={`${layoutStyles.navItem} $            {activeView === 'ml' && (
+              <LocalMLIntel />
+            )}
+            {activeView === 'webScraper' ? layoutStyles.navItemActive : ''}`}
           >
             <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🕸️</div>
             <span className={layoutStyles.navItemLabel}>Live Web Scraper</span>
@@ -2387,6 +2391,9 @@ export default function App() {
 
             {/* ── NEW ADVANCED TOOLS ── */}
             {activeView === 'monitor' && <ContinuousMonitor />}
+                        {activeView === 'ml' && (
+              <LocalMLIntel />
+            )}
             {activeView === 'webScraper' && <WebScraper />}
             {activeView === 'subdomainBrute' && <SubdomainBrute />}
             {activeView === 'githubScanner' && <GitHubScanner />}

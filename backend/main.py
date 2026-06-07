@@ -33,5 +33,10 @@ def root():
         "version": "1.0.0"
     }
 
+@app.get("/health")
+def health():
+    """Health check endpoint for wake-up ping and frontend status banner."""
+    return {"status": "online", "version": "1.0.0"}
+
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

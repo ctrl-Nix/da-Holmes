@@ -51,24 +51,4 @@ async def generate_image_links(
                 "description": "Best for exact image matching and finding original sources."
             }
         ]
-    }&rpt=imageview",
-                "description": "Best for facial recognition and Eastern European sites."
-            },
-            {
-                "engine": "Google Images",
-                "url": f"https://lens.google.com/uploadbyurl?url={encoded_url}",
-                "description": "Best for general objects, landmarks, and global sites."
-            },
-            {
-                "engine": "Bing Visual Search",
-                "url": f"https://www.bing.com/images/search?view=detailv2&iss=sbi&FORM=SBIHMP&sbisrc=UrlP&q=imgurl:{encoded_url}",
-                "description": "Good alternative general search index."
-            },
-            {
-                "engine": "TinEye",
-                "url": f"https://tineye.com/search?url={encoded_url}",
-                "description": "Best for exact image matching and finding original sources."
-            }
-        ]
     }
-

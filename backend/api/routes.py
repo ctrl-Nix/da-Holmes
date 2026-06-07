@@ -287,7 +287,7 @@ def mobile_recon(package_id: str, db: Session = Depends(get_db)):
 @router.get("/corporate")
 async def corporate_intel(company_name: str, db: Session = Depends(get_db)):
     """Searches corporate registration records using OpenCorporates free lookup."""
-    url = f"https://api.opencorates.com/v0.4/companies/search?q={company_name.strip()}"
+    url = f"https://api.opencorporates.com/v0.4/companies/search?q={company_name.strip()}"
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
             resp = await client.get(url)

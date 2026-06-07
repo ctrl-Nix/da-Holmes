@@ -4,8 +4,59 @@ import random
 import asyncio
 import urllib.parse
 import logging
+from typing import Optional, Dict
 
 logger = logging.getLogger(__name__)
+
+
+def _get_instagram_headers() -> Optional[Dict[str, str]]:
+    """
+    Build Instagram auth headers from env config or vault.
+    Returns None if no credentials configured (unauthenticated fallback).
+    """
+    try:
+        from app.core.config import settings
+        session_id = settings.INSTAGRAM_SESSION_ID
+        ds_user_id = settings.INSTAGRAM_DS_USER_ID
+        csrftoken   = settings.INSTAGRAM_CSRFTOKEN
+    except Exception:
+        session_id = ds_user_id = csrftoken = None
+
+    # Also try to pull from Vault (runtime override — no restart needed)
+    if not session_id:
+        try:
+            from app.core.database import db
+            from app.core.vault import decrypt_secret
+            session_id = decrypt_secret(db.get_secret("default_user", "instagram_sessionid") or "")
+            ds_user_id = decrypt_secret(db.get_secret("default_user", "instagram_ds_user_id") or "")
+            csrftoken  = decrypt_secret(db.get_secret("default_user", "instagram_csrftoken") or "")
+        except Exception:
+            pass
+
+    if not session_id:
+        return None  # No credentials → caller will do unauthenticated request
+
+    cookie_parts = [f"sessionid={session_id}"]
+    if ds_user_id:
+        cookie_parts.append(f"ds_user_id={ds_user_id}")
+    if csrftoken:
+        cookie_parts.append(f"csrftoken={csrftoken}")
+
+    return {
+        "Cookie": "; ".join(cookie_parts),
+        "X-IG-App-ID": "936619743392459",          # Instagram Web app ID (public)
+        "X-Requested-With": "XMLHttpRequest",
+        "Referer": "https://www.instagram.com/",
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/124.0.0.0 Safari/537.36"
+        ),
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Sec-Fetch-Site": "same-origin",
+        "Sec-Fetch-Mode": "cors",
+    }
 
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
@@ -45,30 +96,81 @@ class SocialScraper:
         return html is not None and html != "" and "No results" not in html
 
     async def scrape_instagram(self, username: str) -> dict:
-        url = f"https://www.instagram.com/{username}/"
-        html = await self.fetch_url(url)
-        
+        profile_url = f"https://www.instagram.com/{username}/"
+        auth_headers = _get_instagram_headers()
+
+        # ── Authenticated path: use Instagram Web API for JSON data ──────────
+        if auth_headers:
+            api_url = f"https://www.instagram.com/api/v1/users/web_profile_info/?username={username}"
+            try:
+                async with httpx.AsyncClient(follow_redirects=True, timeout=12.0) as client:
+                    resp = await client.get(api_url, headers=auth_headers)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    user = data.get("data", {}).get("user") or {}
+                    if user:
+                        followers = user.get("edge_followed_by", {}).get("count", 0)
+                        bio = user.get("biography", "")
+                        full_name = user.get("full_name", "")
+                        is_private = user.get("is_private", False)
+                        is_verified = user.get("is_verified", False)
+                        post_count = user.get("edge_owner_to_timeline_media", {}).get("count", 0)
+                        following = user.get("edge_follow", {}).get("count", 0)
+                        profile_pic = user.get("profile_pic_url_hd", user.get("profile_pic_url", ""))
+                        return {
+                            "platform": "Instagram",
+                            "url": profile_url,
+                            "status": "found",
+                            "bio": bio,
+                            "full_name": full_name,
+                            "follower_count": f"{followers:,} Followers",
+                            "following_count": f"{following:,} Following",
+                            "post_count": post_count,
+                            "is_private": is_private,
+                            "is_verified": is_verified,
+                            "profile_pic": profile_pic,
+                            "authenticated": True,
+                        }
+                elif resp.status_code == 404:
+                    return {
+                        "platform": "Instagram",
+                        "url": profile_url,
+                        "status": "not_found",
+                        "bio": "",
+                        "follower_count": None,
+                        "authenticated": True,
+                    }
+                else:
+                    logger.warning("[Instagram] Authenticated API returned %d for '%s'", resp.status_code, username)
+                    # Fall through to unauthenticated
+            except Exception as exc:
+                logger.warning("[Instagram] Authenticated request failed for '%s': %s", username, exc)
+                # Fall through to unauthenticated
+
+        # ── Unauthenticated fallback: basic OG meta scrape ───────────────────
+        html = await self.fetch_url(profile_url)
         if html is None:
             return {
                 "platform": "Instagram",
-                "url": url,
+                "url": profile_url,
                 "status": "error",
                 "bio": "",
-                "follower_count": None
+                "follower_count": None,
+                "authenticated": False,
             }
-            
+
         bio = self._extract_meta_description(html)
-        
-        found = bool(bio)
-        if not found:
+        found = bool(bio) and "Sorry, this page isn't available" not in html
+        if not found and html:
             found = await self._fallback_search(f"site:instagram.com/{username}")
-            
+
         return {
             "platform": "Instagram",
-            "url": url,
+            "url": profile_url,
             "status": "found" if found else "not_found",
             "bio": bio,
-            "follower_count": bio.split(" Followers")[0].strip() if bio and "Followers" in bio else None
+            "follower_count": bio.split(" Followers")[0].strip() if bio and "Followers" in bio else None,
+            "authenticated": False,
         }
 
     async def scrape_twitter(self, username: str) -> dict:
@@ -289,12 +391,36 @@ class SocialScraper:
 
     async def get_instagram_followers(self, username: str) -> list[str]:
         """
-        Instagram is extremely restrictive. This is a placeholder or uses 
-        very basic public data if available. Realistically needs an API or session.
+        Fetch Instagram followers list using authenticated session cookie.
+        Returns up to 50 follower usernames if session cookie is configured;
+        otherwise returns an empty list (Instagram forbids unauthenticated access).
         """
-        # For demo purposes/OSINT, we might look for common mentions or public tags
-        # but a direct 'followers' list is impossible without login.
-        # We return an empty list for now to avoid crashes, or a small sample if we find a trick.
-        return []
+        auth_headers = _get_instagram_headers()
+        if not auth_headers:
+            logger.info("[Instagram] No session cookie configured — skipping followers fetch for '%s'", username)
+            return []
+
+        # Step 1: Resolve user_id from username
+        api_url = f"https://www.instagram.com/api/v1/users/web_profile_info/?username={username}"
+        try:
+            async with httpx.AsyncClient(follow_redirects=True, timeout=12.0) as client:
+                resp = await client.get(api_url, headers=auth_headers)
+            if resp.status_code != 200:
+                return []
+            user_id = resp.json().get("data", {}).get("user", {}).get("id")
+            if not user_id:
+                return []
+
+            # Step 2: Fetch followers page
+            followers_url = f"https://www.instagram.com/api/v1/friendships/{user_id}/followers/?count=50"
+            async with httpx.AsyncClient(follow_redirects=True, timeout=12.0) as client:
+                resp2 = await client.get(followers_url, headers=auth_headers)
+            if resp2.status_code != 200:
+                return []
+            users = resp2.json().get("users", [])
+            return [u["username"] for u in users if "username" in u]
+        except Exception as exc:
+            logger.warning("[Instagram] get_instagram_followers failed for '%s': %s", username, exc)
+            return []
 
 
