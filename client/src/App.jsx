@@ -2060,11 +2060,16 @@ export default function App() {
           </div>
 
           <div 
+            onClick={() => setActiveView('ml')} 
+            className={`${layoutStyles.navItem} ${activeView === 'ml' ? layoutStyles.navItemActive : ''}`}
+          >
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🧠</div>
+            <span className={layoutStyles.navItemLabel}>Local ML Intel</span>
+          </div>
+
+          <div 
             onClick={() => setActiveView('webScraper')} 
-            className={`${layoutStyles.navItem} $            {activeView === 'ml' && (
-              <LocalMLIntel />
-            )}
-            {activeView === 'webScraper' ? layoutStyles.navItemActive : ''}`}
+            className={`${layoutStyles.navItem} ${activeView === 'webScraper' ? layoutStyles.navItemActive : ''}`}
           >
             <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🕸️</div>
             <span className={layoutStyles.navItemLabel}>Live Web Scraper</span>

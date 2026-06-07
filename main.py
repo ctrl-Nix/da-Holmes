@@ -78,7 +78,7 @@ class AutoSaveMiddleware(BaseHTTPMiddleware):
 # Rate Limiter & Validation Setup
 # ---------------------------------------------------------------------------
 
-limiter = Limiter(key_func=get_remote_address, default_limits=["10/minute"])
+limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
 
 def validate_value(val: str, field_name: str = "Input") -> str:
     if not val or not str(val).strip():
@@ -349,7 +349,13 @@ def create_application() -> FastAPI:
     )
     
     application.include_router(
-        advanced, ml_intel.router,
+        advanced.router,
+        prefix="/api",
+        tags=["Advanced OSINT"],
+    )
+    
+    application.include_router(
+        ml_intel.router,
         prefix="/api",
         tags=["Advanced OSINT"],
     )

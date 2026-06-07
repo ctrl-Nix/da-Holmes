@@ -67,3 +67,5 @@ phonenumbers
 transformers==4.41.2
 torch==2.3.1
 
+ultralytics>=8.2.0
+scikit-learn>=1.4.0
