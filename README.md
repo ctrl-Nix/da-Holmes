@@ -268,11 +268,16 @@ Holmes has a plugin system under `app/plugins/`. Add a new `.py` file following 
 
 ---
 
-## ⚠️ Legal Disclaimer
+## ⚠️ Responsible Use
 
 **This tool is strictly for educational purposes and authorized security research.**
 
 Only scan targets you own or have explicit written permission to test. The developers assume no liability for misuse. Unauthorized scanning of third-party systems may violate computer fraud laws in your jurisdiction.
+
+**App-level guardrails built in:**
+- 🔒 **Consent checkbox** — every scan requires the user to confirm they have authorization to scan the target before results are returned.
+- 🚦 **Rate limiting** — the API enforces a hard limit of **100 requests/minute** per IP (via SlowAPI) to prevent abuse and protect third-party data providers.
+- 🛑 **No credential brute-force** — Holmes performs passive OSINT only; it does not attempt logins, exploit vulnerabilities, or send unsolicited traffic beyond standard HTTP probes.
 
 ---
 
