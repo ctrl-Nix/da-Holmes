@@ -38,17 +38,24 @@ class ProxyManager:
         proxy = self.get_random_proxy()
         
         # Evasion headers
+        chrome_version = random.choice(["118", "119", "120", "121", "122"])
+        os_platform = random.choice(["Windows", "Mac OS X", "Linux"])
+        
         headers = {
-            "User-Agent": random.choice([
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
-                "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36"
-            ]),
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-            "Accept-Language": "en-US,en;q=0.5",
+            "User-Agent": f"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{chrome_version}.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+            "Accept-Language": random.choice(["en-US,en;q=0.9", "en-GB,en;q=0.8", "es-ES,es;q=0.9,en;q=0.8"]),
+            "Accept-Encoding": "gzip, deflate, br",
             "DNT": "1",
             "Connection": "keep-alive",
-            "Upgrade-Insecure-Requests": "1"
+            "Upgrade-Insecure-Requests": "1",
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "none",
+            "Sec-Fetch-User": "?1",
+            "Sec-Ch-Ua": f'"Chromium";v="{chrome_version}", "Google Chrome";v="{chrome_version}", "Not=A?Brand";v="99"',
+            "Sec-Ch-Ua-Mobile": "?0",
+            "Sec-Ch-Ua-Platform": f'"{os_platform}"'
         }
         
         if "headers" in kwargs:
@@ -60,9 +67,9 @@ class ProxyManager:
                 "http://": httpx.AsyncHTTPTransport(proxy=proxy),
                 "https://": httpx.AsyncHTTPTransport(proxy=proxy),
             }
-            return httpx.AsyncClient(mounts=mounts, headers=headers, timeout=timeout, **kwargs)
+            return httpx.AsyncClient(mounts=mounts, headers=headers, timeout=timeout, http2=True, **kwargs)
         else:
             # Fallback to direct connection if no proxies are configured
-            return httpx.AsyncClient(headers=headers, timeout=timeout, **kwargs)
+            return httpx.AsyncClient(headers=headers, timeout=timeout, http2=True, **kwargs)
 
 proxy_manager = ProxyManager()

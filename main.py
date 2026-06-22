@@ -23,7 +23,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
-from app.api.routes import analyze, scanner, domain, security, network, forensics, email, crypto, geoint, archive, techstack, spoofing, threatintel, certificates, trackers, friendship, unified, history, keys, github, report, mobile_recon, corporate_intel, phone, iot, darkweb, metadata, reddit, image_osint, vehicle, aviation, hash, mac, advanced
+from app.api.routes import analyze, scanner, domain, security, network, forensics, email, crypto, geoint, archive, techstack, spoofing, threatintel, certificates, trackers, friendship, unified, history, keys, github, report, mobile_recon, corporate_intel, phone, iot, darkweb, metadata, reddit, image_osint, vehicle, aviation, hash, mac, advanced, ml_intel, monitor as monitor_router
 from app.core.config import settings
 from app.core.keep_alive import start_keep_alive
 from contextlib import asynccontextmanager
@@ -78,15 +78,18 @@ class AutoSaveMiddleware(BaseHTTPMiddleware):
 # Rate Limiter & Validation Setup
 # ---------------------------------------------------------------------------
 
-limiter = Limiter(key_func=get_remote_address, default_limits=["10/minute"])
+limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
 
-def validate_value(val: str, field_name: str = "Input") -> str:
+def validate_value(val: str, field_name: str = "Input", is_url: bool = False) -> str:
     if not val or not str(val).strip():
         return f"{field_name} cannot be empty."
-    if len(val) > 100:
-        return f"{field_name} exceeds maximum length of 100 characters."
+    # Skip length + shell-char check for URL-type fields (webhook URLs can be long)
+    if is_url:
+        return ""
+    if len(val) > 500:
+        return f"{field_name} exceeds maximum length."
     
-    shell_chars = ['<', '>', '|', ';', '&']
+    shell_chars = ['<', '>', '|', ';']
     for char in shell_chars:
         if char in val:
             return f"{field_name} contains prohibited shell character '{char}'."
@@ -171,12 +174,15 @@ def create_application() -> FastAPI:
                     body_str = body_bytes.decode("utf-8", errors="ignore")
                     try:
                         data = json.loads(body_str)
-                        def validate_json_data(obj):
+                        # URL-type fields that should bypass strict validation
+                        _url_fields = {"webhook_url", "url", "callback_url", "redirect_url"}
+                        def validate_json_data(obj, parent_key: str = ""):
                             if isinstance(obj, str):
-                                return validate_value(obj, "Request body field")
+                                is_url_field = parent_key.lower() in _url_fields or obj.startswith(("http://", "https://"))
+                                return validate_value(obj, "Request body field", is_url=is_url_field)
                             elif isinstance(obj, dict):
                                 for k, v in obj.items():
-                                    reason = validate_json_data(v)
+                                    reason = validate_json_data(v, parent_key=k)
                                     if reason:
                                         return f"Field '{k}': {reason}"
                             elif isinstance(obj, list):
@@ -355,6 +361,12 @@ def create_application() -> FastAPI:
     )
     
     application.include_router(
+        ml_intel.router,
+        prefix="/api",
+        tags=["Advanced OSINT"],
+    )
+    
+    application.include_router(
         unified.router,
         prefix="/api",
         tags=["Unified OSINT"],
@@ -492,6 +504,12 @@ def create_application() -> FastAPI:
         tags=["Network Intel"],
     )
 
+    # 24/7 Continuous Monitoring
+    application.include_router(
+        monitor_router.router,
+        tags=["24/7 Monitoring"],
+    )
+
     # Note: report.router already registered above at /api prefix — do not register again.
 
     return application
@@ -533,6 +551,32 @@ async def run_single_monitor(monitor: dict):
     new_scan_id = db.create_scan(target, "monitor_run")
     
     # Run each requested check
+    if "social" in checks:
+        try:
+            # Probe a sample of major platforms for username presence
+            _social_platforms = [
+                ("Twitter/X", f"https://twitter.com/{target}"),
+                ("GitHub", f"https://github.com/{target}"),
+                ("Instagram", f"https://www.instagram.com/{target}/"),
+                ("Reddit", f"https://www.reddit.com/user/{target}"),
+                ("TikTok", f"https://www.tiktok.com/@{target}"),
+            ]
+            async with httpx.AsyncClient(timeout=8.0, follow_redirects=True) as client:
+                for platform_name, platform_url in _social_platforms:
+                    try:
+                        resp = await client.get(platform_url, headers={"User-Agent": "Mozilla/5.0"})
+                        found = resp.status_code == 200
+                        db.save_finding(
+                            new_scan_id, "social",
+                            f"social_{platform_name.lower().replace('/', '_')}",
+                            f"{platform_name}: {'FOUND' if found else 'NOT FOUND'} ({platform_url})",
+                            "MEDIUM" if found else "INFO"
+                        )
+                    except Exception:
+                        pass
+        except Exception as e:
+            logger.error(f"Monitor social check failed for {target}: {e}")
+
     if "subdomain" in checks:
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
@@ -706,6 +750,14 @@ async def startup_event():
     )
     scheduler.start()
     logger.info("APScheduler for Holmes monitors started.")
+
+    try:
+        from app.modules.telegram_bot import run_bot_polling
+        import asyncio
+        asyncio.create_task(run_bot_polling())
+        logger.info("Telegram bot polling task created.")
+    except Exception as e:
+        logger.error(f"Failed to start telegram bot: {e}")
 
 @app.on_event("shutdown")  
 async def shutdown_event():
@@ -4684,8 +4736,8 @@ class FindingUpdateStatus(BaseModel):
 class MonitorCreate(BaseModel):
     target: str
     checks: list
-    webhook_url: str
-    webhook_type: str
+    webhook_url: Optional[str] = None
+    webhook_type: Optional[str] = "discord"
 
 @app.get("/api/workspace/scans", tags=["Workspace"])
 async def list_scans(limit: int = 50):
@@ -4719,7 +4771,18 @@ async def add_monitor(monitor: MonitorCreate):
 
 @app.get("/api/monitor/list", tags=["Monitors"])
 async def list_monitors():
-    return db.list_monitors()
+    monitors = db.list_monitors()
+    # Enrich with findings count and latest log
+    for m in monitors:
+        logs = db.get_monitor_logs(m["id"], limit=1)
+        m["last_log"] = logs[0] if logs else None
+        last_scan = db.get_latest_scan_for_target(m["target"])
+        if last_scan:
+            findings = db.get_findings(last_scan["id"])
+            m["findings_count"] = len(findings)
+        else:
+            m["findings_count"] = 0
+    return {"monitors": monitors}
 
 @app.delete("/api/monitor/{monitor_id}", tags=["Monitors"])
 async def delete_monitor(monitor_id: str):
@@ -5251,4 +5314,6 @@ if __name__ == "__main__":
         reload=True if port == 8000 else False,
         log_level="info",
     )
+
+
 

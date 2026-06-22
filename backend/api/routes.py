@@ -173,48 +173,203 @@ async def email_forensics(domain: str, db: Session = Depends(get_db)):
 
 @router.get("/techstack")
 async def fingerprint_tech_stack(domain: str, db: Session = Depends(get_db)):
-    """Fingerprints technographics stack locally."""
+    """Fingerprints technographics stack with 25+ detection patterns."""
     clean_domain = domain.strip().replace("https://", "").replace("http://", "").split("/")[0]
     target_url = f"https://{clean_domain}"
     technologies = []
-    
+    error_msg = None
+
     try:
-        async with httpx.AsyncClient(timeout=8.0, verify=False) as client:
-            resp = await client.get(target_url, headers={"User-Agent": "Mozilla/5.0"})
-            
-        # Parse headers
-        server = resp.headers.get("Server")
+        async with httpx.AsyncClient(timeout=10.0, verify=False, follow_redirects=True) as client:
+            resp = await client.get(target_url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"})
+
+        # --- Header-based detection ---
+        headers = resp.headers
+        server = headers.get("Server", "")
         if server:
-            technologies.append({"type": "Server", "name": server})
-            
-        power = resp.headers.get("X-Powered-By")
+            technologies.append({"type": "Server", "name": server, "confidence": 100})
+        power = headers.get("X-Powered-By", "")
         if power:
-            technologies.append({"type": "Web Engine", "name": power})
-            
-        body = resp.text.lower()
-        if "wp-content" in body:
-            technologies.append({"type": "CMS", "name": "WordPress"})
-        if "id=\"__next\"" in body or "_next/static" in body:
-            technologies.append({"type": "Framework", "name": "Next.js"})
-        if "react" in body:
-            technologies.append({"type": "Library", "name": "React"})
-        if "nuxt" in body:
-            technologies.append({"type": "Framework", "name": "NuxtJS"})
-        if "shopify" in body or "cdn.shopify.com" in body:
-            technologies.append({"type": "E-commerce", "name": "Shopify"})
-        if "cloudflare" in body:
-            technologies.append({"type": "Security CDN", "name": "Cloudflare"})
-            
-    except Exception as e:
-        logger.warning(f"Tech stack check error: {e}")
-        # Local fallback representation if server times out
-        technologies = [
-            {"type": "Server", "name": "Cloudflare Server"},
-            {"type": "Security", "name": "Cloudflare Proxy Protection"}
+            technologies.append({"type": "Runtime", "name": power, "confidence": 100})
+        if "cf-ray" in headers or "cf-cache-status" in headers:
+            technologies.append({"type": "CDN / Security", "name": "Cloudflare", "confidence": 99})
+        if "x-vercel-id" in headers or "x-vercel-cache" in headers:
+            technologies.append({"type": "Hosting", "name": "Vercel", "confidence": 99})
+        if "x-amz-cf-id" in headers or "x-amz-request-id" in headers:
+            technologies.append({"type": "Cloud", "name": "AWS", "confidence": 95})
+        if "x-azure-ref" in headers or "x-ms-request-id" in headers:
+            technologies.append({"type": "Cloud", "name": "Microsoft Azure", "confidence": 95})
+        if "x-goog-request-id" in headers or "via" in headers and "google" in headers.get("via", "").lower():
+            technologies.append({"type": "Cloud", "name": "Google Cloud", "confidence": 90})
+        if headers.get("x-shopify-stage") or headers.get("x-shopify-request-id"):
+            technologies.append({"type": "E-commerce", "name": "Shopify", "confidence": 100})
+        if "x-wp-nonce" in headers or "link" in headers and "wp-json" in headers.get("link", ""):
+            technologies.append({"type": "CMS", "name": "WordPress", "confidence": 100})
+        if headers.get("x-drupal-cache") or headers.get("x-generator", "").lower().startswith("drupal"):
+            technologies.append({"type": "CMS", "name": "Drupal", "confidence": 99})
+
+        # --- Body-based detection ---
+        body = resp.text
+        body_lower = body.lower()
+
+        cms_patterns = [
+            ("wp-content", "CMS", "WordPress", 95),
+            ("wp-json", "CMS", "WordPress", 90),
+            ("joomla", "CMS", "Joomla", 90),
+            ("drupal", "CMS", "Drupal", 85),
+            ("ghost.io", "CMS", "Ghost", 90),
+            ("squarespace", "CMS", "Squarespace", 95),
+            ("wix.com", "CMS", "Wix", 95),
+            ("webflow.io", "CMS", "Webflow", 95),
         ]
-        
+        framework_patterns = [
+            ("__next", "Framework", "Next.js", 90),
+            ("_nuxt/", "Framework", "Nuxt.js", 90),
+            ("ng-version", "Framework", "Angular", 95),
+            ("data-reactroot", "Framework", "React", 85),
+            ("__vue__", "Framework", "Vue.js", 90),
+            ("svelte", "Framework", "Svelte", 80),
+            ("ember.js", "Framework", "Ember.js", 90),
+            ("backbone.js", "Framework", "Backbone.js", 90),
+        ]
+        lib_patterns = [
+            ("jquery", "Library", "jQuery", 80),
+            ("bootstrap", "Library", "Bootstrap", 80),
+            ("tailwindcss", "Library", "Tailwind CSS", 85),
+            ("lodash", "Library", "Lodash", 75),
+            ("axios", "Library", "Axios", 75),
+            ("socket.io", "Library", "Socket.IO", 90),
+        ]
+        analytics_patterns = [
+            ("google-analytics", "Analytics", "Google Analytics", 95),
+            ("gtag(", "Analytics", "Google Tag Manager", 95),
+            ("hotjar", "Analytics", "Hotjar", 95),
+            ("segment.io", "Analytics", "Segment", 90),
+            ("plausible", "Analytics", "Plausible", 90),
+        ]
+        ecomm_patterns = [
+            ("cdn.shopify.com", "E-commerce", "Shopify", 99),
+            ("woocommerce", "E-commerce", "WooCommerce", 95),
+            ("magento", "E-commerce", "Magento", 90),
+            ("prestashop", "E-commerce", "PrestaShop", 90),
+        ]
+        backend_patterns = [
+            ("laravel", "Backend", "Laravel (PHP)", 85),
+            ("django", "Backend", "Django (Python)", 85),
+            ("rails", "Backend", "Ruby on Rails", 80),
+            ("express", "Backend", "Express.js", 75),
+            ("fastapi", "Backend", "FastAPI", 80),
+        ]
+
+        already_added = {t["name"] for t in technologies}
+        for patterns in [cms_patterns, framework_patterns, lib_patterns, analytics_patterns, ecomm_patterns, backend_patterns]:
+            for pattern, tech_type, name, confidence in patterns:
+                if pattern in body_lower and name not in already_added:
+                    technologies.append({"type": tech_type, "name": name, "confidence": confidence})
+                    already_added.add(name)
+
+    except Exception as e:
+        logger.warning(f"Tech stack check error for {domain}: {e}")
+        error_msg = str(e)
+
     log_investigation(domain, "techstack", technologies, db)
-    return {"domain": domain, "technologies": technologies}
+    return {
+        "status": "success",
+        "domain": domain,
+        "technologies": technologies,
+        "total": len(technologies),
+        "error": error_msg
+    }
+
+
+# ---------------------------------------------------------------------------
+# Security / Breach Endpoints
+# ---------------------------------------------------------------------------
+
+@router.get("/security/check")
+async def security_check_email(email: str, db: Session = Depends(get_db)):
+    """Checks email against HaveIBeenPwned breach database (free v2 API)."""
+    email = email.strip().lower()
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.get(
+                f"https://haveibeenpwned.com/api/v2/breachedaccount/{email}",
+                headers={"User-Agent": "Holmes-OSINT-Platform"}
+            )
+            if resp.status_code == 200:
+                breaches = resp.json()
+                details = [
+                    {"name": b.get("Name", "Unknown"), "date": b.get("BreachDate", ""), "domain": b.get("Domain", "")}
+                    for b in breaches
+                ]
+                result = {"email": email, "status": "compromised", "breach_count": len(details), "details": details}
+            elif resp.status_code == 404:
+                result = {"email": email, "status": "safe", "breach_count": 0, "details": []}
+            else:
+                result = {"email": email, "status": "unknown", "breach_count": 0, "details": [], "note": "Rate limited or service unavailable."}
+    except Exception as e:
+        result = {"email": email, "status": "error", "breach_count": 0, "details": [], "note": str(e)}
+
+    log_investigation(email, "security_check", result, db)
+    return result
+
+
+@router.get("/security/headers")
+async def security_headers_audit(domain: str, db: Session = Depends(get_db)):
+    """Audits HTTP security headers and returns a letter grade scorecard."""
+    clean_domain = domain.strip().replace("https://", "").replace("http://", "").split("/")[0]
+    target_url = f"https://{clean_domain}"
+
+    header_checks = [
+        {"header": "strict-transport-security", "name": "HSTS", "weight": 20, "description": "Forces HTTPS connections."},
+        {"header": "content-security-policy", "name": "Content-Security-Policy", "weight": 25, "description": "Prevents XSS and data injection attacks."},
+        {"header": "x-frame-options", "name": "X-Frame-Options", "weight": 15, "description": "Prevents clickjacking attacks."},
+        {"header": "x-content-type-options", "name": "X-Content-Type-Options", "weight": 10, "description": "Prevents MIME sniffing attacks."},
+        {"header": "referrer-policy", "name": "Referrer-Policy", "weight": 10, "description": "Controls referrer information in requests."},
+        {"header": "permissions-policy", "name": "Permissions-Policy", "weight": 10, "description": "Controls browser features like camera/mic."},
+        {"header": "x-xss-protection", "name": "X-XSS-Protection", "weight": 5, "description": "Legacy XSS filter (still useful)."},
+        {"header": "cache-control", "name": "Cache-Control", "weight": 5, "description": "Controls caching behavior."},
+    ]
+
+    results = []
+    score = 0
+    try:
+        async with httpx.AsyncClient(timeout=10.0, verify=False, follow_redirects=True) as client:
+            resp = await client.head(target_url, headers={"User-Agent": "Mozilla/5.0"})
+            resp_headers_lower = {k.lower(): v for k, v in resp.headers.items()}
+
+        for check in header_checks:
+            present = check["header"] in resp_headers_lower
+            value = resp_headers_lower.get(check["header"], None)
+            if present:
+                score += check["weight"]
+            results.append({
+                "name": check["name"],
+                "present": present,
+                "value": value,
+                "weight": check["weight"],
+                "description": check["description"]
+            })
+
+        # Grade
+        if score >= 85:
+            grade = "A"
+        elif score >= 70:
+            grade = "B"
+        elif score >= 50:
+            grade = "C"
+        elif score >= 30:
+            grade = "D"
+        else:
+            grade = "F"
+
+        audit_result = {"domain": clean_domain, "score": score, "grade": grade, "headers": results, "status": "success"}
+    except Exception as e:
+        audit_result = {"domain": clean_domain, "score": 0, "grade": "F", "headers": [], "status": "error", "message": str(e)}
+
+    log_investigation(domain, "security_headers", audit_result, db)
+    return audit_result
 
 
 @router.get("/subdomains")
@@ -287,7 +442,7 @@ def mobile_recon(package_id: str, db: Session = Depends(get_db)):
 @router.get("/corporate")
 async def corporate_intel(company_name: str, db: Session = Depends(get_db)):
     """Searches corporate registration records using OpenCorporates free lookup."""
-    url = f"https://api.opencorates.com/v0.4/companies/search?q={company_name.strip()}"
+    url = f"https://api.opencorporates.com/v0.4/companies/search?q={company_name.strip()}"
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
             resp = await client.get(url)
@@ -689,3 +844,66 @@ async def breach_crawler(target_email: str = Query(..., description="Email to lo
             }
     except Exception as e:
         return {"status": "error", "message": str(e)}
+
+# ---------------------------------------------------------------------------
+# Monitor Endpoints
+# ---------------------------------------------------------------------------
+
+class MonitorCreate(BaseModel):
+    target: str
+    checks: list
+    webhook_url: str
+    webhook_type: str
+
+@router.post("/monitor/add", tags=["Monitors"])
+async def add_monitor(monitor: MonitorCreate):
+    from app.core.database import db
+    m_id = db.add_monitor(monitor.target, monitor.checks, monitor.webhook_url, monitor.webhook_type)
+    return {"status": "success", "id": m_id}
+
+@router.get("/monitor/list", tags=["Monitors"])
+async def list_monitors():
+    from app.core.database import db
+    return db.list_monitors()
+
+@router.delete("/monitor/{monitor_id}", tags=["Monitors"])
+async def delete_monitor(monitor_id: str):
+    from app.core.database import db
+    db.delete_monitor(monitor_id)
+    return {"status": "success"}
+
+@router.post("/monitor/{monitor_id}/run", tags=["Monitors"])
+async def run_monitor_immediately(monitor_id: str):
+    from app.core.database import db
+    monitor = db.get_monitor(monitor_id)
+    if not monitor:
+        raise HTTPException(status_code=404, detail="Monitor not found")
+    
+    # Importing run_single_monitor from the root monolith
+    import sys
+    import os
+    # Add root to sys.path if needed
+    root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    if root_dir not in sys.path:
+        sys.path.insert(0, root_dir)
+        
+    try:
+        from main import run_single_monitor
+        await run_single_monitor(monitor)
+    except ImportError:
+        # Fallback if run_single_monitor can't be imported
+        db.add_monitor_log(monitor_id, "error", "Standalone backend does not support immediate run yet.")
+        raise HTTPException(status_code=501, detail="Immediate run not supported in standalone backend yet.")
+
+    logs = db.get_monitor_logs(monitor_id, limit=1)
+    latest_log = logs[0] if logs else {"status": "unknown", "details": "No logs recorded"}
+    return {"status": "success", "log": latest_log}
+
+@router.get("/monitor/{monitor_id}/history", tags=["Monitors"])
+async def get_monitor_history(monitor_id: str, limit: int = Query(10, description="Limit log history count")):
+    from app.core.database import db
+    monitor = db.get_monitor(monitor_id)
+    if not monitor:
+        raise HTTPException(status_code=404, detail="Monitor not found")
+    logs = db.get_monitor_logs(monitor_id, limit=limit)
+    return logs

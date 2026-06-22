@@ -276,6 +276,37 @@ class UnifiedScanner:
             else:
                 results["data"] = {"message": f"Module triggered for target: {query}"}
 
+            # -------------------------------------------------------------
+            # DYNAMIC PLUGIN ARCHITECTURE
+            # -------------------------------------------------------------
+            import os
+            import importlib.util
+            plugin_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "plugins")
+            plugins_executed = 0
+            plugin_findings = []
+            
+            if os.path.exists(plugin_dir):
+                for filename in os.listdir(plugin_dir):
+                    if filename.endswith(".py") and not filename.startswith("__"):
+                        filepath = os.path.join(plugin_dir, filename)
+                        module_name = filename[:-3]
+                        try:
+                            spec = importlib.util.spec_from_file_location(module_name, filepath)
+                            module = importlib.util.module_from_spec(spec)
+                            spec.loader.exec_module(module)
+                            
+                            if hasattr(module, "run") and callable(module.run):
+                                plugin_res = await module.run(query)
+                                if plugin_res:
+                                    plugin_findings.extend(plugin_res)
+                                plugins_executed += 1
+                        except Exception as plugin_err:
+                            logger.error(f"Failed to execute plugin {filename}: {plugin_err}")
+                            
+            if plugin_findings:
+                results["data"]["plugin_findings"] = plugin_findings
+                results["data"]["plugins_executed"] = plugins_executed
+
         except Exception as err:
             logger.error(f"Unified Scanners encountered issues: {err}")
             raise HTTPException(

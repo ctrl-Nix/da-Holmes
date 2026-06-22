@@ -3,7 +3,8 @@ import {
   Search, ChevronDown, AlertTriangle, FileText,
   Globe, Layers, Clock, User, AtSign, Hash,
   Fingerprint, Code2, Zap, Info, ExternalLink, Activity,
-  Menu, Settings, Database, ShieldCheck, Mail, Camera, MapPin, History, LayoutGrid
+  Menu, Settings, Database, ShieldCheck, Mail, Camera, MapPin, History, LayoutGrid,
+  StickyNote
 } from 'lucide-react';
 
 import Logo               from './components/Logo';
@@ -34,6 +35,9 @@ import CorporateIntelWidget from './components/CorporateIntelWidget';
 import MobileIntelWidget  from './components/MobileIntelWidget';
 import NetworkWidget      from './components/NetworkWidget';
 import SecurityWidget     from './components/SecurityWidget';
+import HistoryView        from './components/HistoryView';
+import AnalystNotesPanel  from './components/AnalystNotesPanel';
+import PivotBar           from './components/PivotBar';
 import { API_BASE_URL } from './utils/api';
 
 const API_BASE = API_BASE_URL;
@@ -145,6 +149,7 @@ function SearchBar({ onSearch, onClear, loading }) {
 export default function App() {
   const [showIntro, setShowIntro] = useState(true);
   const [bannerVisible, setBannerVisible] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(false);
 
   useEffect(() => {
     const apiUrl = API_BASE_URL;
@@ -172,6 +177,7 @@ export default function App() {
   const [results, setResults] = useState(null);
   const [error, setError]     = useState('');
   const [view, setView]       = useState('dashboard'); // dashboard | graph | reports | history
+
 
   const handleSearch = useCallback(async (queryValue, rawText, categoryType) => {
     const trimmedQuery = queryValue ? queryValue.trim().replace(/^@/, '') : '';
@@ -253,6 +259,15 @@ export default function App() {
     }
   }, []);
 
+  const handlePivot = useCallback((target, type) => {
+    // Map pivot type back to CATEGORIES values
+    const typeMap = { domain: 'domain', email: 'email', network: 'network', btc: 'btc', username: 'username', github: 'username', security: 'domain' };
+    const category = typeMap[type] || 'unified';
+    handleSearch(target, '', category);
+    setView('dashboard');
+  }, [handleSearch]);
+
+
   if (showIntro) return <IntroPage onStart={() => setShowIntro(false)} />;
 
   return (
@@ -292,8 +307,8 @@ export default function App() {
         
         <SidebarItem icon={LayoutGrid} label="Dashboard" active={view === 'dashboard'} onClick={() => setView('dashboard')} />
         <SidebarItem icon={Activity} label="Live Feed" active={view === 'graph'} onClick={() => setView('graph')} />
-        <SidebarItem icon={Database} label="Intelligence Pool" />
-        <SidebarItem icon={FileText} label="Recent Reports" />
+        <SidebarItem icon={Database} label="Intelligence Pool" active={view === 'pool'} onClick={() => setView('pool')} />
+        <SidebarItem icon={FileText} label="Recent Reports" active={view === 'history'} onClick={() => setView('history')} />
 
         
         <div className="mt-10 text-[11px] font-bold text-slate-500 uppercase px-4 mb-3 tracking-widest">Active Modules</div>
@@ -346,6 +361,14 @@ export default function App() {
             <NetworkWidget />
           ) : view === 'security' ? (
             <SecurityWidget />
+          ) : view === 'history' ? (
+            <HistoryView onRerun={(target, type) => { handlePivot(target, type); }} />
+          ) : view === 'pool' ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-4 glass-panel rounded-2xl animate-fade-in">
+              <Database size={48} className="text-slate-600" />
+              <p className="text-slate-400 font-semibold">Intelligence Pool</p>
+              <p className="text-slate-500 text-sm text-center max-w-xs">Run investigations to accumulate intelligence here. Coming soon — saved entity workspaces.</p>
+            </div>
           ) : (
             <>
               <div className="flex items-center gap-4 mb-6 animate-fade-in">
@@ -368,9 +391,18 @@ export default function App() {
 
               {results && (
                 <div className="flex flex-col gap-10 animate-fade-in">
+                  {/* Pivot Bar — connect the dots */}
+                  <PivotBar results={results} onPivot={handlePivot} />
+
                   <Section title="Investigation Summary" emoji="📝">
-                    <div className="glass-panel rounded-xl p-5">
-                       <p className="text-sm m-0 text-cyan-100 font-mono italic leading-relaxed">"{results.summary}"</p>
+                    <div className="glass-panel rounded-xl p-5 flex items-start gap-4">
+                       <p className="text-sm m-0 text-cyan-100 font-mono italic leading-relaxed flex-1">"{results.summary}"</p>
+                       <button
+                         onClick={() => setNotesOpen(true)}
+                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 text-[10px] font-bold border border-amber-500/20 transition-colors flex-shrink-0"
+                       >
+                         <StickyNote size={12} /> Notes
+                       </button>
                     </div>
                   </Section>
 
@@ -379,16 +411,26 @@ export default function App() {
                       <Section title="Social Footprint" emoji="👣">
                         <PlatformGrid footprint={results.platform_footprint} scanResults={results.scoring_breakdown} />
                       </Section>
-                      <Section title="Digital Map" emoji="🗺️">
+                      <Section title="Entity Relationship Map" emoji="🕸️">
                         <GraphWidget rawData={results} />
                       </Section>
                     </div>
                   ) : results._type === 'domain' ? (
-                    <Section title="Infrastructure Overview" emoji="🏗️">
-                       <UnifiedDashboard data={results} />
-                    </Section>
+                    <div className="flex flex-col gap-10">
+                      <Section title="Infrastructure Overview" emoji="🏗️">
+                        <UnifiedDashboard data={results} />
+                      </Section>
+                      <Section title="Entity Relationship Map" emoji="🕸️">
+                        <GraphWidget rawData={results} />
+                      </Section>
+                    </div>
                   ) : (
-                    <UnifiedDashboard data={results} />
+                    <div className="flex flex-col gap-10">
+                      <UnifiedDashboard data={results} />
+                      <Section title="Entity Relationship Map" emoji="🕸️">
+                        <GraphWidget rawData={results} />
+                      </Section>
+                    </div>
                   )}
                   
                   {/* Report Footer */}
@@ -445,6 +487,13 @@ export default function App() {
           )}
         </div>
       </main>
+
+      {/* Analyst Notes Panel */}
+      <AnalystNotesPanel
+        target={results?.username || results?.query || ''}
+        isOpen={notesOpen}
+        onClose={() => setNotesOpen(false)}
+      />
 
       <footer className="fixed bottom-6 right-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest glass-panel px-4 py-2 rounded-full border border-white/10 shadow-lg">
         Holmes Intelligence Protocol v2.1

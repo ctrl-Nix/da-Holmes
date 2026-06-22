@@ -159,6 +159,15 @@ export default function SocialScanner({ isLoading }) {
   const totalFound = quickFoundCount + foundList.length;
   const progressPercent = Math.min(100, Math.round((totalChecked / TOTAL_SITES) * 100));
 
+  const getStatusDisplay = (status) => {
+    switch (status) {
+      case 'found': return { label: 'FOUND', style: styles.pillFound, cardStyle: styles.cardFound };
+      case 'not_found': return { label: 'NOT FOUND', style: styles.pillNotFound, cardStyle: styles.cardNotFound };
+      case 'best_effort': return { label: 'UNVERIFIED', style: null, cardStyle: null };
+      default: return { label: 'ERROR', style: styles.pillNotFound, cardStyle: styles.cardNotFound };
+    }
+  };
+
   return (
     <div className={styles.container}>
       <form onSubmit={startScanner}>
@@ -221,19 +230,48 @@ export default function SocialScanner({ isLoading }) {
               {quickFindings.map((item, index) => {
                 const details = getPlatformDetails(item.name);
                 const isFound = item.status === 'found';
+                const isBestEffort = item.status === 'best_effort';
+                const statusDisplay = getStatusDisplay(item.status);
                 return (
-                  <div key={item.name} className={`${styles.card} ${isFound ? styles.cardFound : styles.cardNotFound}`} style={{ '--delay': `${index * 0.05}s` }}>
+                  <div
+                    key={item.name}
+                    className={`${styles.card} ${isFound ? styles.cardFound : isBestEffort ? '' : styles.cardNotFound}`}
+                    style={{
+                      '--delay': `${index * 0.05}s`,
+                      ...(isBestEffort ? {
+                        border: '1px solid rgba(255,165,0,0.4)',
+                        background: 'rgba(255,165,0,0.06)',
+                      } : {})
+                    }}
+                  >
                     <div className={styles.cardTop}>
                       <div className={styles.platformBadge}>
                         <span className={styles.platformEmoji}>{details.icon}</span>
                         <span className={styles.platformName}>{item.name}</span>
                       </div>
-                      <span className={`${styles.statusPill} ${isFound ? styles.pillFound : styles.pillNotFound}`}>
-                        {isFound ? 'FOUND' : 'NOT FOUND'}
-                      </span>
+                      {isBestEffort ? (
+                        <span style={{
+                          fontSize: '9px',
+                          fontWeight: 800,
+                          letterSpacing: '0.06em',
+                          padding: '3px 7px',
+                          borderRadius: '20px',
+                          background: 'rgba(255,165,0,0.18)',
+                          color: '#ff9f43',
+                          border: '1px solid rgba(255,165,0,0.4)',
+                        }}>UNVERIFIED</span>
+                      ) : (
+                        <span className={`${styles.statusPill} ${isFound ? styles.pillFound : styles.pillNotFound}`}>
+                          {isFound ? 'FOUND' : 'NOT FOUND'}
+                        </span>
+                      )}
                     </div>
                     <div className={styles.cardBottom}>
-                      {isFound ? (
+                      {isBestEffort ? (
+                        <span style={{ fontSize: '11px', color: '#ff9f43', lineHeight: 1.4 }}>
+                          🔑 Add session cookie in Settings for reliable results
+                        </span>
+                      ) : isFound ? (
                         <a href={item.url} target="_blank" rel="noreferrer" className={styles.visitBtn}>
                           <span>Visit Profile</span>
                           <ExternalLink size={10} />

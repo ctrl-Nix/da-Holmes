@@ -37,6 +37,7 @@ import ApiKeysPanel from './components/ApiKeysPanel';
 import HolmesLogo from './components/HolmesLogo';
 
 import WebScraper from './components/WebScraper';
+import LocalMLIntel from './components/LocalMLIntel';
 import SubdomainBrute from './components/SubdomainBrute';
 import GitHubScanner from './components/GitHubScanner';
 import BreachCrawler from './components/BreachCrawler';
@@ -2059,6 +2060,14 @@ export default function App() {
           </div>
 
           <div 
+            onClick={() => setActiveView('ml')} 
+            className={`${layoutStyles.navItem} ${activeView === 'ml' ? layoutStyles.navItemActive : ''}`}
+          >
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🧠</div>
+            <span className={layoutStyles.navItemLabel}>Local ML Intel</span>
+          </div>
+
+          <div 
             onClick={() => setActiveView('webScraper')} 
             className={`${layoutStyles.navItem} ${activeView === 'webScraper' ? layoutStyles.navItemActive : ''}`}
           >
@@ -2387,6 +2396,9 @@ export default function App() {
 
             {/* ── NEW ADVANCED TOOLS ── */}
             {activeView === 'monitor' && <ContinuousMonitor />}
+                        {activeView === 'ml' && (
+              <LocalMLIntel />
+            )}
             {activeView === 'webScraper' && <WebScraper />}
             {activeView === 'subdomainBrute' && <SubdomainBrute />}
             {activeView === 'githubScanner' && <GitHubScanner />}
