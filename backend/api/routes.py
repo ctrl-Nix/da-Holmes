@@ -844,3 +844,66 @@ async def breach_crawler(target_email: str = Query(..., description="Email to lo
             }
     except Exception as e:
         return {"status": "error", "message": str(e)}
+
+# ---------------------------------------------------------------------------
+# Monitor Endpoints
+# ---------------------------------------------------------------------------
+
+class MonitorCreate(BaseModel):
+    target: str
+    checks: list
+    webhook_url: str
+    webhook_type: str
+
+@router.post("/monitor/add", tags=["Monitors"])
+async def add_monitor(monitor: MonitorCreate):
+    from app.core.database import db
+    m_id = db.add_monitor(monitor.target, monitor.checks, monitor.webhook_url, monitor.webhook_type)
+    return {"status": "success", "id": m_id}
+
+@router.get("/monitor/list", tags=["Monitors"])
+async def list_monitors():
+    from app.core.database import db
+    return db.list_monitors()
+
+@router.delete("/monitor/{monitor_id}", tags=["Monitors"])
+async def delete_monitor(monitor_id: str):
+    from app.core.database import db
+    db.delete_monitor(monitor_id)
+    return {"status": "success"}
+
+@router.post("/monitor/{monitor_id}/run", tags=["Monitors"])
+async def run_monitor_immediately(monitor_id: str):
+    from app.core.database import db
+    monitor = db.get_monitor(monitor_id)
+    if not monitor:
+        raise HTTPException(status_code=404, detail="Monitor not found")
+    
+    # Importing run_single_monitor from the root monolith
+    import sys
+    import os
+    # Add root to sys.path if needed
+    root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    if root_dir not in sys.path:
+        sys.path.insert(0, root_dir)
+        
+    try:
+        from main import run_single_monitor
+        await run_single_monitor(monitor)
+    except ImportError:
+        # Fallback if run_single_monitor can't be imported
+        db.add_monitor_log(monitor_id, "error", "Standalone backend does not support immediate run yet.")
+        raise HTTPException(status_code=501, detail="Immediate run not supported in standalone backend yet.")
+
+    logs = db.get_monitor_logs(monitor_id, limit=1)
+    latest_log = logs[0] if logs else {"status": "unknown", "details": "No logs recorded"}
+    return {"status": "success", "log": latest_log}
+
+@router.get("/monitor/{monitor_id}/history", tags=["Monitors"])
+async def get_monitor_history(monitor_id: str, limit: int = Query(10, description="Limit log history count")):
+    from app.core.database import db
+    monitor = db.get_monitor(monitor_id)
+    if not monitor:
+        raise HTTPException(status_code=404, detail="Monitor not found")
+    logs = db.get_monitor_logs(monitor_id, limit=limit)
+    return logs
