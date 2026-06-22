@@ -2,7 +2,15 @@
 
 > **Advanced Open Source Intelligence gathering, correlation, and investigation platform — built for ethical security research and digital forensics.**
 
-Holmes is a full-stack OSINT platform featuring a modular Python backend (FastAPI), a React frontend with 30+ intelligence modules, real-time streaming results, an interactive relationship graph, and a PDF report engine.
+### 🌐 [Live Demo → da-holmes.vercel.app](https://da-holmes.vercel.app) &nbsp;|&nbsp; [API Docs → /docs](https://da-holmes-api.onrender.com/docs)
+
+---
+
+### 🔗 Entity Link Graph — Visualize Every Connection
+
+Holmes's most powerful feature: an interactive, **Maltego-style force-directed graph** that maps relationships between every entity discovered across a scan — domains, IPs, emails, GitHub repos, subdomains, breached accounts, and social profiles — all in real time.
+
+> 📸 **[→ See it in action](#)** *(replace with your GIF/screenshot after deploy)*
 
 ---
 
