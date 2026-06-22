@@ -67,3 +67,20 @@ scratch/
 
 # Debug output
 debug_routes.txt
+
+# Local Task Management
+todo.md
+
+# Dev / scratch / test artefacts (root-level)
+test_*.pdf
+test_*.json
+direct_test*.pdf
+old_endpoint.txt
+scratch_test*.py
+test.py
+test_api.pdf
+test_old.pdf
+test_req.pdf
+dummy_test.jpg
+/dev/
+
