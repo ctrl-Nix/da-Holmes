@@ -83,6 +83,13 @@ limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
 def validate_value(val: str, field_name: str = "Input", is_url: bool = False) -> str:
     if not val or not str(val).strip():
         return f"{field_name} cannot be empty."
+    
+    # Check for control or binary characters
+    for char in val:
+        o = ord(char)
+        if (o < 32 and char not in ('\r', '\n', '\t')) or (127 <= o <= 159):
+            return f"{field_name} contains prohibited control or binary characters."
+            
     # Skip length + shell-char check for URL-type fields (webhook URLs can be long)
     if is_url:
         return ""
