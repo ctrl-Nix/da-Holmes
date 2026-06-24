@@ -23,7 +23,7 @@ export default function PhoneIntel({ results }) {
     <div className={styles.cardContainer}>
       <div className={styles.cardHeader}>
         <span className={styles.cardTitle}>
-          <span className={styles.cardTitleIcon}>📞</span> Phone Intelligence Scan: <strong className={styles.phoneHighlight}>+{number}</strong>
+          <span className={styles.cardTitleIcon}></span> Phone Intelligence Scan: <strong className={styles.phoneHighlight}>+{number}</strong>
         </span>
         <span className={`${styles.riskBadge} ${isHighRisk ? styles.riskHigh : styles.riskLow}`}>
           {isHighRisk ? (

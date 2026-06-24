@@ -10,7 +10,7 @@ export default function WhoisIntel({ results }) {
       <div className={styles.container} style={{ opacity: 0.65, borderStyle: 'dashed' }}>
         <div className={styles.header} style={{ borderBottom: 'none' }}>
           <div className={styles.titleGroup}>
-            <span className={styles.icon}>🚫</span>
+            <span className={styles.icon}></span>
             <span className={styles.titleText} style={{ color: 'rgba(55, 53, 47, 0.5)' }}>
               Domain WHOIS Lifecycle: <strong>Module Offline</strong>
             </span>
@@ -59,18 +59,18 @@ export default function WhoisIntel({ results }) {
     <div className={styles.container}>
       <div className={styles.header}>
         <div className={styles.titleGroup}>
-          <span className={styles.icon}>🏷️</span>
+          <span className={styles.icon}></span>
           <span className={styles.titleText}>Domain WHOIS Lifecycle: <strong>{domain}</strong></span>
         </div>
         <div className={styles.badgeRow}>
           {isNew && (
             <span className={`${styles.riskBadge} ${styles.riskNew}`}>
-              ⚠️ NEW REGISTRY
+               NEW REGISTRY
             </span>
           )}
           {isExpiring && (
             <span className={`${styles.riskBadge} ${styles.riskExpiry}`}>
-              🚨 EXPIRING SOON
+               EXPIRING SOON
             </span>
           )}
         </div>
@@ -80,7 +80,7 @@ export default function WhoisIntel({ results }) {
         
         {/* Visual Lifecycle Timeline */}
         <div className={styles.timelineSection}>
-          <span className={styles.sectionHeader}>📅 Registry Life Cycle Timeline</span>
+          <span className={styles.sectionHeader}> Registry Life Cycle Timeline</span>
           <div className={styles.timelineContainer}>
             
             {/* Creation node */}

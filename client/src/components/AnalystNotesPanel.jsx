@@ -103,7 +103,7 @@ export default function AnalystNotesPanel({ query }) {
         onClick={() => setIsOpen(true)}
         title="Expand Analyst Notes"
       >
-        <span style={{ fontSize: '14px' }}>📝</span>
+        <span style={{ fontSize: '14px' }}></span>
         <div style={{ writingMode: 'vertical-lr', textOrientation: 'mixed', fontSize: '11px', fontWeight: 600, color: 'rgba(55, 53, 47, 0.5)', marginTop: '8px' }}>
           ANALYST NOTES
         </div>
@@ -115,7 +115,7 @@ export default function AnalystNotesPanel({ query }) {
     <div className={styles.notesPanel}>
       <div className={styles.notesPanelHeader}>
         <div className={styles.notesPanelTitle}>
-          <span>📝 Analyst Notes</span>
+          <span> Analyst Notes</span>
         </div>
         <button className={styles.notesCollapseBtn} onClick={() => setIsOpen(false)} title="Collapse Notes">
           ✕

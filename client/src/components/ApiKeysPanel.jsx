@@ -25,7 +25,7 @@ function InstagramStatusBanner({ configured }) {
         <WifiOff size={16} color="#ff9f43" />
       )}
       <span style={{ fontSize: '13px', fontWeight: 600, color: configured ? '#2ed573' : '#ff9f43' }}>
-        {configured ? '🔐 Authenticated Mode Active — Real profile data will be fetched' : '⚠️ Unauthenticated — Best-effort only, high false-positive rate'}
+        {configured ? ' Authenticated Mode Active — Real profile data will be fetched' : ' Unauthenticated — Best-effort only, high false-positive rate'}
       </span>
     </div>
   );
@@ -38,11 +38,11 @@ function CookieGuide() {
   const [open, setOpen] = useState(false);
 
   const steps = [
-    { icon: '🌐', title: 'Open Instagram', desc: 'Go to instagram.com in Chrome / Edge. Log in with your account.' },
-    { icon: '🔧', title: 'Open DevTools', desc: 'Press F12 (or Ctrl+Shift+I) to open Developer Tools.' },
-    { icon: '📦', title: 'Go to Application Tab', desc: 'Click "Application" tab → expand "Cookies" → click "https://www.instagram.com".' },
-    { icon: '🍪', title: 'Find These Cookies', desc: 'Look for: sessionid, ds_user_id, csrftoken. Copy each value.' },
-    { icon: '📋', title: 'Paste Below', desc: 'Paste the values into the fields below and click Save.' },
+    { icon: '', title: 'Open Instagram', desc: 'Go to instagram.com in Chrome / Edge. Log in with your account.' },
+    { icon: '', title: 'Open DevTools', desc: 'Press F12 (or Ctrl+Shift+I) to open Developer Tools.' },
+    { icon: '', title: 'Go to Application Tab', desc: 'Click "Application" tab → expand "Cookies" → click "https://www.instagram.com".' },
+    { icon: '', title: 'Find These Cookies', desc: 'Look for: sessionid, ds_user_id, csrftoken. Copy each value.' },
+    { icon: '', title: 'Paste Below', desc: 'Paste the values into the fields below and click Save.' },
   ];
 
   return (
@@ -115,7 +115,7 @@ function CookieGuide() {
             color: '#e1306c',
             lineHeight: 1.6,
           }}>
-            ⚠️ <strong>Security Note:</strong> Never share these cookies with anyone else. They grant full access to your Instagram account. This tool stores them encrypted in a local vault — they never leave your server.
+             <strong>Security Note:</strong> Never share these cookies with anyone else. They grant full access to your Instagram account. This tool stores them encrypted in a local vault — they never leave your server.
           </div>
         </div>
       )}
@@ -336,7 +336,7 @@ export default function ApiKeysPanel() {
       </p>
 
       {/* ── INSTAGRAM SECTION ──────────────────────────────────────────────── */}
-      {sectionHeading('📸', 'Instagram Session Cookies', '#e1306c')}
+      {sectionHeading('', 'Instagram Session Cookies', '#e1306c')}
 
       <InstagramStatusBanner configured={igConfigured} />
       <CookieGuide />
@@ -371,7 +371,7 @@ export default function ApiKeysPanel() {
       </div>
 
       {/* ── TWITTER/X SECTION ──────────────────────────────────────────────── */}
-      {sectionHeading('🐦', 'Twitter / X Bearer Token', '#1da1f2')}
+      {sectionHeading('', 'Twitter / X Bearer Token', '#1da1f2')}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
         <label style={labelStyle}>Bearer Token</label>
         <span style={{ fontSize: '11px', color: 'var(--notion-text-secondary, #888)', marginBottom: '4px' }}>
@@ -387,7 +387,7 @@ export default function ApiKeysPanel() {
       </div>
 
       {/* ── OTHER API KEYS SECTION ────────────────────────────────────────── */}
-      {sectionHeading('🔑', 'Other API Keys', '#2383e2')}
+      {sectionHeading('', 'Other API Keys', '#2383e2')}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -464,12 +464,12 @@ export default function ApiKeysPanel() {
           gap: '10px',
         }}>
           {[
-            { label: 'Instagram', configured: igConfigured, icon: '📸' },
-            { label: 'Shodan', configured: !!keys.shodan, icon: '🔎' },
-            { label: 'VirusTotal', configured: !!keys.virustotal, icon: '🛡️' },
-            { label: 'GitHub', configured: !!keys.github, icon: '🐙' },
-            { label: 'Twitter/X', configured: !!keys.twitter_bearer, icon: '🐦' },
-            { label: 'Censys', configured: !!keys.censys_id, icon: '🌐' },
+            { label: 'Instagram', configured: igConfigured, icon: '' },
+            { label: 'Shodan', configured: !!keys.shodan, icon: '' },
+            { label: 'VirusTotal', configured: !!keys.virustotal, icon: '' },
+            { label: 'GitHub', configured: !!keys.github, icon: '' },
+            { label: 'Twitter/X', configured: !!keys.twitter_bearer, icon: '' },
+            { label: 'Censys', configured: !!keys.censys_id, icon: '' },
           ].map(({ label, configured, icon }) => (
             <span
               key={label}

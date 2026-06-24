@@ -285,7 +285,7 @@ export default function LocalMLIntel() {
                   padding: '12px 20px', borderRadius: '8px', color: '#fff', fontWeight: 700, fontSize: '18px',
                   backgroundColor: botPrediction.is_bot ? '#ef4444' : '#10b981' 
                 }}>
-                  {botPrediction.is_bot ? '⚠️ HIGH RISK (BOT)' : '✅ LEGITIMATE'}
+                  {botPrediction.is_bot ? ' HIGH RISK (BOT)' : ' LEGITIMATE'}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   <span style={{ fontSize: '11px', color: 'var(--notion-fg-light)', textTransform: 'uppercase', fontWeight: 700 }}>Probability Score</span>

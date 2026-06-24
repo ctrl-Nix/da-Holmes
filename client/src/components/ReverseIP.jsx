@@ -11,7 +11,7 @@ export default function ReverseIP({ results, onInvestigate }) {
     <div className={styles.cardContainer}>
       <div className={styles.cardHeader}>
         <span className={styles.cardTitle}>
-          <span className={styles.cardTitleIcon}>🔄</span> Reverse IP Domain Resolution: <strong className={styles.ipHighlight}>{ip}</strong>
+          <span className={styles.cardTitleIcon}></span> Reverse IP Domain Resolution: <strong className={styles.ipHighlight}>{ip}</strong>
         </span>
         <span className={styles.cardBadge}>
           {count} Associated {count === 1 ? 'Host' : 'Hosts'}
@@ -20,7 +20,7 @@ export default function ReverseIP({ results, onInvestigate }) {
       <div className={styles.cardBody}>
         {message && (
           <div className={styles.warningMessage}>
-            ⚠️ {message}
+             {message}
           </div>
         )}
 

@@ -13,12 +13,12 @@ const SLIDES = [
     text: 'Drop any target — username, domain, IP, email, or Bitcoin address — into the Unified Scanner and Holmes maps its entire digital surface in one pass.',
   },
   {
-    icon: '🗺️',
+    icon: '',
     title: 'Deep Dive Tools',
     text: 'Use specialised modules for DNS history, dark web scans, SSL inspection, social footprinting, IoT exposure, metadata forensics, and 20+ more.',
   },
   {
-    icon: '📊',
+    icon: '',
     title: 'Workspace & Reports',
     text: 'Save findings to your Workspace, add analyst notes, tag targets, and export professional PDF intelligence reports in one click.',
   },
@@ -86,7 +86,7 @@ const OnboardingModal = () => {
 
             {/* Header */}
             <div className={styles.header}>
-              <div className={styles.logo}>🔎</div>
+              <div className={styles.logo}></div>
               <h1 className={styles.mainTitle}>Holmes OSINT</h1>
               <p className={styles.mainSubtitle}>Open Source Intelligence Platform</p>
             </div>

@@ -44,7 +44,7 @@ export default function SocialScanner({ isLoading }) {
     return (
       <div className={styles.container}>
         <div className={styles.sectionHeader} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <span>⚡ Quick Check</span>
+          <span> Quick Check</span>
         </div>
         <div className={styles.cardGrid}>
           {[1, 2, 3, 4, 5, 6].map((num) => (
@@ -62,13 +62,13 @@ export default function SocialScanner({ isLoading }) {
 
   const getPlatformDetails = (name) => {
     switch (name) {
-      case 'Instagram': return { icon: '📸', color: '#E1306C' };
-      case 'Twitter': return { icon: '🐦', color: '#1DA1F2' };
-      case 'GitHub': return { icon: '💻', color: '#181717' };
-      case 'Reddit': return { icon: '🤖', color: '#FF4500' };
-      case 'TikTok': return { icon: '🎵', color: '#000000' };
-      case 'Telegram': return { icon: '✈️', color: '#0088CC' };
-      default: return { icon: '🌐', color: 'var(--notion-accent)' };
+      case 'Instagram': return { icon: '', color: '#E1306C' };
+      case 'Twitter': return { icon: '', color: '#1DA1F2' };
+      case 'GitHub': return { icon: '', color: '#181717' };
+      case 'Reddit': return { icon: '', color: '#FF4500' };
+      case 'TikTok': return { icon: '', color: '#000000' };
+      case 'Telegram': return { icon: '', color: '#0088CC' };
+      default: return { icon: '', color: 'var(--notion-accent)' };
     }
   };
 
@@ -195,16 +195,16 @@ export default function SocialScanner({ isLoading }) {
 
       {(quickState !== 'idle' || deepState !== 'idle') && (
         <div className={styles.disclaimerBanner}>
-          <span>🛡️</span>
+          <span></span>
           <span>Results are sourced from public APIs. Unavailable modules show clearly as offline. No data is fabricated or estimated.</span>
         </div>
       )}
 
-      {/* ⚡ QUICK CHECK SECTION */}
+      {/*  QUICK CHECK SECTION */}
       {quickState !== 'idle' && (
         <div className={styles.section}>
           <div className={styles.sectionHeader} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span>⚡ Quick Check</span>
+            <span> Quick Check</span>
             <span style={{ fontSize: '11px', fontWeight: 600 }}>
               {quickState === 'scanning' ? 'Scanning...' : 'Completed'}
             </span>
@@ -269,7 +269,7 @@ export default function SocialScanner({ isLoading }) {
                     <div className={styles.cardBottom}>
                       {isBestEffort ? (
                         <span style={{ fontSize: '11px', color: '#ff9f43', lineHeight: 1.4 }}>
-                          🔑 Add session cookie in Settings for reliable results
+                           Add session cookie in Settings for reliable results
                         </span>
                       ) : isFound ? (
                         <a href={item.url} target="_blank" rel="noreferrer" className={styles.visitBtn}>
@@ -300,7 +300,7 @@ export default function SocialScanner({ isLoading }) {
             <div className={styles.deepProgressTop}>
               <span className={styles.counterText}>
                 {deepState === 'completed'
-                  ? `✅ Scan complete — ${totalChecked} sites checked`
+                  ? ` Scan complete — ${totalChecked} sites checked`
                   : `Scanning... ${totalChecked} / ${TOTAL_SITES} sites checked`}
               </span>
               <span className={styles.progressPct}>{progressPercent}%</span>
@@ -310,13 +310,13 @@ export default function SocialScanner({ isLoading }) {
             </div>
           </div>
 
-          {/* ✅ Found Section — expanded by default */}
+          {/*  Found Section — expanded by default */}
           <div className={styles.collapsibleSection}>
             <button className={`${styles.collapsibleHeader} ${styles.collapsibleGreen}`} onClick={() => setFoundOpen(!foundOpen)}>
               <span className={styles.collapsibleIcon}>
                 {foundOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
               </span>
-              <span>✅ Found ({foundList.length})</span>
+              <span> Found ({foundList.length})</span>
             </button>
             {foundOpen && foundList.length > 0 && (
               <div className={styles.cardGrid}>
@@ -354,13 +354,13 @@ export default function SocialScanner({ isLoading }) {
             )}
           </div>
 
-          {/* ❌ Not Found Section — collapsed by default */}
+          {/*  Not Found Section — collapsed by default */}
           <div className={styles.collapsibleSection}>
             <button className={`${styles.collapsibleHeader} ${styles.collapsibleGray}`} onClick={() => setNotFoundOpen(!notFoundOpen)}>
               <span className={styles.collapsibleIcon}>
                 {notFoundOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
               </span>
-              <span>❌ Not Found ({notFoundList.length})</span>
+              <span> Not Found ({notFoundList.length})</span>
             </button>
             {notFoundOpen && notFoundList.length > 0 && (
               <div className={styles.compactList}>
@@ -374,13 +374,13 @@ export default function SocialScanner({ isLoading }) {
             )}
           </div>
 
-          {/* ⚠️ Unavailable Section — collapsed by default */}
+          {/*  Unavailable Section — collapsed by default */}
           <div className={styles.collapsibleSection}>
             <button className={`${styles.collapsibleHeader} ${styles.collapsibleOrange}`} onClick={() => setUnavailableOpen(!unavailableOpen)}>
               <span className={styles.collapsibleIcon}>
                 {unavailableOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
               </span>
-              <span>⚠️ Unavailable ({unavailableList.length})</span>
+              <span> Unavailable ({unavailableList.length})</span>
             </button>
             {unavailableOpen && unavailableList.length > 0 && (
               <div className={styles.compactList}>

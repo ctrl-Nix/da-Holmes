@@ -11,7 +11,7 @@ export default function IpIntel({ results, onInvestigate }) {
       const lon = results.longitude;
       const label = `
         <div style="font-family: Inter, sans-serif; font-size: 12px; color: #37352f; line-height: 1.4;">
-          <strong style="color: var(--notion-accent); display: flex; align-items: center; gap: 4px;">📍 Geolocation Resolved</strong>
+          <strong style="color: var(--notion-accent); display: flex; align-items: center; gap: 4px;"> Geolocation Resolved</strong>
           <span style="font-size: 11px; font-weight: 600; color: #4b4b4b;">${results.city}, ${results.region}, ${results.country}</span><br/>
           <span style="font-size: 10.5px; color: rgba(55, 53, 47, 0.7);">${lat.toFixed(6)}, ${lon.toFixed(6)}</span>
         </div>
@@ -73,7 +73,7 @@ export default function IpIntel({ results, onInvestigate }) {
     <div className={styles.container}>
       <div className={styles.headerRow}>
         <div className={styles.titleSec}>
-          <span className={styles.icon}>📡</span>
+          <span className={styles.icon}></span>
           <span className={styles.titleText}>Network Host Telemetry: <strong>{ip}</strong></span>
         </div>
         {is_datacenter && (
@@ -126,7 +126,7 @@ export default function IpIntel({ results, onInvestigate }) {
               <span className={styles.detailVal} style={{ fontWeight: 600 }}>{org}</span>
             </div>
 
-            <span className={styles.subHeading}>🛡️ Diagnostic Socket Mapping (Nmap Scan)</span>
+            <span className={styles.subHeading}> Diagnostic Socket Mapping (Nmap Scan)</span>
             {parsedPorts.length > 0 ? (
               <div className={styles.tableWrapper}>
                 <table className={styles.portsTable}>

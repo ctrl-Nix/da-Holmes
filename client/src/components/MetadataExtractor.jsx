@@ -77,7 +77,7 @@ export default function MetadataExtractor({ results }) {
           </div>
         ) : (
           <div style={{ padding: '24px', textAlign: 'center', border: '1px dashed var(--notion-border)', borderRadius: '6px' }}>
-            <div style={{ fontSize: '24px', marginBottom: '8px' }}>🗄️</div>
+            <div style={{ fontSize: '24px', marginBottom: '8px' }}></div>
             <div style={{ fontSize: '14px', fontWeight: 600 }}>No hidden metadata found</div>
             <div style={{ fontSize: '12px', color: 'rgba(55, 53, 47, 0.6)', marginTop: '4px' }}>
               This document has been thoroughly sanitized or doesn't contain standard metadata fields.

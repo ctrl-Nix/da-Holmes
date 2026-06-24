@@ -31,13 +31,13 @@ export default function MaltegoGraph() {
 
   const getNodeIcon = (type) => {
     switch(type) {
-      case 'domain': return '🌐';
-      case 'ip': return '🖥️';
-      case 'email': return '📧';
-      case 'breach': return '☠️';
-      case 'asn': return '🏢';
-      case 'location': return '📍';
-      default: return '📄';
+      case 'domain': return '';
+      case 'ip': return '';
+      case 'email': return '';
+      case 'breach': return '';
+      case 'asn': return '';
+      case 'location': return '';
+      default: return '';
     }
   };
 
@@ -228,7 +228,7 @@ export default function MaltegoGraph() {
 
       {error && (
         <div style={{ marginTop: '12px', padding: '12px', backgroundColor: '#fee2e2', color: '#b91c1c', borderRadius: '6px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '16px' }}>⚠️</span> {error}
+          <span style={{ fontSize: '16px' }}></span> {error}
         </div>
       )}
 

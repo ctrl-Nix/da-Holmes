@@ -7,7 +7,7 @@ export default function TechStackWidget({ technologies, domain, isLoading }) {
       <div className="bg-gray-900 border border-gray-800 rounded-lg p-5">
         <div className="flex justify-between items-center border-b border-gray-800 pb-3 mb-4">
           <h3 className="text-sm font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-2">
-            <span>⚙️</span> Technology Footprint
+            <span></span> Technology Footprint
           </h3>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -45,7 +45,7 @@ export default function TechStackWidget({ technologies, domain, isLoading }) {
     <div className="bg-gray-900 border border-gray-800 rounded-lg p-5 animate-fade-in">
       <div className="flex justify-between items-center border-b border-gray-800 pb-3 mb-4">
         <h3 className="text-sm font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-2">
-          <span>⚙️</span> Technology Footprint
+          <span></span> Technology Footprint
         </h3>
         <span className="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded font-bold uppercase">
           Passive Discovery
