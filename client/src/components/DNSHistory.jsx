@@ -14,7 +14,7 @@ export default function DNSHistory({ results, onInvestigate }) {
     <div className={styles.cardContainer}>
       <div className={styles.cardHeader}>
         <span className={styles.cardTitle}>
-          <span className={styles.cardTitleIcon}>🌐</span> DNS & Host History Profile: <strong className={styles.domainHighlight}>{domain}</strong>
+          <span className={styles.cardTitleIcon}></span> DNS & Host History Profile: <strong className={styles.domainHighlight}>{domain}</strong>
         </span>
         <span className={styles.cardBadge}>
           Active Reconnaissance

@@ -10,7 +10,7 @@ export default function SslIntel({ results, isLoading }) {
       <div className={`${styles.container} ${styles.secureBorder}`}>
         <div className={styles.header}>
           <div className={styles.titleSec}>
-            <span className={styles.icon}>🔒</span>
+            <span className={styles.icon}></span>
             <span className={styles.titleText}>SSL/TLS Core Security Certificate</span>
           </div>
         </div>
@@ -37,7 +37,7 @@ export default function SslIntel({ results, isLoading }) {
       <div className={styles.container} style={{ opacity: 0.65, borderStyle: 'dashed' }}>
         <div className={styles.header} style={{ borderBottom: 'none' }}>
           <div className={styles.titleSec}>
-            <span className={styles.icon}>🚫</span>
+            <span className={styles.icon}></span>
             <span className={styles.titleText} style={{ color: 'rgba(55, 53, 47, 0.5)' }}>
               SSL/TLS Core Security Certificate: <strong>Module Offline</strong>
             </span>
@@ -105,7 +105,7 @@ export default function SslIntel({ results, isLoading }) {
     <div className={`${styles.container} ${cardClass}`}>
       <div className={styles.header}>
         <div className={styles.titleSec}>
-          <span className={styles.icon}>🔒</span>
+          <span className={styles.icon}></span>
           <span className={styles.titleText}>SSL/TLS Core Security Certificate: <strong>{domain}</strong></span>
         </div>
         <span className={`${styles.statusBadge} ${statusBadgeClass}`}>

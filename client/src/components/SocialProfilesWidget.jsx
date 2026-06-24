@@ -4,22 +4,22 @@ import { User, CheckCircle2, XCircle, AlertCircle, Loader2, Search, ExternalLink
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
 const PLATFORM_ICONS = {
-  GitHub: '🐙',
-  Twitter: '🐦',
-  Reddit: '🤖',
-  Instagram: '📸',
-  Pinterest: '📌',
-  ProtonMail: '🔒',
-  Keybase: '🔑',
-  Medium: '✍️',
-  DockerHub: '🐳',
-  Steam: '🎮',
+  GitHub: '',
+  Twitter: '',
+  Reddit: '',
+  Instagram: '',
+  Pinterest: '',
+  ProtonMail: '',
+  Keybase: '',
+  Medium: '',
+  DockerHub: '',
+  Steam: '',
 };
 
 const ProfileCard = ({ platform, url, status }) => {
   const isFound = status === 'found';
   const isError = status === 'error';
-  const icon = PLATFORM_ICONS[platform] || '🌐';
+  const icon = PLATFORM_ICONS[platform] || '';
 
   const color = isFound ? '#27ae60' : isError ? '#888' : '#e74c3c';
   const StatusIcon = isFound ? CheckCircle2 : isError ? AlertCircle : XCircle;

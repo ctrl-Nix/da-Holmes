@@ -32,15 +32,15 @@ export default function BreachIntel({ results, isLoading }) {
   const getBadgeClass = (dataType) => {
     const dt = dataType.toLowerCase();
     if (dt.includes('password') || dt.includes('credential')) {
-      return { className: styles.badgeRed, icon: '🔑' };
+      return { className: styles.badgeRed, icon: '' };
     }
     if (dt.includes('email') || dt.includes('username')) {
-      return { className: styles.badgeOrange, icon: '📧' };
+      return { className: styles.badgeOrange, icon: '' };
     }
     if (dt.includes('phone') || dt.includes('mobile')) {
-      return { className: styles.badgeYellow, icon: '📱' };
+      return { className: styles.badgeYellow, icon: '' };
     }
-    return { className: styles.badgeNeutral, icon: '📄' };
+    return { className: styles.badgeNeutral, icon: '' };
   };
 
   // Error State Handling
@@ -56,7 +56,7 @@ export default function BreachIntel({ results, isLoading }) {
             </div>
           </div>
           <span className={`${styles.countBadge} ${styles.countError}`}>
-            ⚠️ SCAN FAILED
+             SCAN FAILED
           </span>
         </div>
         <div className={styles.body}>
@@ -87,7 +87,7 @@ export default function BreachIntel({ results, isLoading }) {
           </div>
         </div>
         <span className={`${styles.countBadge} ${breach_count > 0 ? styles.countCritical : styles.countSecure}`}>
-          {breach_count > 0 ? `🚨 ${breach_count} BREACHES RECORDED` : '🛡️ TARGET SECURE'}
+          {breach_count > 0 ? ` ${breach_count} BREACHES RECORDED` : ' TARGET SECURE'}
         </span>
       </div>
 
@@ -138,7 +138,7 @@ export default function BreachIntel({ results, isLoading }) {
                         <div className={styles.timelineContent}>
                           <div className={styles.timelineHeader}>
                             <h4 className={styles.breachName}>{item.name}</h4>
-                            <span className={styles.breachYear}>🗓️ {year}</span>
+                            <span className={styles.breachYear}> {year}</span>
                           </div>
                           <div className={styles.exposedChipsRow}>
                             {(item.data_classes || []).map((cls, cIdx) => (

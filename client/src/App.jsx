@@ -47,13 +47,13 @@ const API_BASE = import.meta.env.VITE_API_URL || '';
 
 const getTechIcon = (name) => {
   const lower = name.toLowerCase();
-  if (lower.includes('wordpress')) return '📝';
-  if (lower.includes('next.js') || lower.includes('nextjs')) return '⚡';
-  if (lower.includes('react')) return '⚛️';
-  if (lower.includes('shopify')) return '🛍️';
-  if (lower.includes('google analytics') || lower.includes('gtag')) return '📊';
-  if (lower.includes('nginx') || lower.includes('apache')) return '⚙️';
-  return '🌐';
+  if (lower.includes('wordpress')) return '';
+  if (lower.includes('next.js') || lower.includes('nextjs')) return '';
+  if (lower.includes('react')) return '';
+  if (lower.includes('shopify')) return '';
+  if (lower.includes('google analytics') || lower.includes('gtag')) return '';
+  if (lower.includes('nginx') || lower.includes('apache')) return '';
+  return '';
 };
 
 
@@ -140,7 +140,7 @@ function ThreatTicker({ feed, loading }) {
             // red background for malware, orange for phishing
             const bg = isMalware ? '#ca2c2c' : '#c9751d';
             const typeLabel = item.type === 'botnet_ip' ? 'BOTNET IP' : (item.type === 'malware_url' ? 'MALWARE' : 'PHISHING');
-            const icon = item.type === 'botnet_ip' ? '🤖' : (item.type === 'malware_url' ? '🐛' : '🎣');
+            const icon = item.type === 'botnet_ip' ? '' : (item.type === 'malware_url' ? '' : '');
             
             return (
               <div 
@@ -199,12 +199,12 @@ const mapHistoryToReports = (historyArray) => {
     const score = item.riskScore !== undefined ? item.riskScore : 100;
     
     let emoji = '🕵️';
-    if (type === 'domain') emoji = '🏢';
-    else if (type === 'username') emoji = '👤';
-    else if (type === 'btc') emoji = '💰';
-    else if (type === 'network') emoji = '🌐';
-    else if (type === 'email') emoji = '📧';
-    else if (type === 'phone') emoji = '📱';
+    if (type === 'domain') emoji = '';
+    else if (type === 'username') emoji = '';
+    else if (type === 'btc') emoji = '';
+    else if (type === 'network') emoji = '';
+    else if (type === 'email') emoji = '';
+    else if (type === 'phone') emoji = '';
 
     let title = `Intelligence Target Audit (${query})`;
     if (type === 'domain') title = `Corporate Security Audit (${query})`;
@@ -265,9 +265,9 @@ export default function App() {
       console.error('Failed to load initial reports:', err);
     }
     return [
-      { id: 'rep-mock-1', emoji: '🏢', title: 'Corporate Security Audit (kiit.ac.in)', date: '2026-05-17', target: 'kiit.ac.in', type: 'Domain Audit', author: 'Agent Holmes', risk: 'VULNERABLE', score: 65 },
-      { id: 'rep-mock-2', emoji: '👤', title: 'Subject Profile Brief (torvalds)', date: '2026-05-16', target: 'torvalds', type: 'Username Footprint', author: 'Agent Holmes', risk: 'SECURE', score: 92 },
-      { id: 'rep-mock-3', emoji: '💰', title: 'High-Value Asset Tracing (1A1zP1eP...)', date: '2026-05-15', target: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa', type: 'Blockchain Intel', author: 'System Sentinel', risk: 'CRITICAL', score: 20 },
+      { id: 'rep-mock-1', emoji: '', title: 'Corporate Security Audit (kiit.ac.in)', date: '2026-05-17', target: 'kiit.ac.in', type: 'Domain Audit', author: 'Agent Holmes', risk: 'VULNERABLE', score: 65 },
+      { id: 'rep-mock-2', emoji: '', title: 'Subject Profile Brief (torvalds)', date: '2026-05-16', target: 'torvalds', type: 'Username Footprint', author: 'Agent Holmes', risk: 'SECURE', score: 92 },
+      { id: 'rep-mock-3', emoji: '', title: 'High-Value Asset Tracing (1A1zP1eP...)', date: '2026-05-15', target: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa', type: 'Blockchain Intel', author: 'System Sentinel', risk: 'CRITICAL', score: 20 },
     ];
   };
 
@@ -488,9 +488,9 @@ export default function App() {
         if (Array.isArray(parsed)) {
           if (parsed.length === 0) {
             setReports([
-              { id: 'rep-mock-1', emoji: '🏢', title: 'Corporate Security Audit (kiit.ac.in)', date: '2026-05-17', target: 'kiit.ac.in', type: 'Domain Audit', author: 'Agent Holmes', risk: 'VULNERABLE', score: 65 },
-              { id: 'rep-mock-2', emoji: '👤', title: 'Subject Profile Brief (torvalds)', date: '2026-05-16', target: 'torvalds', type: 'Username Footprint', author: 'Agent Holmes', risk: 'SECURE', score: 92 },
-              { id: 'rep-mock-3', emoji: '💰', title: 'High-Value Asset Tracing (1A1zP1eP...)', date: '2026-05-15', target: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa', type: 'Blockchain Intel', author: 'System Sentinel', risk: 'CRITICAL', score: 20 },
+              { id: 'rep-mock-1', emoji: '', title: 'Corporate Security Audit (kiit.ac.in)', date: '2026-05-17', target: 'kiit.ac.in', type: 'Domain Audit', author: 'Agent Holmes', risk: 'VULNERABLE', score: 65 },
+              { id: 'rep-mock-2', emoji: '', title: 'Subject Profile Brief (torvalds)', date: '2026-05-16', target: 'torvalds', type: 'Username Footprint', author: 'Agent Holmes', risk: 'SECURE', score: 92 },
+              { id: 'rep-mock-3', emoji: '', title: 'High-Value Asset Tracing (1A1zP1eP...)', date: '2026-05-15', target: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa', type: 'Blockchain Intel', author: 'System Sentinel', risk: 'CRITICAL', score: 20 },
             ]);
           } else {
             setReports(mapHistoryToReports(parsed));
@@ -1395,7 +1395,7 @@ export default function App() {
       const lon = exifResults.gps.lon;
       const label = `
         <div style="font-family: Inter, sans-serif; font-size: 12px; color: #37352f; line-height: 1.4;">
-          <strong style="color: var(--notion-accent); display: flex; align-items: center; gap: 4px;">📍 EXIF Tag Coordinate</strong>
+          <strong style="color: var(--notion-accent); display: flex; align-items: center; gap: 4px;"> EXIF Tag Coordinate</strong>
           <span style="font-size: 11px; font-weight: 600; color: #4b4b4b;">Model: ${exifResults.make || 'Apple'} ${exifResults.model || 'iPhone'}</span><br/>
           <span style="font-size: 10.5px; color: rgba(55, 53, 47, 0.7);">${lat.toFixed(6)}, ${lon.toFixed(6)}</span>
         </div>
@@ -1742,7 +1742,7 @@ export default function App() {
       lon = geoResults.coordinates.lon;
       popupContent = `
         <div style="font-family: Inter, sans-serif; font-size: 12px; color: #37352f;">
-          <strong style="color: var(--notion-accent);">📍 Coordinates Audited</strong><br/>
+          <strong style="color: var(--notion-accent);"> Coordinates Audited</strong><br/>
           <span style="font-size: 11px; color: rgba(55, 53, 47, 0.7);">${geoResults.address}</span>
         </div>
       `;
@@ -1751,7 +1751,7 @@ export default function App() {
       lon = bssidResults.lon;
       popupContent = `
         <div style="font-family: Inter, sans-serif; font-size: 12px; color: #37352f;">
-          <strong style="color: #2b7a3e;">📶 SSID: ${bssidResults.ssid}</strong><br/>
+          <strong style="color: #2b7a3e;"> SSID: ${bssidResults.ssid}</strong><br/>
           <span style="font-size: 11px; font-weight: 500;">BSSID Geolocation Resolved</span><br/>
           <span style="font-size: 10.5px; color: rgba(55, 53, 47, 0.7);">${bssidResults.address}</span>
         </div>
@@ -1806,7 +1806,7 @@ export default function App() {
           zIndex: 9999,
           boxShadow: '0 2px 4px rgba(0,0,0,0.08)'
         }}>
-          {bannerStatus === 'unavailable' ? 'Server unavailable' : '⏳ Server waking up, please wait...'}
+          {bannerStatus === 'unavailable' ? 'Server unavailable' : ' Server waking up, please wait...'}
         </div>
       )}
       
@@ -1859,7 +1859,7 @@ export default function App() {
             onClick={() => setActiveView('notes')} 
             className={`${layoutStyles.navItem} ${activeView === 'notes' ? layoutStyles.navItemActive : ''}`}
           >
-            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>📝</div>
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}></div>
             <span className={layoutStyles.navItemLabel}>Analyst Notes</span>
             {sidebarExpanded && notesCount > 0 && (
               <span style={{
@@ -1895,7 +1895,7 @@ export default function App() {
             onClick={() => setActiveView('maltego')} 
             className={`${layoutStyles.navItem} ${activeView === 'maltego' ? layoutStyles.navItemActive : ''}`}
           >
-            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🕸️</div>
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}></div>
             <span className={layoutStyles.navItemLabel}>Maltego Int Graph</span>
           </div>
 
@@ -1927,7 +1927,7 @@ export default function App() {
             onClick={() => setActiveView('phone')} 
             className={`${layoutStyles.navItem} ${activeView === 'phone' ? layoutStyles.navItemActive : ''}`}
           >
-            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>📱</div>
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}></div>
             <span className={layoutStyles.navItemLabel}>Phone Intelligence</span>
           </div>
 
@@ -1935,7 +1935,7 @@ export default function App() {
             onClick={() => setActiveView('iot')} 
             className={`${layoutStyles.navItem} ${activeView === 'iot' ? layoutStyles.navItemActive : ''}`}
           >
-            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🛰️</div>
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}></div>
             <span className={layoutStyles.navItemLabel}>IoT & Vuln Scanner</span>
           </div>
 
@@ -1943,7 +1943,7 @@ export default function App() {
             onClick={() => setActiveView('darkweb')} 
             className={`${layoutStyles.navItem} ${activeView === 'darkweb' ? layoutStyles.navItemActive : ''}`}
           >
-            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>👁️</div>
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}></div>
             <span className={layoutStyles.navItemLabel}>Dark Web Monitor</span>
           </div>
 
@@ -1951,7 +1951,7 @@ export default function App() {
             onClick={() => setActiveView('monitor')} 
             className={`${layoutStyles.navItem} ${activeView === 'monitor' ? layoutStyles.navItemActive : ''}`}
           >
-            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🕒</div>
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}></div>
             <span className={layoutStyles.navItemLabel}>24/7 Monitoring</span>
           </div>
 
@@ -1959,7 +1959,7 @@ export default function App() {
             onClick={() => setActiveView('metadata')} 
             className={`${layoutStyles.navItem} ${activeView === 'metadata' ? layoutStyles.navItemActive : ''}`}
           >
-            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🗄️</div>
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}></div>
             <span className={layoutStyles.navItemLabel}>Document Forensics</span>
           </div>
 
@@ -1967,7 +1967,7 @@ export default function App() {
             onClick={() => setActiveView('corporate')} 
             className={`${layoutStyles.navItem} ${activeView === 'corporate' ? layoutStyles.navItemActive : ''}`}
           >
-            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🏢</div>
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}></div>
             <span className={layoutStyles.navItemLabel}>Corporate Intel</span>
           </div>
 
@@ -1975,7 +1975,7 @@ export default function App() {
             onClick={() => setActiveView('reddit')} 
             className={`${layoutStyles.navItem} ${activeView === 'reddit' ? layoutStyles.navItemActive : ''}`}
           >
-            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🤖</div>
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}></div>
             <span className={layoutStyles.navItemLabel}>Reddit Analyzer</span>
           </div>
 
@@ -1983,7 +1983,7 @@ export default function App() {
             onClick={() => setActiveView('imageOsint')} 
             className={`${layoutStyles.navItem} ${activeView === 'imageOsint' ? layoutStyles.navItemActive : ''}`}
           >
-            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🖼️</div>
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}></div>
             <span className={layoutStyles.navItemLabel}>Reverse Image Pivot</span>
           </div>
 
@@ -1991,7 +1991,7 @@ export default function App() {
             onClick={() => setActiveView('vehicle')} 
             className={`${layoutStyles.navItem} ${activeView === 'vehicle' ? layoutStyles.navItemActive : ''}`}
           >
-            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🚗</div>
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}></div>
             <span className={layoutStyles.navItemLabel}>Vehicle Recon</span>
           </div>
 
@@ -1999,7 +1999,7 @@ export default function App() {
             onClick={() => setActiveView('aviation')} 
             className={`${layoutStyles.navItem} ${activeView === 'aviation' ? layoutStyles.navItemActive : ''}`}
           >
-            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✈️</div>
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}></div>
             <span className={layoutStyles.navItemLabel}>Aviation Tracker</span>
           </div>
 
@@ -2007,7 +2007,7 @@ export default function App() {
             onClick={() => setActiveView('hash')} 
             className={`${layoutStyles.navItem} ${activeView === 'hash' ? layoutStyles.navItemActive : ''}`}
           >
-            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🔐</div>
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}></div>
             <span className={layoutStyles.navItemLabel}>Hash Analyzer</span>
           </div>
 
@@ -2015,7 +2015,7 @@ export default function App() {
             onClick={() => setActiveView('mac')} 
             className={`${layoutStyles.navItem} ${activeView === 'mac' ? layoutStyles.navItemActive : ''}`}
           >
-            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>💻</div>
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}></div>
             <span className={layoutStyles.navItemLabel}>MAC Decoder</span>
           </div>
 
@@ -2055,7 +2055,7 @@ export default function App() {
             onClick={() => setActiveView('friendship')} 
             className={`${layoutStyles.navItem} ${activeView === 'friendship' ? layoutStyles.navItemActive : ''}`}
           >
-            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🕸️</div>
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}></div>
             <span className={layoutStyles.navItemLabel}>Relation Graph</span>
           </div>
 
@@ -2063,7 +2063,7 @@ export default function App() {
             onClick={() => setActiveView('ml')} 
             className={`${layoutStyles.navItem} ${activeView === 'ml' ? layoutStyles.navItemActive : ''}`}
           >
-            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🧠</div>
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}></div>
             <span className={layoutStyles.navItemLabel}>Local ML Intel</span>
           </div>
 
@@ -2071,7 +2071,7 @@ export default function App() {
             onClick={() => setActiveView('webScraper')} 
             className={`${layoutStyles.navItem} ${activeView === 'webScraper' ? layoutStyles.navItemActive : ''}`}
           >
-            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🕸️</div>
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}></div>
             <span className={layoutStyles.navItemLabel}>Live Web Scraper</span>
           </div>
 
@@ -2079,7 +2079,7 @@ export default function App() {
             onClick={() => setActiveView('subdomainBrute')} 
             className={`${layoutStyles.navItem} ${activeView === 'subdomainBrute' ? layoutStyles.navItemActive : ''}`}
           >
-            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>💣</div>
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}></div>
             <span className={layoutStyles.navItemLabel}>Subdomain Brute</span>
           </div>
 
@@ -2087,7 +2087,7 @@ export default function App() {
             onClick={() => setActiveView('githubScanner')} 
             className={`${layoutStyles.navItem} ${activeView === 'githubScanner' ? layoutStyles.navItemActive : ''}`}
           >
-            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🐙</div>
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}></div>
             <span className={layoutStyles.navItemLabel}>GitHub Scanner</span>
           </div>
 
@@ -2095,7 +2095,7 @@ export default function App() {
             onClick={() => setActiveView('breachCrawler')} 
             className={`${layoutStyles.navItem} ${activeView === 'breachCrawler' ? layoutStyles.navItemActive : ''}`}
           >
-            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>💀</div>
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}></div>
             <span className={layoutStyles.navItemLabel}>Breach Crawler</span>
           </div>
 
@@ -2103,7 +2103,7 @@ export default function App() {
             onClick={() => setActiveView('crypto')} 
             className={`${layoutStyles.navItem} ${activeView === 'crypto' ? layoutStyles.navItemActive : ''}`}
           >
-            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🪙</div>
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}></div>
             <span className={layoutStyles.navItemLabel}>Blockchain Tracker</span>
           </div>
 
@@ -2111,7 +2111,7 @@ export default function App() {
             onClick={() => setActiveView('reverseip')} 
             className={`${layoutStyles.navItem} ${activeView === 'reverseip' ? layoutStyles.navItemActive : ''}`}
           >
-            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🔄</div>
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}></div>
             <span className={layoutStyles.navItemLabel}>Reverse IP Lookup</span>
           </div>
 
@@ -2119,7 +2119,7 @@ export default function App() {
             onClick={() => setActiveView('dnsHistory')} 
             className={`${layoutStyles.navItem} ${activeView === 'dnsHistory' ? layoutStyles.navItemActive : ''}`}
           >
-            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>📋</div>
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}></div>
             <span className={layoutStyles.navItemLabel}>DNS History</span>
           </div>
 
@@ -2127,7 +2127,7 @@ export default function App() {
             onClick={() => setActiveView('traceroute')} 
             className={`${layoutStyles.navItem} ${activeView === 'traceroute' ? layoutStyles.navItemActive : ''}`}
           >
-            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🗺️</div>
+            <div className={layoutStyles.navItemIcon} style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}></div>
             <span className={layoutStyles.navItemLabel}>Traceroute Map</span>
           </div>
         </nav>
@@ -2369,7 +2369,7 @@ export default function App() {
               style={{ fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
             >
-              {darkMode ? '☀' : '☾'}
+              {darkMode ? '' : '☾'}
             </button>
             <button className={layoutStyles.headerButton}><Settings size={14} /> Settings</button>
             <button className={layoutStyles.headerButton}><HelpCircle size={14} /> Help</button>
@@ -2509,7 +2509,7 @@ export default function App() {
                     </div>
 
                     <div className={repStyles.callout}>
-                      <span className={repStyles.calloutEmoji}>💡</span>
+                      <span className={repStyles.calloutEmoji}></span>
                       <div>
                         <strong>Remediation Tip:</strong> Upgrading DNS SPF rules to "-all" and deploying a strict DMARC reject record prevents 99% of domain phishing impersonation vulnerabilities.
                       </div>
@@ -2639,7 +2639,7 @@ export default function App() {
                       textAlign: 'center',
                       gap: '12px'
                     }}>
-                      <div style={{ fontSize: '32px' }}>📝</div>
+                      <div style={{ fontSize: '32px' }}></div>
                       <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--notion-fg)' }}>No Analyst Notes Saved</div>
                       <div style={{ fontSize: '12px', color: 'rgba(55,53,47,0.5)', maxWidth: '280px' }}>
                         Run scans inside the Unified Scanner and add analyst notes to document your investigation.
@@ -2729,7 +2729,7 @@ export default function App() {
                   <div style={{ display: 'flex', gap: '24px', alignItems: 'start', width: '100%', marginTop: '20px' }}>
                     <div style={{ flex: 1, minWidth: 0 }} className={modStyles.resultsContainer}>
                       <div className={modStyles.resultsHeader} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                        <div className={modStyles.resultsTitle}>🛡️ Spoofing Assessment: {spoofResults.domain}</div>
+                        <div className={modStyles.resultsTitle}> Spoofing Assessment: {spoofResults.domain}</div>
                         <button 
                           onClick={() => handleExportPdfReport(spoofResults.domain, spoofResults)}
                           style={{
@@ -2746,7 +2746,7 @@ export default function App() {
                             gap: '4px'
                           }}
                         >
-                          📥 Export PDF
+                           Export PDF
                         </button>
                       </div>
                       <div className={modStyles.resultsBody}>
@@ -2771,7 +2771,7 @@ export default function App() {
                             fontWeight: 'bold',
                             flexShrink: 0
                           }}>
-                            {spoofResults.risk_level === 'SECURE' ? '🛡️' : spoofResults.risk_level === 'VULNERABLE' ? '⚠️' : '🚨'}
+                            {spoofResults.risk_level === 'SECURE' ? '' : spoofResults.risk_level === 'VULNERABLE' ? '' : ''}
                           </div>
                           <div className={modStyles.riskDetails}>
                             <div className={modStyles.riskTitle} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -2812,7 +2812,7 @@ export default function App() {
                                 backgroundColor: spoofResults.spf_score === 'PASS' ? '#eaf6ec' : spoofResults.spf_score === 'WARN' ? '#fcecd9' : '#fdebeb',
                                 color: spoofResults.spf_score === 'PASS' ? '#2b7a3e' : spoofResults.spf_score === 'WARN' ? '#c9751d' : '#ca2c2c'
                               }}>
-                                {spoofResults.spf_score === 'PASS' ? '🟢 SPF PASS' : spoofResults.spf_score === 'WARN' ? '🟡 SPF WARN' : '🔴 SPF FAIL'}
+                                {spoofResults.spf_score === 'PASS' ? ' SPF PASS' : spoofResults.spf_score === 'WARN' ? ' SPF WARN' : ' SPF FAIL'}
                               </span>
                             </div>
                             <div className={modStyles.codeFont} style={{ fontSize: '12px', padding: '10px', backgroundColor: '#fafafa', borderRadius: '4px', border: '1px solid #eaeaea', wordBreak: 'break-all' }}>
@@ -2834,9 +2834,9 @@ export default function App() {
                                 backgroundColor: spoofResults.dmarc_score === 'PASS' ? '#eaf6ec' : spoofResults.dmarc_score === 'WARN' ? '#fcecd9' : '#fdebeb',
                                 color: spoofResults.dmarc_score === 'PASS' ? '#2b7a3e' : spoofResults.dmarc_score === 'WARN' ? '#c9751d' : '#ca2c2c'
                               }}>
-                                {spoofResults.dmarc_score === 'PASS' ? '🟢 DMARC PASS' : 
-                                 spoofResults.dmarc_score === 'WARN' ? '🟡 DMARC WARN' : 
-                                 spoofResults.dmarc_score === 'FAIL' ? '🔴 DMARC FAIL' : '🚨 DMARC CRITICAL'}
+                                {spoofResults.dmarc_score === 'PASS' ? ' DMARC PASS' : 
+                                 spoofResults.dmarc_score === 'WARN' ? ' DMARC WARN' : 
+                                 spoofResults.dmarc_score === 'FAIL' ? ' DMARC FAIL' : ' DMARC CRITICAL'}
                               </span>
                             </div>
                             <div className={modStyles.codeFont} style={{ fontSize: '12px', padding: '10px', backgroundColor: '#fafafa', borderRadius: '4px', border: '1px solid #eaeaea', wordBreak: 'break-all' }}>
@@ -2999,7 +2999,7 @@ export default function App() {
                         className={modStyles.btn}
                         style={{ minHeight: 'auto', padding: '5px 10px', fontSize: '11px', backgroundColor: 'rgba(35, 131, 226, 0.08)', color: 'var(--notion-accent)', border: 'none', fontWeight: 600 }}
                       >
-                        ⚡ Load Sample GPS Image
+                         Load Sample GPS Image
                       </button>
                     </div>
                   </div>
@@ -3012,7 +3012,7 @@ export default function App() {
                       <style>{`
                         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
                       `}</style>
-                      <div className="animate-pulse" style={{ fontSize: '13px', color: 'rgba(55, 53, 47, 0.7)' }}>⌛ Exfiltrating binary header partitions...</div>
+                      <div className="animate-pulse" style={{ fontSize: '13px', color: 'rgba(55, 53, 47, 0.7)' }}> Exfiltrating binary header partitions...</div>
                     </div>
                   </div>
                 )}
@@ -3028,7 +3028,7 @@ export default function App() {
                   <div style={{ display: 'flex', gap: '24px', alignItems: 'start', width: '100%', marginTop: '20px' }}>
                     <div style={{ flex: 1, minWidth: 0 }} className={modStyles.resultsContainer}>
                       <div className={modStyles.resultsHeader} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                        <div className={modStyles.resultsTitle}>📊 Extracted Metadata Summary</div>
+                        <div className={modStyles.resultsTitle}> Extracted Metadata Summary</div>
                         <button 
                           onClick={() => handleExportPdfReport(exifFile ? exifFile.name : 'Suspect_Photo.jpg', exifResults)}
                           style={{
@@ -3045,7 +3045,7 @@ export default function App() {
                             gap: '4px'
                           }}
                         >
-                          📥 Export PDF
+                           Export PDF
                         </button>
                       </div>
                       <div className={modStyles.resultsBody} style={{ padding: '16px' }}>
@@ -3086,7 +3086,7 @@ export default function App() {
 
                         {exifResults.metadata && Object.keys(exifResults.metadata).length > 0 && (
                           <div style={{ marginBottom: '20px' }}>
-                            <h3 className={dashStyles.sectionHeader} style={{ marginTop: '0', marginBottom: '10px' }}>📋 Document & File Properties</h3>
+                            <h3 className={dashStyles.sectionHeader} style={{ marginTop: '0', marginBottom: '10px' }}> Document & File Properties</h3>
                             <div style={{ display: 'flex', flexDirection: 'column', border: '1px solid var(--notion-border)', borderRadius: '6px', overflow: 'hidden', backgroundColor: '#ffffff' }}>
                               {Object.entries(exifResults.metadata).map(([key, val], idx) => {
                                 if (key === 'gps') return null; // GPS is displayed separately
@@ -3150,7 +3150,7 @@ export default function App() {
                         {/* Comprehensive two-column tags table */}
                         {exifResults.all_tags && Object.keys(exifResults.all_tags).length > 0 && (
                           <>
-                            <h3 className={dashStyles.sectionHeader} style={{ marginTop: '24px', marginBottom: '10px' }}>📋 Comprehensive EXIF Hex Registers</h3>
+                            <h3 className={dashStyles.sectionHeader} style={{ marginTop: '24px', marginBottom: '10px' }}> Comprehensive EXIF Hex Registers</h3>
                             <div style={{ display: 'flex', flexDirection: 'column', border: '1px solid var(--notion-border)', borderRadius: '6px', overflow: 'hidden', maxHeight: '350px', overflowY: 'auto', backgroundColor: '#ffffff' }}>
                               {Object.entries(exifResults.all_tags).map(([tag, val], idx) => {
                                 const displayVal = typeof val === 'object' ? JSON.stringify(val, null, 2) : String(val);
@@ -3195,7 +3195,7 @@ export default function App() {
                   <label className={modStyles.inputLabel}>Bitcoin Address</label>
                   <div className={modStyles.actionRow}>
                     <div className={modStyles.inputWrapper} style={{ flexGrow: 1 }}>
-                      <span className={modStyles.inputIcon}>🪙</span>
+                      <span className={modStyles.inputIcon}></span>
                       <input 
                         className={modStyles.inputField} 
                         placeholder="e.g. 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa" 
@@ -3235,7 +3235,7 @@ export default function App() {
                   <div className={modStyles.resultsContainer}>
                     <div className={modStyles.resultsBody} style={{ textAlign: 'center', padding: '40px' }}>
                       <div style={{ display: 'inline-block', border: '3px solid #f3f3f3', borderTop: '3px solid var(--notion-accent)', borderRadius: '50%', width: '24px', height: '24px', animation: 'spin 1s linear infinite', marginBottom: '12px' }}></div>
-                      <div className="animate-pulse" style={{ fontSize: '13px', color: 'rgba(55, 53, 47, 0.7)' }}>⌛ Re-indexing decentralized blockchain segments...</div>
+                      <div className="animate-pulse" style={{ fontSize: '13px', color: 'rgba(55, 53, 47, 0.7)' }}> Re-indexing decentralized blockchain segments...</div>
                     </div>
                   </div>
                 )}
@@ -3299,7 +3299,7 @@ export default function App() {
                       {/* Transaction History Timeline */}
                       <div className={modStyles.resultsContainer}>
                         <div className={modStyles.resultsHeader}>
-                          <div className={modStyles.resultsTitle}>⏳ Ledger Transaction History (Last 10)</div>
+                          <div className={modStyles.resultsTitle}> Ledger Transaction History (Last 10)</div>
                         </div>
                         <div className={modStyles.resultsBody} style={{ padding: '20px' }}>
                           {cryptoResults.txs && cryptoResults.txs.length > 0 ? (
@@ -3440,7 +3440,7 @@ export default function App() {
                             gap: '4px'
                           }}
                         >
-                          📥 Export PDF
+                           Export PDF
                         </button>
                       </div>
                       <div className={modStyles.resultsBody}>
@@ -3635,7 +3635,7 @@ export default function App() {
                   <div style={{ display: 'flex', gap: '24px', alignItems: 'start', width: '100%', marginTop: '20px' }}>
                     <div style={{ flex: 1, minWidth: 0 }} className={modStyles.resultsContainer}>
                       <div className={modStyles.resultsHeader} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div className={modStyles.resultsTitle}>🕸️ Friendship Interaction Map: {friendTarget1} ⟷ {friendTarget2}</div>
+                        <div className={modStyles.resultsTitle}> Friendship Interaction Map: {friendTarget1} ⟷ {friendTarget2}</div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '11px' }}>
                           <button 
                             onClick={() => handleExportPdfReport(`${friendTarget1}_vs_${friendTarget2}`, friendResults)}
@@ -3654,7 +3654,7 @@ export default function App() {
                               marginRight: '6px'
                             }}
                           >
-                            📥 Export PDF
+                             Export PDF
                           </button>
                           <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#2383e2', display: 'inline-block' }}></span> {friendTarget1} (Blue)</span>
                           <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ff4b4b', display: 'inline-block' }}></span> {friendTarget2} (Red)</span>
@@ -3663,7 +3663,7 @@ export default function App() {
                       </div>
                       <div className={modStyles.resultsBody} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#fafafa', borderRadius: '6px', overflow: 'hidden', padding: '10px' }}>
                         <div className={modStyles.desktopOnlyWarning}>
-                          📊 Open on desktop for graph visualization.
+                           Open on desktop for graph visualization.
                         </div>
                         <div className={modStyles.graphWrapper} style={{ border: '1px solid var(--notion-border)', borderRadius: '6px', backgroundColor: '#ffffff', overflow: 'hidden', width: '100%', height: '480px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                           <ForceGraph2D
@@ -3708,7 +3708,7 @@ export default function App() {
                           />
                         </div>
                         <div className={modStyles.desktopOnlyWarning}>
-                          <span style={{ fontSize: '32px', marginBottom: '12px' }}>🖥️</span>
+                          <span style={{ fontSize: '32px', marginBottom: '12px' }}></span>
                           <h4 style={{ margin: '0 0 6px 0', fontSize: '15px', fontWeight: 600, color: 'var(--notion-fg)' }}>Desktop View Recommended</h4>
                           <p style={{ margin: 0, fontSize: '12.5px', color: 'rgba(55, 53, 47, 0.6)', maxWidth: '280px', lineHeight: 1.5 }}>
                             Social interaction graph rendering is resource-intensive and optimized for larger desktop displays.
@@ -3745,7 +3745,7 @@ export default function App() {
                       borderBottom: geointTab === 'coords' ? '2px solid var(--notion-accent)' : 'none'
                     }}
                   >
-                    📍 GPS coordinates
+                     GPS coordinates
                   </button>
                   <button 
                     onClick={() => setGeointTab('bssid')} 
@@ -3760,7 +3760,7 @@ export default function App() {
                       borderBottom: geointTab === 'bssid' ? '2px solid var(--notion-accent)' : 'none'
                     }}
                   >
-                    📶 BSSID Wigle Lookup
+                     BSSID Wigle Lookup
                   </button>
                 </div>
 
@@ -3820,7 +3820,7 @@ export default function App() {
                     <div style={{ flex: 1, minWidth: 0 }} className={modStyles.resultsContainer}>
                       <div className={modStyles.resultsHeader} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                         <div className={modStyles.resultsTitle}>
-                          {geointTab === 'coords' ? '📍 Physical Location Resolved' : `📶 Wi-Fi Point Resolved: ${bssidResults?.ssid}`}
+                          {geointTab === 'coords' ? ' Physical Location Resolved' : ` Wi-Fi Point Resolved: ${bssidResults?.ssid}`}
                         </div>
                         <button 
                           onClick={() => handleExportPdfReport(
@@ -3841,7 +3841,7 @@ export default function App() {
                             gap: '4px'
                           }}
                         >
-                          📥 Export PDF
+                           Export PDF
                         </button>
                       </div>
                       <div className={modStyles.resultsBody} style={{ padding: '16px' }}>
@@ -3920,7 +3920,7 @@ export default function App() {
                   <label className={modStyles.inputLabel}>Target IP Address</label>
                   <div className={modStyles.actionRow}>
                     <div className={modStyles.inputWrapper} style={{ flexGrow: 1 }}>
-                      <span className={modStyles.inputIcon}>🌐</span>
+                      <span className={modStyles.inputIcon}></span>
                       <input 
                         className={modStyles.inputField} 
                         placeholder="e.g. 8.8.8.8 or 104.21.19.12" 
@@ -3984,7 +3984,7 @@ export default function App() {
                             gap: '4px'
                           }}
                         >
-                          📥 Export PDF
+                           Export PDF
                         </button>
                       </div>
                       <div className={modStyles.resultsBody}>
@@ -4059,7 +4059,7 @@ export default function App() {
                   <label className={modStyles.inputLabel}>Domain Name</label>
                   <div className={modStyles.actionRow}>
                     <div className={modStyles.inputWrapper} style={{ flexGrow: 1 }}>
-                      <span className={modStyles.inputIcon}>🌐</span>
+                      <span className={modStyles.inputIcon}></span>
                       <input 
                         className={modStyles.inputField} 
                         placeholder="e.g. google.com or microsoft.com" 
@@ -4132,7 +4132,7 @@ export default function App() {
                               gap: '4px'
                             }}
                           >
-                            📥 Export PDF
+                             Export PDF
                           </button>
                         </div>
                         <div className={modStyles.resultsBody} style={{ padding: '20px' }}>
@@ -4142,7 +4142,7 @@ export default function App() {
                             
                             {/* Left Column: DNS Records Table */}
                             <div>
-                              <h3 className={dashStyles.sectionHeader} style={{ marginTop: 0, marginBottom: '12px' }}>📋 Passive DNS Resolution</h3>
+                              <h3 className={dashStyles.sectionHeader} style={{ marginTop: 0, marginBottom: '12px' }}> Passive DNS Resolution</h3>
                               <div className={modStyles.tableWrapper} style={{ overflowX: 'auto', border: '1px solid var(--notion-border)', borderRadius: '6px' }}>
                                 <table className={repStyles.reportTable} style={{ width: '100%', borderCollapse: 'collapse' }}>
                                   <thead>
@@ -4187,7 +4187,7 @@ export default function App() {
 
                             {/* Right Column: Host List Table */}
                             <div>
-                              <h3 className={dashStyles.sectionHeader} style={{ marginTop: 0, marginBottom: '12px' }}>🌐 Passive Subdomain Enumeration</h3>
+                              <h3 className={dashStyles.sectionHeader} style={{ marginTop: 0, marginBottom: '12px' }}> Passive Subdomain Enumeration</h3>
                               <div className={modStyles.tableWrapper} style={{ overflowX: 'auto', border: '1px solid var(--notion-border)', borderRadius: '6px', maxHeight: '500px', overflowY: 'auto' }}>
                                 <table className={repStyles.reportTable} style={{ width: '100%', borderCollapse: 'collapse' }}>
                                   <thead style={{ position: 'sticky', top: 0, zIndex: 2 }}>
@@ -4267,7 +4267,7 @@ export default function App() {
                   <label className={modStyles.inputLabel}>Target Phone Number</label>
                   <div className={modStyles.actionRow}>
                     <div className={modStyles.inputWrapper} style={{ flexGrow: 1 }}>
-                      <span className={modStyles.inputIcon}>📞</span>
+                      <span className={modStyles.inputIcon}></span>
                       <input 
                         className={modStyles.inputField} 
                         placeholder="e.g. +14155552671" 
@@ -4326,7 +4326,7 @@ export default function App() {
                   <label className={modStyles.inputLabel}>Target IPv4 Address</label>
                   <div className={modStyles.actionRow}>
                     <div className={modStyles.inputWrapper} style={{ flexGrow: 1 }}>
-                      <span className={modStyles.inputIcon}>🛰️</span>
+                      <span className={modStyles.inputIcon}></span>
                       <input 
                         className={modStyles.inputField} 
                         placeholder="e.g. 8.8.8.8" 
@@ -4385,7 +4385,7 @@ export default function App() {
                   <label className={modStyles.inputLabel}>Target Query (Email, Username, Domain)</label>
                   <div className={modStyles.actionRow}>
                     <div className={modStyles.inputWrapper} style={{ flexGrow: 1 }}>
-                      <span className={modStyles.inputIcon}>👁️</span>
+                      <span className={modStyles.inputIcon}></span>
                       <input 
                         className={modStyles.inputField} 
                         placeholder="e.g. jdoe@example.com or companyname" 
@@ -4502,7 +4502,7 @@ export default function App() {
                   <label className={modStyles.inputLabel}>Target Company Name</label>
                   <div className={modStyles.actionRow}>
                     <div className={modStyles.inputWrapper} style={{ flexGrow: 1 }}>
-                      <span className={modStyles.inputIcon}>🏢</span>
+                      <span className={modStyles.inputIcon}></span>
                       <input 
                         className={modStyles.inputField} 
                         placeholder="e.g. Apple Inc" 
@@ -4561,7 +4561,7 @@ export default function App() {
                   <label className={modStyles.inputLabel}>Target Reddit Username</label>
                   <div className={modStyles.actionRow}>
                     <div className={modStyles.inputWrapper} style={{ flexGrow: 1 }}>
-                      <span className={modStyles.inputIcon}>🤖</span>
+                      <span className={modStyles.inputIcon}></span>
                       <input 
                         className={modStyles.inputField} 
                         placeholder="e.g. spez" 
@@ -4620,7 +4620,7 @@ export default function App() {
                   <label className={modStyles.inputLabel}>Target Image URL</label>
                   <div className={modStyles.actionRow}>
                     <div className={modStyles.inputWrapper} style={{ flexGrow: 1 }}>
-                      <span className={modStyles.inputIcon}>🖼️</span>
+                      <span className={modStyles.inputIcon}></span>
                       <input 
                         className={modStyles.inputField} 
                         placeholder="e.g. https://example.com/image.jpg" 
@@ -4679,7 +4679,7 @@ export default function App() {
                   <label className={modStyles.inputLabel}>Target Vehicle Identification Number (VIN)</label>
                   <div className={modStyles.actionRow}>
                     <div className={modStyles.inputWrapper} style={{ flexGrow: 1 }}>
-                      <span className={modStyles.inputIcon}>🚗</span>
+                      <span className={modStyles.inputIcon}></span>
                       <input 
                         className={modStyles.inputField} 
                         placeholder="e.g. 1HGCM82633A004XXX" 
@@ -4739,7 +4739,7 @@ export default function App() {
                   <label className={modStyles.inputLabel}>Target Aircraft Tail Number</label>
                   <div className={modStyles.actionRow}>
                     <div className={modStyles.inputWrapper} style={{ flexGrow: 1 }}>
-                      <span className={modStyles.inputIcon}>✈️</span>
+                      <span className={modStyles.inputIcon}></span>
                       <input 
                         className={modStyles.inputField} 
                         placeholder="e.g. N12345 or G-ABCD" 
@@ -4798,7 +4798,7 @@ export default function App() {
                   <label className={modStyles.inputLabel}>Target Cryptographic Hash</label>
                   <div className={modStyles.actionRow}>
                     <div className={modStyles.inputWrapper} style={{ flexGrow: 1 }}>
-                      <span className={modStyles.inputIcon}>🔐</span>
+                      <span className={modStyles.inputIcon}></span>
                       <input 
                         className={modStyles.inputField} 
                         placeholder="e.g. 5d41402abc4b2a76b9719d911017c592" 
@@ -4857,7 +4857,7 @@ export default function App() {
                   <label className={modStyles.inputLabel}>Target MAC Address</label>
                   <div className={modStyles.actionRow}>
                     <div className={modStyles.inputWrapper} style={{ flexGrow: 1 }}>
-                      <span className={modStyles.inputIcon}>💻</span>
+                      <span className={modStyles.inputIcon}></span>
                       <input 
                         className={modStyles.inputField} 
                         placeholder="e.g. 00:1A:2B:3C:4D:5E" 
@@ -4916,7 +4916,7 @@ export default function App() {
                   <label className={modStyles.inputLabel}>Target Hostname or IP</label>
                   <div className={modStyles.actionRow}>
                     <div className={modStyles.inputWrapper} style={{ flexGrow: 1 }}>
-                      <span className={modStyles.inputIcon}>🌐</span>
+                      <span className={modStyles.inputIcon}></span>
                       <input 
                         className={modStyles.inputField} 
                         placeholder="e.g. google.com or 8.8.8.8" 
@@ -4936,7 +4936,7 @@ export default function App() {
 
                 {traceError && (
                   <div className={modStyles.errorBanner} style={{ marginTop: '20px' }}>
-                    <span className={modStyles.errorIcon}>⚠️</span>
+                    <span className={modStyles.errorIcon}></span>
                     <span className={modStyles.errorText}>{traceError}</span>
                   </div>
                 )}
@@ -4993,11 +4993,11 @@ export default function App() {
                         
                         // Flag/emoji helper defined locally
                         const getFlagEmoji = (countryCode) => {
-                          if (!countryCode) return '🏳️';
+                          if (!countryCode) return '';
                           const c = countryCode.toLowerCase();
-                          if (c === 'private') return '🏠';
-                          if (c === 'global') return '🌐';
-                          if (c === 'un') return '🛑';
+                          if (c === 'private') return '';
+                          if (c === 'global') return '';
+                          if (c === 'un') return '';
                           
                           const codePoints = c
                             .toUpperCase()
@@ -5006,7 +5006,7 @@ export default function App() {
                           try {
                             return String.fromCodePoint(...codePoints);
                           } catch (e) {
-                            return '🌐';
+                            return '';
                           }
                         };
                         
@@ -5097,7 +5097,7 @@ export default function App() {
                                       }}
                                       title="Copy IP"
                                     >
-                                      📋
+                                      
                                     </button>
                                   )}
                                 </div>

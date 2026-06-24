@@ -19,7 +19,7 @@ export default function EmailHeaderIntel({ results, onInvestigate }) {
 
   // Unicode flag emoji helper from ISO 3166 code
   const getFlagEmoji = (countryCode) => {
-    if (!countryCode || countryCode === 'Unknown') return '🌐';
+    if (!countryCode || countryCode === 'Unknown') return '';
     try {
       const codePoints = countryCode
         .toUpperCase()
@@ -27,7 +27,7 @@ export default function EmailHeaderIntel({ results, onInvestigate }) {
         .map(char => 127397 + char.charCodeAt(0));
       return String.fromCodePoint(...codePoints);
     } catch {
-      return '🌐';
+      return '';
     }
   };
 
@@ -37,7 +37,7 @@ export default function EmailHeaderIntel({ results, onInvestigate }) {
       {/* Target summary header */}
       <div className={styles.header}>
         <div className={styles.titleSec}>
-          <span className={styles.icon}>✉️</span>
+          <span className={styles.icon}></span>
           <span className={styles.titleText}>Email Routing Header Analysis</span>
         </div>
         <div className={styles.spfRow}>
@@ -54,7 +54,7 @@ export default function EmailHeaderIntel({ results, onInvestigate }) {
           <div className={styles.alertStack}>
             <div className={styles.alertHeader}>
               <AlertTriangle size={16} />
-              <span>🚨 SECURITY WARNING: PHISHING SIGNALS IDENTIFIED</span>
+              <span> SECURITY WARNING: PHISHING SIGNALS IDENTIFIED</span>
             </div>
             
             {reply_to_mismatch && (
@@ -128,7 +128,7 @@ export default function EmailHeaderIntel({ results, onInvestigate }) {
 
         {/* Hop-by-Hop delivery routing timeline */}
         <div className={styles.timelineSection}>
-          <span className={styles.sectionTitle}>⛓️ Chronological MTA Delivery Routing Timeline</span>
+          <span className={styles.sectionTitle}> Chronological MTA Delivery Routing Timeline</span>
           
           <div className={styles.timelineWrapper}>
             {hops.map((hop, index) => {

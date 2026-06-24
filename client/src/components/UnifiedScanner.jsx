@@ -295,13 +295,13 @@ export default function UnifiedScanner({ initialQuery = '' }) {
   // ── Badge Style Mappings ──
   const getBadgeStyle = (type) => {
     const map = {
-      btc: { emoji: '🪙', label: 'Bitcoin Wallet Address', className: styles.badge_btc },
-      email: { emoji: '📧', label: 'Email Address Node', className: styles.badge_email },
-      network: { emoji: '🌐', label: 'IP Address Network', className: styles.badge_network },
-      domain: { emoji: '🖥️', label: 'Host Domain Name', className: styles.badge_domain },
-      bssid: { emoji: '📶', label: 'Wireless BSSID', className: styles.badge_bssid },
-      username: { emoji: '👤', label: 'Target Account Username', className: styles.badge_username },
-      phone: { emoji: '📱', label: 'Telephony Node', className: styles.badge_phone }
+      btc: { emoji: '', label: 'Bitcoin Wallet Address', className: styles.badge_btc },
+      email: { emoji: '', label: 'Email Address Node', className: styles.badge_email },
+      network: { emoji: '', label: 'IP Address Network', className: styles.badge_network },
+      domain: { emoji: '', label: 'Host Domain Name', className: styles.badge_domain },
+      bssid: { emoji: '', label: 'Wireless BSSID', className: styles.badge_bssid },
+      username: { emoji: '', label: 'Target Account Username', className: styles.badge_username },
+      phone: { emoji: '', label: 'Telephony Node', className: styles.badge_phone }
     };
     return map[type] || null;
   };
@@ -488,7 +488,7 @@ export default function UnifiedScanner({ initialQuery = '' }) {
             <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Terminal size={12} /> BLOCKCHAIN INTELLIGENCE
             </span>
-            <span>🪙 Bitcoin</span>
+            <span> Bitcoin</span>
           </div>
           <div style={{ padding: '16px 0', display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', backgroundColor: 'rgba(46,204,113,0.06)', borderRadius: '6px', border: '1px solid rgba(46,204,113,0.15)' }}>
@@ -506,7 +506,7 @@ export default function UnifiedScanner({ initialQuery = '' }) {
                 borderRadius: '6px', fontSize: '12px', fontWeight: 600, textDecoration: 'none',
                 border: '1px solid var(--notion-border)', width: 'fit-content'
               }}>
-                🔗 View on Blockchain Explorer →
+                 View on Blockchain Explorer →
               </a>
             )}
             {singleRes.message && (
@@ -566,7 +566,7 @@ export default function UnifiedScanner({ initialQuery = '' }) {
         <div className={styles.resultsLeftCol}>
           {/* Global Disclaimer Banner */}
           <div className={styles.disclaimerBanner}>
-            <span className={styles.disclaimerIcon}>🛡️</span>
+            <span className={styles.disclaimerIcon}></span>
             <span className={styles.disclaimerText}>
               Results are sourced from public APIs. Unavailable modules show clearly as offline. No data is fabricated or estimated.
             </span>
@@ -614,7 +614,7 @@ export default function UnifiedScanner({ initialQuery = '' }) {
                 transition: 'all 0.15s ease'
               }}
             >
-              📥 Export PDF Report
+               Export PDF Report
             </button>
           </div>
           <RiskScoreMeter score={computedScore} />
@@ -712,7 +712,7 @@ export default function UnifiedScanner({ initialQuery = '' }) {
                       <div className={styles.targetMeta}>
                         <span className={styles.targetLabel}>{item.target}</span>
                         <span className={`${styles.badge} ${getBadgeStyle(item.type)?.className || ''}`}>
-                          {getBadgeStyle(item.type)?.emoji || '👤'} {item.type.toUpperCase()}
+                          {getBadgeStyle(item.type)?.emoji || ''} {item.type.toUpperCase()}
                         </span>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>

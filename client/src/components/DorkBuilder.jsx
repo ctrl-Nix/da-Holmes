@@ -11,7 +11,7 @@ export default function DorkBuilder() {
     const cleanTarget = t.trim() || 'example.com';
     return [
       {
-        category: "📄 Exposed Documents & Files",
+        category: " Exposed Documents & Files",
         icon: <FileText size={14} />,
         dorks: [
           { label: "PDF Documents Audit", query: `site:${cleanTarget} filetype:pdf` },
@@ -20,7 +20,7 @@ export default function DorkBuilder() {
         ]
       },
       {
-        category: "🔑 Login & Credential Portals",
+        category: " Login & Credential Portals",
         icon: <Lock size={14} />,
         dorks: [
           { label: "Public Login Portals", query: `site:${cleanTarget} inurl:login OR inurl:signin OR intitle:login` },
@@ -29,7 +29,7 @@ export default function DorkBuilder() {
         ]
       },
       {
-        category: "⚙️ Exposed Config & Code Files",
+        category: " Exposed Config & Code Files",
         icon: <ShieldAlert size={14} />,
         dorks: [
           { label: "Git Repository Exposed", query: `site:${cleanTarget} inurl:.git OR intitle:"index of / .git"` },
@@ -38,7 +38,7 @@ export default function DorkBuilder() {
         ]
       },
       {
-        category: "📂 Directory Listing & Indices",
+        category: " Directory Listing & Indices",
         icon: <FolderOpen size={14} />,
         dorks: [
           { label: "Directory Listing (Index of)", query: `site:${cleanTarget} intitle:"index of /" OR intitle:"index of /admin"` },
@@ -47,7 +47,7 @@ export default function DorkBuilder() {
         ]
       },
       {
-        category: "🌐 Google Cached & Linked Pages",
+        category: " Google Cached & Linked Pages",
         icon: <Search size={14} />,
         dorks: [
           { label: "Google Cache Snapshot", query: `cache:${cleanTarget}` },

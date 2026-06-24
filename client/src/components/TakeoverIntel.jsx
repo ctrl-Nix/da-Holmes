@@ -10,7 +10,7 @@ export default function TakeoverIntel({ results, isLoading }) {
       <div className={styles.container}>
         <div className={styles.header}>
           <div className={styles.headerTitleSec}>
-            <span className={styles.icon}>🎯</span>
+            <span className={styles.icon}></span>
             <span className={styles.headerText}>Subdomain Takeover vulnerability Audit</span>
           </div>
         </div>
@@ -30,7 +30,7 @@ export default function TakeoverIntel({ results, isLoading }) {
         <div className={styles.container} style={{ opacity: 0.65, borderStyle: 'dashed' }}>
           <div className={styles.header} style={{ borderBottom: 'none' }}>
             <div className={styles.headerTitleSec}>
-              <span className={styles.icon}>🚫</span>
+              <span className={styles.icon}></span>
               <span className={styles.headerText} style={{ color: 'rgba(55, 53, 47, 0.5)' }}>
                 Subdomain Takeover vulnerability Audit: <strong>Module Offline</strong>
               </span>
@@ -54,11 +54,11 @@ export default function TakeoverIntel({ results, isLoading }) {
       {/* Header Info Banner */}
       <div className={styles.header}>
         <div className={styles.headerTitleSec}>
-          <span className={styles.icon}>🎯</span>
+          <span className={styles.icon}></span>
           <span className={styles.headerText}>Subdomain Takeover vulnerability Audit</span>
         </div>
         <span className={`${styles.riskBadge} ${vulnerableList.length > 0 ? styles.riskCritical : styles.riskSecure}`}>
-          {vulnerableList.length > 0 ? `🚨 ${vulnerableList.length} TAKEOVER DETECTED` : '🛡️ NO TAKEOVER RISK'}
+          {vulnerableList.length > 0 ? ` ${vulnerableList.length} TAKEOVER DETECTED` : ' NO TAKEOVER RISK'}
         </span>
       </div>
 
@@ -122,7 +122,7 @@ export default function TakeoverIntel({ results, isLoading }) {
                     </td>
                     <td>
                       <span className={styles.statusSpan}>
-                        {item.fingerprint === 'Does not resolve' ? '🔴 Unresolved' : '🟢 Resolves'}
+                        {item.fingerprint === 'Does not resolve' ? ' Unresolved' : ' Resolves'}
                       </span>
                     </td>
                     <td>
@@ -132,7 +132,7 @@ export default function TakeoverIntel({ results, isLoading }) {
                     </td>
                     <td>
                       <span className={`${styles.takeoverBadge} ${item.vulnerable ? styles.takeoverBadgeYes : styles.takeoverBadgeNo}`}>
-                        {item.vulnerable ? '🚨 Vulnerable' : '🛡️ Secure'}
+                        {item.vulnerable ? ' Vulnerable' : ' Secure'}
                       </span>
                     </td>
                   </tr>

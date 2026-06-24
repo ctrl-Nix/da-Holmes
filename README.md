@@ -2,24 +2,24 @@
 
 > **Advanced Open Source Intelligence gathering, correlation, and investigation platform — built for ethical security research and digital forensics.**
 
-### 🌐 [Live Demo → da-holmes.vercel.app](https://da-holmes.vercel.app) &nbsp;|&nbsp; [API Docs → /docs](https://da-holmes-api.onrender.com/docs)
+### [Live Demo → da-holmes.vercel.app](https://da-holmes.vercel.app) &nbsp;|&nbsp; [API Docs → /docs](https://da-holmes-api.onrender.com/docs)
 
 ---
 
-### 🔗 Entity Link Graph — Visualize Every Connection
+### Entity Link Graph — Visualize Every Connection
 
 Holmes's most powerful feature: an interactive, **Maltego-style force-directed graph** that maps relationships between every entity discovered across a scan — domains, IPs, emails, GitHub repos, subdomains, breached accounts, and social profiles — all in real time.
 
-> 📸 **[→ See it in action](#)** *(replace with your GIF/screenshot after deploy)*
+> **[→ See it in action](#)** *(replace with your GIF/screenshot after deploy)*
 
 ---
 
-## ✨ Feature Overview
+## Feature Overview
 
 ### 🔍 Unified Scanner (God Mode)
 A smart orchestration engine that auto-detects the target type (domain, IP, email, username, phone number, hash, or MAC address) and fires all relevant modules in parallel, streaming results live via Server-Sent Events (SSE).
 
-### 🌐 Domain & Network Intelligence
+### Domain & Network Intelligence
 - **DNS History** — Historical DNS record tracking and change detection
 - **Subdomain Enumeration** — Passive discovery via crt.sh & HackerTarget + active brute-force
 - **Subdomain Takeover Detection** — Checks dangling CNAMEs against known vulnerable services
@@ -31,14 +31,14 @@ A smart orchestration engine that auto-detects the target type (domain, IP, emai
 - **Web Scraper** — Structured content extraction and link harvesting
 - **Traceroute & Network Path** — Hop-by-hop routing visualization
 
-### 🔐 SSL / Certificate Intelligence
+### SSL / Certificate Intelligence
 - Full TLS certificate chain inspection
 - Certificate transparency log monitoring
 - SANs (Subject Alternative Names) extraction for asset discovery
 - Cipher suite and protocol weakness detection
 - Certificate expiry and revocation status
 
-### 📧 Email & Breach Intelligence
+### Email & Breach Intelligence
 - **Email Format Guesser** — Hunter.io-style corporate email pattern inference
 - **SMTP Validation** — Live mailbox verification without sending emails
 - **Breach Cross-Reference** — Checks emails against known dark web breach databases
@@ -46,25 +46,25 @@ A smart orchestration engine that auto-detects the target type (domain, IP, emai
 - **Pastebin Leak Monitor** — Surface leaked credentials and PII from paste sites
 - **Spoofing Vulnerability Check** — Tests SPF/DKIM/DMARC configurations for spoofability
 
-### 👤 Social & Username Intelligence
+### Social & Username Intelligence
 - **Username Sherlock** — Live streaming search across 300+ social platforms
 - **Social Profile Aggregator** — Unified view of discovered social accounts
 - **Reddit Analyzer** — Post history analysis, karma, subreddit activity, and behavioral profiling
 - **Social Connection Mapper** — Relationship graph between discovered social entities
 
-### 🏢 Corporate Intelligence
+### Corporate Intelligence
 - **GitHub Organization Scanner** — Maps repos, detects exposed secrets, identifies key contributors
 - **Mobile App Recon** — Scrapes iOS App Store & Google Play for app metadata and tech stack
 - **Corporate Structure Mapper** — Employee discovery, subsidiary mapping, and org chart inference
 
-### 🛡️ Security & Vulnerability Analysis
+### Security & Vulnerability Analysis
 - **IoT Device Scanner** — Shodan-powered device enumeration and CVE correlation
 - **Security Header Analyzer** — HSTS, CSP, X-Frame-Options, and 10+ header checks
 - **Canary Token Checker** — Detects honeypot and canary token presence
 - **Dark Web Intel** — Tor-indexed leak and marketplace mention detection
 - **Threat Intelligence** — Cross-references targets against known threat actor IOC lists
 
-### 🔬 Forensics & Cryptography
+### Forensics & Cryptography
 - **Hash Analyzer** — Identifies hash types and cross-references against breach databases
 - **MAC Address Decoder** — OUI lookup and device manufacturer identification
 - **Image OSINT** — EXIF metadata extraction and reverse image search
@@ -72,17 +72,17 @@ A smart orchestration engine that auto-detects the target type (domain, IP, emai
 - **Crypto Address Intelligence** — Blockchain address analysis and transaction tracing
 - **Aviation OSINT** — Aircraft registration lookup and flight history
 
-### 🗺️ Geospatial Intelligence (GEOINT)
+### Geospatial Intelligence (GEOINT)
 - IP and domain geolocation with interactive map rendering
 - Cell tower triangulation data aggregation
 - Satellite imagery metadata correlation
 
-### 🚗 Miscellaneous Recon
+### Miscellaneous Recon
 - **Vehicle Recon** — License plate and VIN-based vehicle intelligence
 - **Phone Number Intel** — Carrier lookup, region data, and OSINT cross-reference
 - **Google Dork Builder** — Visual dorking query generator with category-based templates
 
-### 📊 Investigation & Reporting
+### Investigation & Reporting
 - **Workspace Management** — Persistent, named investigation workspaces with full history
 - **Analyst Notes Panel** — Markdown-enabled note-taking embedded within investigations
 - **Timeline View** — Chronological event reconstruction across scan findings
@@ -95,7 +95,7 @@ A smart orchestration engine that auto-detects the target type (domain, IP, emai
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 holmes/
@@ -150,7 +150,7 @@ holmes/
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 | Layer | Technologies |
 |---|---|
@@ -165,7 +165,7 @@ holmes/
 
 ---
 
-## 🚀 Installation & Setup
+## Installation & Setup
 
 ### Option 1: Docker Compose *(Recommended)*
 
@@ -226,7 +226,7 @@ Frontend available at: [http://localhost:5173](http://localhost:5173)
 
 ---
 
-## 🔑 API Keys
+## API Keys
 
 Holmes integrates with several external data providers. Configure these in your `.env` file:
 
@@ -244,7 +244,7 @@ Holmes integrates with several external data providers. Configure these in your 
 
 ---
 
-## 📖 Usage Guide
+## Usage Guide
 
 1. **First Launch** — The onboarding modal will guide you through initial configuration and API key setup.
 2. **Create a Workspace** — Organize investigations into named, persistent workspaces.
@@ -262,13 +262,13 @@ Holmes integrates with several external data providers. Configure these in your 
 
 ---
 
-## 🔌 Extending Holmes
+## Extending Holmes
 
 Holmes has a plugin system under `app/plugins/`. Add a new `.py` file following the `example_robots_plugin.py` template to register custom recon modules that automatically integrate with the scan pipeline.
 
 ---
 
-## 📋 Sample Report
+## Sample Report
 
 Want to see what Holmes produces without running it yourself?
 
@@ -280,19 +280,19 @@ The report includes: DNS records, SSL chain, subdomain enumeration, tech stack f
 
 ---
 
-## ⚠️ Responsible Use
+## Responsible Use
 
 **This tool is strictly for educational purposes and authorized security research.**
 
 Only scan targets you own or have explicit written permission to test. The developers assume no liability for misuse. Unauthorized scanning of third-party systems may violate computer fraud laws in your jurisdiction.
 
 **App-level guardrails built in:**
-- 🔒 **Consent checkbox** — every scan requires the user to confirm they have authorization to scan the target before results are returned.
-- 🚦 **Rate limiting** — the API enforces a hard limit of **100 requests/minute** per IP (via SlowAPI) to prevent abuse and protect third-party data providers.
-- 🛑 **No credential brute-force** — Holmes performs passive OSINT only; it does not attempt logins, exploit vulnerabilities, or send unsolicited traffic beyond standard HTTP probes.
+- **Consent checkbox** — every scan requires the user to confirm they have authorization to scan the target before results are returned.
+- **Rate limiting** — the API enforces a hard limit of **100 requests/minute** per IP (via SlowAPI) to prevent abuse and protect third-party data providers.
+- **No credential brute-force** — Holmes performs passive OSINT only; it does not attempt logins, exploit vulnerabilities, or send unsolicited traffic beyond standard HTTP probes.
 
 ---
 
-## 📄 License
+## License
 
 MIT License — see [LICENSE](LICENSE) for details.

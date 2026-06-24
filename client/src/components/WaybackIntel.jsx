@@ -31,7 +31,7 @@ export default function WaybackIntel({ results }) {
     <div className={styles.cardContainer}>
       <div className={styles.cardHeader}>
         <span className={styles.cardTitle}>
-          <span className={styles.cardTitleIcon}>🕰️</span> Wayback Archival Vault: <strong className={styles.domainHighlight}>{domain}</strong>
+          <span className={styles.cardTitleIcon}></span> Wayback Archival Vault: <strong className={styles.domainHighlight}>{domain}</strong>
         </span>
         <span className={styles.cardBadge}>
           Time Machine Index
