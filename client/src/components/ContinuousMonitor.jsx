@@ -18,7 +18,7 @@ export default function ContinuousMonitor() {
     fetchMonitors();
   }, []);
 
-  const fetchMonitors = async () => {
+  async function fetchMonitors() {
     try {
       const res = await fetch(`${API_BASE}/api/monitor/list`);
       if (res.ok) {
@@ -30,7 +30,7 @@ export default function ContinuousMonitor() {
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   const handleAddMonitor = async (e) => {
     e.preventDefault();
