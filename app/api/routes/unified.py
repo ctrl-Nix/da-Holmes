@@ -2,10 +2,13 @@ import json
 import asyncio
 import time
 import logging
+import re
 from fastapi import APIRouter, HTTPException, Query, status, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import Optional, List
+
+_SAFE_INPUT_PATTERN = re.compile(r'^[\x20-\x7E\u00A0-\uD7FF]+$')  # printable ASCII + basic non-control unicode
 from app.services.unified_scanner import UnifiedScanner
 
 logger = logging.getLogger(__name__)
@@ -47,8 +50,21 @@ async def unified_scan(
     query: str = Query(..., min_length=1, description="The input to investigate."),
     raw_text: Optional[str] = Query(None, description="Optional raw text for NER analysis.")
 ):
+    # Fast structural validation before any network I/O
+    q = query.strip()
+    if not q:
+        raise HTTPException(status_code=400, detail="Query cannot be empty.")
+    if len(q) > 253:
+        raise HTTPException(status_code=400, detail="Query exceeds maximum allowed length.")
+    for ch in q:
+        o = ord(ch)
+        if (o < 32 and ch not in ('\r', '\n', '\t')) or (127 <= o <= 159):
+            raise HTTPException(status_code=400, detail="Query contains prohibited control or binary characters.")
+    if any(c in q for c in ['<', '>', '|', ';']):
+        raise HTTPException(status_code=400, detail="Query contains prohibited shell characters.")
+
     try:
-        results = await _unified_scanner.scan(query, raw_text)
+        results = await _unified_scanner.scan(q, raw_text)
         from app.core.correlations import CorrelationEngine
         engine = CorrelationEngine()
         results["correlations"] = engine.run_all(results.get("data", {}))

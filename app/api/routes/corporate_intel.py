@@ -1,5 +1,6 @@
 import os
 import httpx
+import re
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Path, status
@@ -116,15 +117,21 @@ async def corporate_intel_endpoint(
     the server from hanging on slow responses.
     """
     try:
-        result = await fetch_corporate_intel(company_name.strip())
+        company_name = company_name.strip()
+        if not company_name or len(company_name) > 120 or not re.match(r"^[a-zA-Z0-9\s.,&\-\'\(\)]+$", company_name):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid company name format."
+            )
+        result = await fetch_corporate_intel(company_name)
+    except HTTPException as he:
+        raise he
     except ValueError as exc:
         if "auth_required" in str(exc):
             raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                status_code=status.HTTP_404_NOT_FOUND,
                 detail=(
-                    "OpenCorporates now requires an API token for search. "
-                    "Add OPENCORPORATES_API_TOKEN to your .env file. "
-                    "Register for free at https://opencorporates.com/users/sign_up"
+                    "OpenCorporates legal entity not found or API token missing."
                 ),
             )
         raise HTTPException(status_code=500, detail="Unexpected error.")

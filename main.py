@@ -83,23 +83,22 @@ limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
 def validate_value(val: str, field_name: str = "Input", is_url: bool = False) -> str:
     if not val or not str(val).strip():
         return f"{field_name} cannot be empty."
-    
-    # Check for control or binary characters
+
+    # Length check first — fast O(1), prevents scanning huge strings
+    if not is_url and len(val) > 500:
+        return f"{field_name} exceeds maximum length."
+
+    # Binary/control character scan — only reached if length is acceptable
     for char in val:
         o = ord(char)
         if (o < 32 and char not in ('\r', '\n', '\t')) or (127 <= o <= 159):
             return f"{field_name} contains prohibited control or binary characters."
-            
-    # Skip length + shell-char check for URL-type fields (webhook URLs can be long)
-    if is_url:
-        return ""
-    if len(val) > 500:
-        return f"{field_name} exceeds maximum length."
-    
-    shell_chars = ['<', '>', '|', ';']
-    for char in shell_chars:
-        if char in val:
-            return f"{field_name} contains prohibited shell character '{char}'."
+
+    # Shell character check (only for non-URL fields)
+    if not is_url:
+        for char in ('<', '>', '|', ';'):
+            if char in val:
+                return f"{field_name} contains prohibited shell character '{char}'."
     return ""
 
 # ---------------------------------------------------------------------------
@@ -2472,7 +2471,19 @@ async def inspect_ssl(request: Request, domain: str = Query(..., description="Do
     import asyncio
     
     domain = domain.strip().lower()
-    
+
+    # Fast structural validation — reject before any socket I/O
+    import re as _re
+    _DOMAIN_PATTERN = r"^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$"
+    if not domain or len(domain) > 253:
+        raise HTTPException(status_code=400, detail="Invalid domain name format.")
+    for _ch in domain:
+        _o = ord(_ch)
+        if (_o < 32 and _ch not in ('\r', '\n', '\t')) or (127 <= _o <= 159):
+            raise HTTPException(status_code=400, detail="Domain contains prohibited characters.")
+    if not _re.match(_DOMAIN_PATTERN, domain):
+        raise HTTPException(status_code=400, detail="Invalid domain name format.")
+
     subject_cn = "Unknown"
     issuer_org = "Unknown"
     valid_from = "Unknown"
@@ -2539,6 +2550,9 @@ async def inspect_ssl(request: Request, domain: str = Query(..., description="Do
     except ssl.CertificateError:
         status = "WARN"
         
+    except (socket.gaierror, socket.timeout, ConnectionRefusedError, TimeoutError, ConnectionError, OSError) as e:
+        logger.error(f"SSL connect failed (resolution/connection) for {domain}: {e}")
+        raise HTTPException(status_code=400, detail="Could not resolve or connect to host")
     except Exception as e:
         logger.error(f"SSL connect failed for {domain}: {e}")
         raise HTTPException(status_code=503, detail="SSL Connection failed")
@@ -4345,10 +4359,18 @@ async def full_scan_endpoint(
     import re
     import json
     import asyncio
-    
+
     target = target.strip()
     if not target:
         raise HTTPException(status_code=400, detail="Target cannot be empty")
+    if len(target) > 253:
+        raise HTTPException(status_code=400, detail="Target exceeds maximum allowed length.")
+    for _ch in target:
+        _o = ord(_ch)
+        if (_o < 32 and _ch not in ('\r', '\n', '\t')) or (127 <= _o <= 159):
+            raise HTTPException(status_code=400, detail="Target contains prohibited control or binary characters.")
+    if any(c in target for c in ['<', '>', '|', ';']):
+        raise HTTPException(status_code=400, detail="Target contains prohibited shell characters.")
         
     target_type = "username"
     IPV4_PATTERN = r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"

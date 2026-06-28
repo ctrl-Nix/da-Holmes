@@ -60,6 +60,19 @@ async def live_scraper(url: str = Query(..., description="Target URL to scrape")
 async def bruteforce_subdomains(domain: str = Query(..., description="Domain to bruteforce")):
     domain = domain.strip().lower()
     
+    # Structural domain validation
+    if not domain or len(domain) > 253:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid domain name format."
+        )
+    DOMAIN_PATTERN = r"^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,5}$"
+    if not re.match(DOMAIN_PATTERN, domain):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid domain name format."
+        )
+    
     wordlist = [
         "dev", "staging", "vpn", "mail", "test", "admin", "portal", "api", "app", 
         "web", "www", "blog", "secure", "login", "gateway", "remote", "support",
@@ -70,32 +83,39 @@ async def bruteforce_subdomains(domain: str = Query(..., description="Domain to 
     resolver = dns.asyncresolver.Resolver()
     resolver.nameservers = ['8.8.8.8', '8.8.4.4', '1.1.1.1', '1.0.0.1']
     results = []
-    
+    # Limit concurrency to avoid saturating the event loop with DoH requests
+    _sem = asyncio.Semaphore(6)
+
     async def resolve_sub(sub):
         sub_domain = f"{sub}.{domain}"
-        # 1. Try standard async DNS query
-        try:
-            res = await resolver.resolve(sub_domain, 'A')
-            if res:
-                results.append({"subdomain": sub_domain, "ips": [r.to_text() for r in res if r.to_text()]})
-                return
-        except Exception:
-            pass
-            
-        # 2. Fallback to HTTPS DNS-over-HTTPS (DoH) in case UDP port 53 is blocked
-        try:
-            async with httpx.AsyncClient(timeout=4.0) as client:
-                resp = await client.get(f"https://dns.google/resolve?name={sub_domain}&type=A")
-                if resp.status_code == 200:
-                    data = resp.json()
-                    ips = [ans['data'] for ans in data.get('Answer', []) if ans.get('type') == 1]
-                    if ips:
-                        results.append({"subdomain": sub_domain, "ips": ips})
-        except Exception:
-            pass
+        async with _sem:
+            # 1. Try standard async DNS query
+            try:
+                res = await resolver.resolve(sub_domain, 'A')
+                if res:
+                    results.append({"subdomain": sub_domain, "ips": [r.to_text() for r in res if r.to_text()]})
+                    return
+            except Exception:
+                pass
+                
+            # 2. Fallback to DNS-over-HTTPS (shorter timeout to free event loop faster)
+            try:
+                async with httpx.AsyncClient(timeout=2.0) as client:
+                    resp = await client.get(f"https://dns.google/resolve?name={sub_domain}&type=A")
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        ips = [ans['data'] for ans in data.get('Answer', []) if ans.get('type') == 1]
+                        if ips:
+                            results.append({"subdomain": sub_domain, "ips": ips})
+            except Exception:
+                pass
             
     tasks = [resolve_sub(sub) for sub in wordlist]
-    await asyncio.gather(*tasks)
+    # Hard ceiling: never block the server for more than 8 seconds total
+    try:
+        await asyncio.wait_for(asyncio.gather(*tasks), timeout=8.0)
+    except asyncio.TimeoutError:
+        pass  # Return whatever results were collected before the timeout
     
     return {
         "domain": domain,
@@ -143,6 +163,19 @@ async def github_secrets_scan(repo_url: str = Query(..., description="GitHub Rep
 @router.get("/breach/crawler")
 async def breach_crawler(target_email: str = Query(..., description="Email to look for in dumps"), 
                          dump_url: str = Query(..., description="URL of the raw text dump")):
+    EMAIL_PATTERN = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$"
+    if not target_email or len(target_email) > 254 or not re.match(EMAIL_PATTERN, target_email):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid email format."
+        )
+        
+    if not dump_url or len(dump_url) > 2048 or not dump_url.startswith(("http://", "https://")):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid URL format."
+        )
+        
     try:
         async with httpx.AsyncClient(timeout=15.0) as client:
             resp = await client.get(dump_url)

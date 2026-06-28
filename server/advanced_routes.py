@@ -61,6 +61,19 @@ async def live_scraper(url: str = Query(..., description="Target URL to scrape")
 async def bruteforce_subdomains(domain: str = Query(..., description="Domain to bruteforce")):
     domain = domain.strip().lower()
     
+    # Structural domain validation
+    if not domain or len(domain) > 253:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid domain name format."
+        )
+    DOMAIN_PATTERN = r"^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,5}$"
+    if not re.match(DOMAIN_PATTERN, domain):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid domain name format."
+        )
+    
     # Common dictionary of 100 subdomains (shortened from 1000 for performance/demo)
     wordlist = [
         "dev", "staging", "vpn", "mail", "test", "admin", "portal", "api", "app", 
@@ -148,7 +161,22 @@ async def github_secrets_scan(repo_url: str = Query(..., description="GitHub Rep
 @router.get("/api/breach/crawler", tags=["Advanced OSINT"])
 async def breach_crawler(target_email: str = Query(..., description="Email to look for in dumps"), 
                          dump_url: str = Query(..., description="URL of the raw text dump")):
-                         
+    target_email = target_email.strip().lower()
+    dump_url = dump_url.strip()
+    
+    EMAIL_PATTERN = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$"
+    if not target_email or len(target_email) > 254 or not re.match(EMAIL_PATTERN, target_email):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid email format."
+        )
+        
+    if not dump_url or len(dump_url) > 2048 or not dump_url.startswith(("http://", "https://")):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid URL format."
+        )
+        
     try:
         async with httpx.AsyncClient(timeout=15.0) as client:
             resp = await client.get(dump_url)

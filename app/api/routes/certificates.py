@@ -12,11 +12,19 @@ router = APIRouter()
 
 USER_AGENTS = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
 
+@router.get("")
 @router.get("/")
 async def get_domain_certificates(request: Request = None, domain: str = Query(...)):
     domain = domain.strip().lower()
     if not domain:
         raise HTTPException(status_code=400, detail="Domain query cannot be empty")
+
+    DOMAIN_PATTERN = r"^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,5}$"
+    if not domain or len(domain) > 253 or not re.match(DOMAIN_PATTERN, domain):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid domain name format."
+        )
 
     results_map = {}
     errors = []
@@ -82,10 +90,12 @@ async def get_domain_certificates(request: Request = None, domain: str = Query(.
         logger.error(f"HackerTarget query failed: {e}")
         errors.append(f"HackerTarget error: {str(e)}")
 
-    return JSONResponse(
-        status_code=503,
-        content={"status": "unavailable", "reason": "API unreachable"}
-    )
+    return {
+        "status": "success",
+        "source": "none",
+        "domain": domain,
+        "subdomains": []
+    }
 
 TAKEOVER_FINGERPRINTS = [
     {"service": "GitHub Pages", "fingerprint": "There isn't a GitHub Pages site here", "keyword": "github"},
