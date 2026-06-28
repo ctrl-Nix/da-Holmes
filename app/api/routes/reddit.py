@@ -28,8 +28,10 @@ async def analyze_reddit(
             
             if about_res.status_code == 404:
                 raise HTTPException(status_code=404, detail="Reddit user not found or shadowbanned.")
+            elif about_res.status_code == 403:
+                raise HTTPException(status_code=503, detail="Reddit API is unavailable or rate-limited for automated access.")
             elif about_res.status_code != 200:
-                raise HTTPException(status_code=about_res.status_code, detail="Failed to fetch Reddit data.")
+                raise HTTPException(status_code=503, detail=f"Reddit API returned an unexpected status ({about_res.status_code}).")
                 
             about_data = about_res.json().get("data", {})
             

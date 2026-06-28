@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Request
 import httpx
+import re
 
 router = APIRouter()
 
@@ -10,6 +11,15 @@ async def get_threat_intel(request: Request, domain: str = None):
     Queries AlienVault OTX (Open Threat Exchange) for domain reputation.
     If no domain is provided, returns a static threat feed status response.
     """
+    if domain is not None:
+        domain = domain.strip().lower()
+        DOMAIN_PATTERN = r"^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,5}$"
+        if not domain or len(domain) > 253 or not re.match(DOMAIN_PATTERN, domain):
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid domain name format."
+            )
+
     # If no domain is supplied (e.g. called as /feed health check), return stub feed
     if not domain:
         return {
@@ -22,7 +32,7 @@ async def get_threat_intel(request: Request, domain: str = None):
 
     try:
         url = f"https://otx.alienvault.com/api/v1/indicators/domain/{domain}/general"
-        async with httpx.AsyncClient(timeout=15.0) as client:
+        async with httpx.AsyncClient(timeout=5.0) as client:
             response = await client.get(url)
             
         if response.status_code == 200:

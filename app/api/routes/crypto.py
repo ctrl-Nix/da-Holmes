@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 import httpx
 import logging
 import datetime
+import re
 
 router = APIRouter()
 logger = logging.getLogger("holmes-crypto")
@@ -14,6 +15,14 @@ async def track_crypto(request: Request, address: str):
     Returns balance, total received, total sent, ticker rate, and transaction history.
     """
     address = address.strip()
+    
+    BTC_PATTERN = r'^(1|3|bc1)[a-zA-HJ-NP-Z0-9]{25,62}$'
+    ETH_PATTERN = r'^0x[a-fA-F0-9]{40}$'
+    if not re.match(BTC_PATTERN, address) and not re.match(ETH_PATTERN, address):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid cryptocurrency address format."
+        )
     
     # 1. Fetch BTC/USD price ticker
     btc_price_usd = 65000.0

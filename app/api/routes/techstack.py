@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
 import httpx
 import logging
+import re
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -13,6 +14,11 @@ async def detect_tech_stack(request: Request = None, domain: str = Query(...)):
     domain = domain.strip().lower()
     if not domain:
         raise HTTPException(status_code=400, detail="Domain query cannot be empty")
+
+    DOMAIN_PATTERN = r"^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,5}$"
+    domain_to_check = domain.replace("https://", "").replace("http://", "").split("/")[0]
+    if len(domain_to_check) > 253 or not re.match(DOMAIN_PATTERN, domain_to_check):
+        raise HTTPException(status_code=400, detail="Invalid domain name format.")
 
     if not domain.startswith("http"):
         target_url = f"https://{domain}"
@@ -54,8 +60,20 @@ async def detect_tech_stack(request: Request = None, domain: str = Query(...)):
             if server_header and not any(t["name"] == server_header for t in technologies):
                 technologies.append({"type": "Server", "name": server_header})
 
+    except (httpx.ConnectError, httpx.ConnectTimeout, httpx.UnsupportedProtocol) as e:
+        logger.error(f"Stack detection connection error for {target_url}: {e}")
+        raise HTTPException(
+            status_code=400,
+            detail="Could not resolve host"
+        )
     except Exception as e:
         logger.error(f"Stack detection failed for {target_url}: {e}")
+        err_msg = str(e).lower()
+        if any(msg in err_msg for msg in ["name resolution", "connecterror", "connection refused", "getaddrinfo", "not found", "dns"]):
+            raise HTTPException(
+                status_code=400,
+                detail="Could not resolve host"
+            )
         return JSONResponse(
             status_code=503,
             content={"status": "unavailable", "reason": "API unreachable"}

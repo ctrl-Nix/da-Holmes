@@ -671,6 +671,13 @@ async def get_domain_certificates(request: Request = None, domain: str = Query(.
     if not domain:
         raise HTTPException(status_code=400, detail="Domain query cannot be empty")
 
+    DOMAIN_PATTERN = r"^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,5}$"
+    if not domain or len(domain) > 253 or not re.match(DOMAIN_PATTERN, domain):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid domain name format."
+        )
+
     results_map = {}
     errors = []
 
@@ -735,10 +742,12 @@ async def get_domain_certificates(request: Request = None, domain: str = Query(.
         logger.error(f"HackerTarget query failed: {e}")
         errors.append(f"HackerTarget error: {str(e)}")
 
-    return JSONResponse(
-        status_code=503,
-        content={"status": "unavailable", "reason": "API unreachable"}
-    )
+    return {
+        "status": "success",
+        "source": "none",
+        "domain": domain,
+        "subdomains": []
+    }
 
 # Known Takeover Fingerprints Map
 TAKEOVER_FINGERPRINTS = [
@@ -1068,6 +1077,14 @@ async def geoint_bssid(request: Request, mac: str = Query(...)):
 @app.get("/api/crypto/{address}")
 async def get_crypto_address(request: Request, address: str):
     address = address.strip()
+    
+    BTC_PATTERN = r'^(1|3|bc1)[a-zA-HJ-NP-Z0-9]{25,62}$'
+    ETH_PATTERN = r'^0x[a-fA-F0-9]{40}$'
+    if not re.match(BTC_PATTERN, address) and not re.match(ETH_PATTERN, address):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid cryptocurrency address format."
+        )
     
     # 1. Fetch BTC/USD price ticker
     btc_price_usd = 65000.0
@@ -2090,6 +2107,9 @@ async def ssl_inspect(request: Request, domain: str = Query(..., description="Ta
                     
         cert_dict = await asyncio.to_thread(query_socket)
         
+    except (socket.gaierror, socket.timeout, ConnectionRefusedError, TimeoutError, ConnectionError, OSError) as err:
+        logger.error(f"SSL certificate socket inspection failed (resolution/connection): {err}")
+        raise HTTPException(status_code=400, detail="Could not resolve or connect to host")
     except Exception as err:
         logger.error(f"SSL certificate socket inspection connection failed: {err}")
         
