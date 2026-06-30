@@ -398,7 +398,7 @@ export default function App() {
 
   const handleExportPdfReport = async (targetQuery, payloadData) => {
     try {
-      const response = await fetch(`${API_BASE}/api/report/generate?query=${encodeURIComponent(targetQuery)}`, {
+      const response = await fetch(`${API_BASE}/api/generate?query=${encodeURIComponent(targetQuery)}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -1240,7 +1240,7 @@ export default function App() {
     formData.append('file', file);
 
     try {
-      const res = await fetch(`${API_BASE}/api/forensics/metadata`, {
+      const res = await fetch(`${API_BASE}/api/forensics/exif`, {
         method: 'POST',
         body: formData
       });
@@ -1315,7 +1315,7 @@ export default function App() {
     setEmailHeadersError('');
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/email/headers`, {
+      const response = await fetch(`${API_BASE}/api/email/headers`, {
         method: 'POST',
         headers: {
           'Content-Type': 'text/plain'

@@ -118,7 +118,7 @@ async def corporate_intel_endpoint(
     """
     try:
         company_name = company_name.strip()
-        if not company_name or len(company_name) > 120 or not re.match(r"^[a-zA-Z0-9\s.,&\-\'\(\)]+$", company_name):
+        if not company_name or len(company_name) > 120 or not re.match(r"^[a-zA-Z0-9\s.,&\-\'()]+$", company_name.replace('%20', ' ').replace('%26', '&').replace('%27', "'")):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid company name format."
