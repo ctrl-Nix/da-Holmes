@@ -35,11 +35,18 @@ async def download_report(
 
     summary_text = f"OSINT Investigation for target: {domain}\n\nThis automated intelligence report covers preliminary footprinting for a {target_type} target. All findings should be manually verified."
     try:
-        import g4f
-        prompt = f"Act as a Senior Cyber Intelligence Analyst. Write a 2-paragraph executive summary of these OSINT findings for target {domain}: {str(json_data)[:1000]}"
-        ai_response = g4f.ChatCompletion.create(model=g4f.models.gpt_35_turbo, messages=[{"role": "user", "content": prompt}], provider=g4f.Provider.Blackbox)
-        if ai_response:
-            summary_text = f"AI EXECUTIVE SUMMARY:\n\n{ai_response}\n\n" + summary_text
+        from groq import Groq
+        groq_key = os.getenv("GROQ_API_KEY")
+        if groq_key:
+            groq_client = Groq(api_key=groq_key)
+            prompt = f"Act as a Senior Cyber Intelligence Analyst. Write a 2-paragraph executive summary of these OSINT findings for target {domain}: {str(json_data)[:800]}"
+            chat = groq_client.chat.completions.create(
+                messages=[{"role": "user", "content": prompt}],
+                model="llama3-8b-8192"
+            )
+            ai_summary = chat.choices[0].message.content
+            if ai_summary:
+                summary_text = f"AI EXECUTIVE SUMMARY:\n\n{ai_summary}\n\n" + summary_text
     except Exception as ai_err:
         print(f"AI Summary failed: {ai_err}")
     
@@ -84,11 +91,18 @@ async def generate_report_from_data(
 
     summary_text = f"OSINT Investigation for target: {query}\n\nThis automated intelligence report covers preliminary footprinting for a {target_type} target. All findings should be manually verified."
     try:
-        import g4f
-        prompt = f"Act as a Senior Cyber Intelligence Analyst. Write a 2-paragraph executive summary of these OSINT findings for target {query}: {str(json_data)[:1000]}"
-        ai_response = g4f.ChatCompletion.create(model=g4f.models.gpt_35_turbo, messages=[{"role": "user", "content": prompt}], provider=g4f.Provider.Blackbox)
-        if ai_response:
-            summary_text = f"AI EXECUTIVE SUMMARY:\n\n{ai_response}\n\n" + summary_text
+        from groq import Groq
+        groq_key = os.getenv("GROQ_API_KEY")
+        if groq_key:
+            groq_client = Groq(api_key=groq_key)
+            prompt = f"Act as a Senior Cyber Intelligence Analyst. Write a 2-paragraph executive summary of these OSINT findings for target {query}: {str(json_data)[:800]}"
+            chat = groq_client.chat.completions.create(
+                messages=[{"role": "user", "content": prompt}],
+                model="llama3-8b-8192"
+            )
+            ai_summary = chat.choices[0].message.content
+            if ai_summary:
+                summary_text = f"AI EXECUTIVE SUMMARY:\n\n{ai_summary}\n\n" + summary_text
     except Exception as ai_err:
         print(f"AI Summary failed: {ai_err}")
 
