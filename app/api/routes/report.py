@@ -82,10 +82,10 @@ async def generate_report_from_data(
 
     target_type = json_data.get("target_type", "Unknown")
 
-    summary_text = f"OSINT Investigation for target: {domain}\n\nThis automated intelligence report covers preliminary footprinting for a {target_type} target. All findings should be manually verified."
+    summary_text = f"OSINT Investigation for target: {query}\n\nThis automated intelligence report covers preliminary footprinting for a {target_type} target. All findings should be manually verified."
     try:
         import g4f
-        prompt = f"Act as a Senior Cyber Intelligence Analyst. Write a 2-paragraph executive summary of these OSINT findings for target {domain}: {str(json_data)[:1000]}"
+        prompt = f"Act as a Senior Cyber Intelligence Analyst. Write a 2-paragraph executive summary of these OSINT findings for target {query}: {str(json_data)[:1000]}"
         ai_response = g4f.ChatCompletion.create(model=g4f.models.gpt_35_turbo, messages=[{"role": "user", "content": prompt}], provider=g4f.Provider.Blackbox)
         if ai_response:
             summary_text = f"AI EXECUTIVE SUMMARY:\n\n{ai_response}\n\n" + summary_text

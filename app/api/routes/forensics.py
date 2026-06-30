@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException, status, Request
+from fastapi import APIRouter, UploadFile, File, HTTPException, status
 from fastapi.responses import JSONResponse
 from io import BytesIO
 from PIL import Image
@@ -31,7 +31,7 @@ def _gps_rational_to_decimal(rational_triplet) -> float:
         return 0.0
 
 @router.post("/exif")
-async def extract_exif(request: Request, file: UploadFile = File(...)):
+async def extract_exif(file: UploadFile = File(...)):
     try:
         data = await file.read()
         from PIL.ExifTags import TAGS, GPSTAGS

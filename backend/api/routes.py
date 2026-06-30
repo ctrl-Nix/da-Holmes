@@ -846,64 +846,89 @@ async def breach_crawler(target_email: str = Query(..., description="Email to lo
         return {"status": "error", "message": str(e)}
 
 # ---------------------------------------------------------------------------
-# Monitor Endpoints
+# Monitor Endpoints (Standalone Backend)
+# NOTE: These use a lightweight sqlite3 implementation since the standalone
+# backend does not have access to the monolith's app.core.database package.
 # ---------------------------------------------------------------------------
+import uuid as _uuid
+
+def _get_monitor_conn():
+    """Returns a lightweight sqlite3 connection to holmes.db for monitor operations."""
+    import sqlite3 as _sqlite3, os as _os
+    db_path = _os.path.join("/data" if _os.path.exists("/data") else ".", "holmes.db")
+    conn = _sqlite3.connect(db_path, check_same_thread=False)
+    conn.row_factory = _sqlite3.Row
+    conn.execute("""CREATE TABLE IF NOT EXISTS monitors (
+        id TEXT PRIMARY KEY, target TEXT NOT NULL, checks TEXT,
+        webhook_url TEXT, webhook_type TEXT, last_run TEXT, created_at TEXT
+    )""")
+    conn.execute("""CREATE TABLE IF NOT EXISTS monitor_logs (
+        id TEXT PRIMARY KEY, monitor_id TEXT NOT NULL, status TEXT,
+        details TEXT, created_at TEXT
+    )""")
+    conn.commit()
+    return conn
 
 class MonitorCreate(BaseModel):
     target: str
     checks: list
-    webhook_url: str
-    webhook_type: str
+    webhook_url: str = ""
+    webhook_type: str = "discord"
 
 @router.post("/monitor/add", tags=["Monitors"])
 async def add_monitor(monitor: MonitorCreate):
-    from app.core.database import db
-    m_id = db.add_monitor(monitor.target, monitor.checks, monitor.webhook_url, monitor.webhook_type)
+    import json as _json
+    conn = _get_monitor_conn()
+    m_id = str(_uuid.uuid4())
+    now = datetime.utcnow().isoformat()
+    conn.execute(
+        "INSERT INTO monitors (id, target, checks, webhook_url, webhook_type, created_at) VALUES (?,?,?,?,?,?)",
+        (m_id, monitor.target, _json.dumps(monitor.checks), monitor.webhook_url, monitor.webhook_type, now)
+    )
+    conn.commit()
+    conn.close()
     return {"status": "success", "id": m_id}
 
 @router.get("/monitor/list", tags=["Monitors"])
 async def list_monitors():
-    from app.core.database import db
-    return db.list_monitors()
+    import json as _json
+    conn = _get_monitor_conn()
+    rows = [dict(r) for r in conn.execute("SELECT * FROM monitors ORDER BY created_at DESC").fetchall()]
+    conn.close()
+    for r in rows:
+        if r.get("checks"):
+            try: r["checks"] = _json.loads(r["checks"])
+            except: pass
+    return rows
 
 @router.delete("/monitor/{monitor_id}", tags=["Monitors"])
 async def delete_monitor(monitor_id: str):
-    from app.core.database import db
-    db.delete_monitor(monitor_id)
+    conn = _get_monitor_conn()
+    conn.execute("DELETE FROM monitor_logs WHERE monitor_id=?", (monitor_id,))
+    conn.execute("DELETE FROM monitors WHERE id=?", (monitor_id,))
+    conn.commit()
+    conn.close()
     return {"status": "success"}
 
 @router.post("/monitor/{monitor_id}/run", tags=["Monitors"])
 async def run_monitor_immediately(monitor_id: str):
-    from app.core.database import db
-    monitor = db.get_monitor(monitor_id)
-    if not monitor:
+    conn = _get_monitor_conn()
+    row = conn.execute("SELECT * FROM monitors WHERE id=?", (monitor_id,)).fetchone()
+    conn.close()
+    if not row:
         raise HTTPException(status_code=404, detail="Monitor not found")
-    
-    # Importing run_single_monitor from the root monolith
-    import sys
-    import os
-    # Add root to sys.path if needed
-    root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-    if root_dir not in sys.path:
-        sys.path.insert(0, root_dir)
-        
-    try:
-        from main import run_single_monitor
-        await run_single_monitor(monitor)
-    except ImportError:
-        # Fallback if run_single_monitor can't be imported
-        db.add_monitor_log(monitor_id, "error", "Standalone backend does not support immediate run yet.")
-        raise HTTPException(status_code=501, detail="Immediate run not supported in standalone backend yet.")
-
-    logs = db.get_monitor_logs(monitor_id, limit=1)
-    latest_log = logs[0] if logs else {"status": "unknown", "details": "No logs recorded"}
-    return {"status": "success", "log": latest_log}
+    raise HTTPException(status_code=501, detail="Immediate run not supported in standalone backend. Use the monolith server.")
 
 @router.get("/monitor/{monitor_id}/history", tags=["Monitors"])
-async def get_monitor_history(monitor_id: str, limit: int = Query(10, description="Limit log history count")):
-    from app.core.database import db
-    monitor = db.get_monitor(monitor_id)
-    if not monitor:
+async def get_monitor_history(monitor_id: str, limit: int = Query(10)):
+    conn = _get_monitor_conn()
+    row = conn.execute("SELECT id FROM monitors WHERE id=?", (monitor_id,)).fetchone()
+    if not row:
+        conn.close()
         raise HTTPException(status_code=404, detail="Monitor not found")
-    logs = db.get_monitor_logs(monitor_id, limit=limit)
+    logs = [dict(r) for r in conn.execute(
+        "SELECT * FROM monitor_logs WHERE monitor_id=? ORDER BY created_at DESC LIMIT ?",
+        (monitor_id, limit)
+    ).fetchall()]
+    conn.close()
     return logs
