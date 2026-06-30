@@ -288,14 +288,31 @@ async def fingerprint_tech_stack(domain: str, db: Session = Depends(get_db)):
 
 @router.get("/security/check")
 async def security_check_email(email: str, db: Session = Depends(get_db)):
-    """Checks email against HaveIBeenPwned breach database (free v2 API)."""
+    """Checks email against HaveIBeenPwned breach database."""
     email = email.strip().lower()
+
+    vault_item = db.query(ApiVault).filter(ApiVault.service_name == "hibp_api_key").first()
+    hibp_key = vault_item.api_key if vault_item else None
+
+    if not hibp_key:
+        result = {
+            "email": email,
+            "status": "api_key_required",
+            "breach_count": 0,
+            "details": [],
+            "note": "Add your HIBP API key in Settings -> API Keys (service: hibp_api_key)."
+        }
+        log_investigation(email, "security_check", result, db)
+        return result
 
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
             resp = await client.get(
-                f"https://haveibeenpwned.com/api/v2/breachedaccount/{email}",
-                headers={"User-Agent": "Holmes-OSINT-Platform"}
+                f"https://haveibeenpwned.com/api/v3/breachedaccount/{email}?truncateResponse=false",
+                headers={
+                    "hibp-api-key": hibp_key,
+                    "User-Agent": "Holmes-OSINT-Platform"
+                }
             )
             if resp.status_code == 200:
                 breaches = resp.json()
@@ -306,8 +323,11 @@ async def security_check_email(email: str, db: Session = Depends(get_db)):
                 result = {"email": email, "status": "compromised", "breach_count": len(details), "details": details}
             elif resp.status_code == 404:
                 result = {"email": email, "status": "safe", "breach_count": 0, "details": []}
+            elif resp.status_code == 401:
+                result = {"email": email, "status": "api_key_invalid", "breach_count": 0, "details": [],
+                          "note": "The HIBP API key stored in your vault is invalid."}
             else:
-                result = {"email": email, "status": "unknown", "breach_count": 0, "details": [], "note": "Rate limited or service unavailable."}
+                result = {"email": email, "status": "unknown", "breach_count": 0, "details": [], "note": f"Rate limited or service unavailable. Status: {resp.status_code}"}
     except Exception as e:
         result = {"email": email, "status": "error", "breach_count": 0, "details": [], "note": str(e)}
 

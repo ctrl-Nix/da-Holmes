@@ -250,6 +250,21 @@ const mapHistoryToReports = (historyArray) => {
     };
   });
 };
+const saveToBackendHistory = async (target, type, results) => {
+  try {
+    await fetch(`${API_BASE}/api/investigations`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: `${type.toUpperCase()} scan - ${target}`,
+        targets: [target],
+        notes: JSON.stringify(results).slice(0, 2000)
+      })
+    });
+  } catch (err) {
+    console.warn('Backend history sync failed (non-critical):', err);
+  }
+};
 
 export default function App() {
   const getInitialReports = () => {
@@ -505,13 +520,44 @@ export default function App() {
   };
 
   useEffect(() => {
-    loadHistory();
-    updateNotesCount();
-    updateReportsFromHistory();
+    const seedFromBackend = async () => {
+      if (localStorage.getItem('holmes-history')) return; // Already has local data
+      try {
+        const res = await fetch(`${API_BASE}/api/investigations?limit=50`);
+        if (!res.ok) return;
+        const investigations = await res.json();
+        const mapped = investigations.map(inv => ({
+          query: (inv.targets || [])[0] || inv.name || 'Unknown',
+          type: 'unknown',
+          timestamp: new Date(inv.created_at || Date.now()).getTime(),
+          riskScore: 100
+        }));
+        if (mapped.length > 0) {
+          localStorage.setItem('holmes-history', JSON.stringify(mapped));
+        }
+      } catch (err) { /* silently ignore */ }
+    };
+
+    seedFromBackend().then(() => {
+      loadHistory();
+      updateNotesCount();
+      updateReportsFromHistory();
+    });
+
     const handleHistoryUpdate = () => {
       loadHistory();
       updateNotesCount();
       updateReportsFromHistory();
+      
+      try {
+        const history = JSON.parse(localStorage.getItem('holmes-history') || '[]');
+        if (history.length > 0) {
+           const latest = history[0]; // Assuming newest is always first
+           saveToBackendHistory(latest.query || latest.target, latest.type || 'unknown', { notes: 'Synced from UI' });
+        }
+      } catch (err) {
+        console.warn('Auto-sync to backend failed:', err);
+      }
     };
     window.addEventListener('holmes-history-updated', handleHistoryUpdate);
     return () => {
