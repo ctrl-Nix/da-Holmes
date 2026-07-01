@@ -17,6 +17,7 @@ slowapi==0.1.9
 
 # --- Database ---
 # sqlite3 is built into Python — no install needed
+alembic>=1.13.1
 
 # --- Scheduling ---
 apscheduler==3.10.4
