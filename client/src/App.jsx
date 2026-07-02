@@ -33,6 +33,7 @@ import ForceGraph2D from 'react-force-graph-2d';
 import AnalystNotesPanel from './components/AnalystNotesPanel';
 import { getTagColor } from './utils/tagColors';
 import ApiKeysPanel from './components/ApiKeysPanel';
+import OnboardingModal from './components/OnboardingModal';
 
 import HolmesLogo from './components/HolmesLogo';
 
@@ -1283,6 +1284,7 @@ export default function App() {
 
   return (
     <div className={layoutStyles.appContainer}>
+      <OnboardingModal />
       {/* Wakeup Banner */}
 
       {bannerStatus !== 'hidden' && (
