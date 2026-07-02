@@ -83,6 +83,8 @@ async def extract_metadata(
             "message": f"Successfully extracted {len(cleaned_results)} metadata fields."
         }
         
+    except HTTPException as he:
+        raise he
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

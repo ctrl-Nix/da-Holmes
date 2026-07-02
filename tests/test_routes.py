@@ -88,7 +88,16 @@ def test_metadata_extract_validation(client):
     assert response.status_code == 422
 
     # Unsupported file type should fail with 400
-    files = {"file": ("test.txt", b"dummy content", "text/plain")}
-    response = client.post("/api/metadata/extract", files=files)
-    assert response.status_code == 400
-    assert "Unsupported file type" in response.json()["detail"]
+    temp_path = "temp_validation_test.txt"
+    with open(temp_path, "wb") as f:
+        f.write(b"dummy content")
+    
+    try:
+        with open(temp_path, "rb") as f:
+            files = {"file": ("test.txt", f, "text/plain")}
+            response = client.post("/api/metadata/extract", files=files)
+        assert response.status_code == 400
+        assert "Unsupported file type" in response.json()["detail"]
+    finally:
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
