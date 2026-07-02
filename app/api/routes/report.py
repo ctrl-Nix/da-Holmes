@@ -16,6 +16,20 @@ def remove_file(path: str):
     except Exception as e:
         print(f"Error deleting temp file {path}: {e}")
 
+def get_groq_key():
+    key = os.getenv("GROQ_API_KEY")
+    if key:
+        return key
+    try:
+        from app.core.database import db
+        from app.core.vault import decrypt_secret
+        enc = db.get_secret("default_user", "groq_api_key")
+        if enc:
+            return decrypt_secret(enc)
+    except Exception:
+        pass
+    return None
+
 @router.get("/download-report")
 async def download_report(
     background_tasks: BackgroundTasks,
@@ -36,7 +50,7 @@ async def download_report(
     summary_text = f"OSINT Investigation for target: {domain}\n\nThis automated intelligence report covers preliminary footprinting for a {target_type} target. All findings should be manually verified."
     try:
         from groq import Groq
-        groq_key = os.getenv("GROQ_API_KEY")
+        groq_key = get_groq_key()
         if groq_key:
             groq_client = Groq(api_key=groq_key)
             prompt = f"Act as a Senior Cyber Intelligence Analyst. Write a 2-paragraph executive summary of these OSINT findings for target {domain}: {str(json_data)[:800]}"
@@ -92,7 +106,7 @@ async def generate_report_from_data(
     summary_text = f"OSINT Investigation for target: {query}\n\nThis automated intelligence report covers preliminary footprinting for a {target_type} target. All findings should be manually verified."
     try:
         from groq import Groq
-        groq_key = os.getenv("GROQ_API_KEY")
+        groq_key = get_groq_key()
         if groq_key:
             groq_client = Groq(api_key=groq_key)
             prompt = f"Act as a Senior Cyber Intelligence Analyst. Write a 2-paragraph executive summary of these OSINT findings for target {query}: {str(json_data)[:800]}"

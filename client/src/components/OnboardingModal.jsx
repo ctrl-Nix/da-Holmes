@@ -90,16 +90,41 @@ const OnboardingModal = () => {
     setShowKeys(prev => ({ ...prev, [field]: !prev[field] }));
   };
 
-  // Sync / Vault save logic (to be fully wired in the next commit)
+  // Sync / Vault save logic
   const handleSaveKeys = async () => {
     setSaveStatus('saving');
     try {
-      // Temporarily mock the vault saving delay for Commit 2
-      await new Promise(resolve => setTimeout(resolve, 800));
-      localStorage.setItem(API_KEYS_STORAGE_KEY, JSON.stringify(formKeys));
+      // 1. Get existing keys in localStorage
+      let existing = {};
+      try {
+        const saved = localStorage.getItem(API_KEYS_STORAGE_KEY);
+        if (saved) existing = JSON.parse(saved);
+      } catch (e) {}
+
+      // 2. Merge current form keys
+      const merged = { ...existing, ...formKeys };
+      localStorage.setItem(API_KEYS_STORAGE_KEY, JSON.stringify(merged));
+
+      // 3. Save to backend Vault securely
+      for (const [service, key] of Object.entries(formKeys)) {
+        if (key && key.trim()) {
+          const response = await fetch('/api/vault/store', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ service, api_key: key.trim() }),
+          });
+          if (!response.ok) {
+            throw new Error(`Vault save failed for ${service}`);
+          }
+        }
+      }
+
       setSaveStatus('saved');
+      // Dispatch keys updated event so other panels know keys changed
+      window.dispatchEvent(new CustomEvent('holmes-api-keys-updated'));
       setTimeout(() => setSaveStatus(''), 3000);
     } catch (e) {
+      console.error('Onboarding Vault save failed:', e);
       setSaveStatus('error');
     }
   };
