@@ -56,6 +56,24 @@ import ReportsPage from './pages/ReportsPage';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
+// Helper: silently sync a completed scan to the backend investigations table
+const saveToBackendHistory = async (target, type, results) => {
+  try {
+    await fetch(`${API_BASE}/api/investigations`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: `${type.toUpperCase()} scan — ${target}`,
+        targets: [target],
+        notes: JSON.stringify(results).slice(0, 2000)
+      })
+    });
+  } catch (err) {
+    // Non-critical — localStorage is the primary local fallback
+    console.warn('Backend history sync failed (non-critical):', err);
+  }
+};
+
 const getTechIcon = (name) => {
   const lower = name.toLowerCase();
   if (lower.includes('wordpress')) return '';
