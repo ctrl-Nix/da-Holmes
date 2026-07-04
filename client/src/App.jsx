@@ -408,6 +408,7 @@ export default function App() {
           localStorage.setItem('holmes-history', JSON.stringify(updated));
           if (typeof updateNotesCount === 'function') updateNotesCount();
           window.dispatchEvent(new CustomEvent('holmes-history-updated'));
+          saveToBackendHistory(cleanHost, 'network', data);
         } catch (hErr) {
           console.error('Failed to log traceroute history:', hErr);
         }
@@ -998,6 +999,7 @@ export default function App() {
           localStorage.setItem('holmes-history', JSON.stringify(updated));
           if (typeof updateNotesCount === 'function') updateNotesCount();
           window.dispatchEvent(new CustomEvent('holmes-history-updated'));
+          saveToBackendHistory(cleanNum, 'phone', data);
         } catch (hErr) {
           console.error('Failed to log phone history:', hErr);
         }
@@ -1092,6 +1094,7 @@ export default function App() {
             localStorage.setItem('holmes-history', JSON.stringify(updated));
             if (typeof updateNotesCount === 'function') updateNotesCount();
             window.dispatchEvent(new CustomEvent('holmes-history-updated'));
+            saveToBackendHistory(cleanQuery, targetType, data);
           }
         } catch (hErr) {
           console.error('Failed to log unified scan history:', hErr);
@@ -1185,6 +1188,7 @@ export default function App() {
           localStorage.setItem('holmes-history', JSON.stringify(updated));
           if (typeof updateNotesCount === 'function') updateNotesCount();
           window.dispatchEvent(new CustomEvent('holmes-history-updated'));
+          saveToBackendHistory(cleanQuery, mockType, mockData);
         }
       } catch (hErr) {
         console.error('Failed to log unified scan history (fallback):', hErr);
