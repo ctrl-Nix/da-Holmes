@@ -83,7 +83,7 @@ A smart orchestration engine that auto-detects the target type (domain, IP, emai
 - **Google Dork Builder** — Visual dorking query generator with category-based templates
 
 ### Investigation & Reporting
-- **Workspace Management** — Persistent, named investigation workspaces with full history
+- **Workspace Management** — Persistent, named investigation workspaces with full cross-device backend history synchronization
 - **Analyst Notes Panel** — Markdown-enabled note-taking embedded within investigations
 - **Timeline View** — Chronological event reconstruction across scan findings
 - **Entity Link Graph** — Force-directed, interactive relationship graph (Maltego-style) for visualizing connections between domains, IPs, emails, repos, and breached entities
