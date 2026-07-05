@@ -50,6 +50,11 @@ class HistoryResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class HistoryRequest(BaseModel):
+    target: str
+    type: str
+    results: Optional[Any] = None
+
 class VaultItem(BaseModel):
     service_name: str
     api_key: str
@@ -89,6 +94,16 @@ def delete_note(note_id: int, db: Session = Depends(get_db)):
 @router.get("/history", response_model=List[HistoryResponse])
 def get_history(db: Session = Depends(get_db)):
     return db.query(InvestigationHistory).order_by(InvestigationHistory.date.desc()).all()
+
+@router.post("/history", response_model=HistoryResponse)
+def add_history(item: HistoryRequest, db: Session = Depends(get_db)):
+    import json
+    serialized = json.dumps(item.results) if item.results else "{}"
+    db_hist = InvestigationHistory(target=item.target, type=item.type, results=serialized)
+    db.add(db_hist)
+    db.commit()
+    db.refresh(db_hist)
+    return db_hist
 
 @router.delete("/history")
 def clear_history(db: Session = Depends(get_db)):

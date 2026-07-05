@@ -59,13 +59,13 @@ const API_BASE = import.meta.env.VITE_API_URL || '';
 // Helper: silently sync a completed scan to the backend investigations table
 const saveToBackendHistory = async (target, type, results) => {
   try {
-    await fetch(`${API_BASE}/api/investigations`, {
+    await fetch(`${API_BASE}/api/history`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        name: `${type.toUpperCase()} scan — ${target}`,
-        targets: [target],
-        notes: JSON.stringify(results).slice(0, 2000)
+        target: target,
+        type: type,
+        results: results || {}
       })
     });
   } catch (err) {
@@ -278,21 +278,6 @@ const mapHistoryToReports = (historyArray) => {
       score
     };
   });
-};
-const saveToBackendHistory = async (target, type, results) => {
-  try {
-    await fetch(`${API_BASE}/api/investigations`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: `${type.toUpperCase()} scan - ${target}`,
-        targets: [target],
-        notes: JSON.stringify(results).slice(0, 2000)
-      })
-    });
-  } catch (err) {
-    console.warn('Backend history sync failed (non-critical):', err);
-  }
 };
 
 export default function App() {
@@ -553,13 +538,13 @@ export default function App() {
     const seedFromBackend = async () => {
       if (localStorage.getItem('holmes-history')) return; // Already has local data
       try {
-        const res = await fetch(`${API_BASE}/api/investigations?limit=50`);
+        const res = await fetch(`${API_BASE}/api/history?limit=50`);
         if (!res.ok) return;
         const investigations = await res.json();
         const mapped = investigations.map(inv => ({
-          query: (inv.targets || [])[0] || inv.name || 'Unknown',
-          type: 'unknown',
-          timestamp: new Date(inv.created_at || Date.now()).getTime(),
+          query: inv.target || 'Unknown',
+          type: inv.type || 'unknown',
+          timestamp: new Date(inv.date || Date.now()).getTime(),
           riskScore: 100
         }));
         if (mapped.length > 0) {
