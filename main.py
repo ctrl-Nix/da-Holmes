@@ -1790,11 +1790,29 @@ async def generate_pdf_report(
         # ── PAGE 2: EXECUTIVE SUMMARY ──
         story.append(Paragraph("Executive Summary", section_heading))
         story.append(Spacer(1, 10))
-        story.append(Paragraph(
+        summary_text = (
             "This document presents a comprehensive passive OSINT investigation brief compiled dynamically "
             "by the Holmes Platform. Telemetry data has been extracted from public registries, DNS zones, "
-            "threat intelligence directories, and historical archives.", body_style
-        ))
+            "threat intelligence directories, and historical archives."
+        )
+        try:
+            import os
+            from groq import Groq
+            groq_key = os.getenv("GROQ_API_KEY")
+            if groq_key:
+                groq_client = Groq(api_key=groq_key)
+                prompt = f"Act as a Senior Cyber Intelligence Analyst. Write a 2-paragraph executive OSINT summary for target {target}: {str(payload)[:800]}"
+                chat = groq_client.chat.completions.create(
+                    messages=[{"role": "user", "content": prompt}],
+                    model="llama3-8b-8192"
+                )
+                ai_summary = chat.choices[0].message.content
+                if ai_summary:
+                    summary_text = f"<b>AI EXECUTIVE SUMMARY:</b><br/><br/>{escape_pdf_text(ai_summary)}<br/><br/>{summary_text}"
+        except Exception as ai_err:
+            print(f"AI Summary failed: {ai_err}")
+
+        story.append(Paragraph(summary_text, body_style))
         story.append(Spacer(1, 15))
         
         modules = [k for k, v in payload.items() if isinstance(v, (dict, list)) and k not in ('correlations', 'summary')]
