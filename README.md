@@ -88,6 +88,7 @@ A smart orchestration engine that auto-detects the target type (domain, IP, emai
 - **Timeline View** — Chronological event reconstruction across scan findings
 - **Entity Link Graph** — Force-directed, interactive relationship graph (Maltego-style) for visualizing connections between domains, IPs, emails, repos, and breached entities
 - **Continuous Monitor** — Scheduled re-scanning with alerting on changes
+- **AI Report Summaries** — LLM-powered (Groq API) automated intelligence summaries of scan findings
 - **PDF Report Generator** — Professional, branded PDF export of all intelligence findings
 - **Investigation Vault** — Encrypted storage for sensitive findings
 - **Telegram Bot Integration** — Push findings and alerts directly to a Telegram channel
@@ -237,6 +238,7 @@ Holmes integrates with several external data providers. Configure these in your 
 | `GITHUB_TOKEN` | GitHub organization & repo scanning | Optional |
 | `HAVEIBEENPWNED_KEY` | Breach database lookups | Optional |
 | `VIRUSTOTAL_KEY` | Malware & threat intelligence | Optional |
+| `GROQ_API_KEY` | AI-generated intelligence summaries | Optional |
 | `TELEGRAM_BOT_TOKEN` | Push notifications via Telegram | Optional |
 | `TELEGRAM_CHAT_ID` | Target chat for Telegram alerts | Optional |
 
