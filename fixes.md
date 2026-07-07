@@ -266,15 +266,17 @@ useEffect(() => {
 
 ## Quick Reference — What Still Needs Doing
 
-| Priority | Fix | Effort | Impact |
-|---|---|---|---|
-| 🟠 High | Set `FRONTEND_URL` env var in deployment | 2 min | Unblocks prod frontend CORS |
-| 🟡 Medium | Upgrade HIBP to v3 with API key (service: `hibp_api_key`) | 15 min | Makes breach checks functional |
-| 🟡 Medium | Add `PyMuPDF`, `python-docx`, `openpyxl` to `requirements.txt` | 5 min | Fixes `/api/metadata/extract` |
-| 🟡 Medium | Sync history writes to backend API | 30 min | Cross-device scan history |
-| 🟡 Low | Add `groq` for AI report summaries (set `GROQ_API_KEY`) | 15 min (free) | AI-generated PDF summaries |
+> **All items resolved as of 2026-07-07.** The table below is preserved for historical reference.
+
+| Priority | Fix | Status |
+|---|---|---|
+| 🟠 High | Set `FRONTEND_URL` env var — removed placeholder from `main.py` | ✅ Done |
+| 🟡 Medium | Upgrade HIBP to v3 with API key (service: `hibp_api_key`) | ✅ Done |
+| 🟡 Medium | Add `PyMuPDF`, `python-docx`, `openpyxl` to `requirements.txt` | ✅ Done |
+| 🟡 Medium | Sync history writes to backend API | ✅ Done |
+| 🟡 Low | Add `groq` for AI report summaries (set `GROQ_API_KEY`) | ✅ Done |
 
 ---
 
-*All 🔴 critical bugs and 🟠 major issues were fixed in the previous audit commit.*  
+*All 🔴 critical bugs, 🟠 major issues, and 🟡 medium issues are now resolved.*  
 *Refer to `bug-log.md` for the full historical record of resolved issues.*
