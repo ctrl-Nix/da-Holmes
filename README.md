@@ -298,3 +298,5 @@ Only scan targets you own or have explicit written permission to test. The devel
 ## License
 
 MIT License — see [LICENSE](LICENSE) for details.
+
+nix
