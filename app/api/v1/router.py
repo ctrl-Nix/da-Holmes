@@ -1,101 +1,159 @@
 """
-da Holmes v2.0 - Centralized API v1 Route Aggregator
-Consolidates and standardizes all modular OSINT, Forensics, and Recon routers.
+app/api/v1/router.py
+====================
+Single place where every HTTP router of da Holmes is mounted.
+
+* ``LEGACY_ROUTES`` — the 37 routers that used to be wired by hand inside
+  ``main.py``. Prefixes and *registration order* are preserved 1:1, because
+  FastAPI resolves overlapping paths first-registered-wins and the frontend
+  already depends on these URLs.
+* ``build_v1_router()`` — the new ``/api/v1`` surface. Phase 2-5 endpoint
+  modules (forensics, network, social, stream) are picked up automatically as
+  soon as the file exists, so nothing here needs editing per phase.
+
+``main.py`` only has to call ``register_routers(application)``.
 """
+from __future__ import annotations
 
-from fastapi import APIRouter
+import importlib
+import logging
+from dataclasses import dataclass
+from types import ModuleType
+from typing import Dict, List, Optional, Tuple
 
-from app.api.routes import (
-    analyze,
-    scanner,
-    domain,
-    security,
-    network,
-    forensics,
-    email,
-    crypto,
-    geoint,
-    archive,
-    techstack,
-    spoofing,
-    threatintel,
-    certificates,
-    trackers,
-    friendship,
-    unified,
-    history,
-    keys,
-    vault,
-    github,
-    report,
-    mobile_recon,
-    phone,
-    corporate_intel,
-    iot,
-    darkweb,
-    metadata,
-    reddit,
-    image_osint,
-    vehicle,
-    aviation,
-    hash as hash_router,
-    mac,
-    advanced,
-    ml_intel,
-    monitor as monitor_router,
-    export as export_router,
-    auth as auth_router,
+from fastapi import APIRouter, FastAPI
+
+logger = logging.getLogger("holmes.router")
+
+LEGACY_PACKAGE = "app.api.routes"
+V1_PACKAGE = "app.api.v1.endpoints"
+V1_PREFIX = "/api/v1"
+
+#: Modules under ``app/api/v1/endpoints/`` mounted at ``/api/v1/<name>``.
+V1_ENDPOINT_MODULES: Tuple[str, ...] = ("forensics", "network", "social", "stream")
+
+
+@dataclass(frozen=True)
+class RouteSpec:
+    module: str
+    prefix: str = ""
+    tags: Tuple[str, ...] = ()
+
+
+# Order matters. Do not sort alphabetically.
+LEGACY_ROUTES: Tuple[RouteSpec, ...] = (
+    RouteSpec("scanner", "/api", ("OSINT Scanner",)),
+    RouteSpec("analyze", "/api", ("Intelligence Analyst",)),
+    RouteSpec("domain", "/api/scan", ("domain",)),
+    RouteSpec("security", "/api/security", ("Security Hunter",)),
+    RouteSpec("network", "/api/network", ("Network Intelligence",)),
+    RouteSpec("forensics", "/api/forensics", ("EXIF Forensics",)),
+    RouteSpec("email", "/api/email", ("Email OSINT",)),
+    RouteSpec("crypto", "/api/crypto", ("Cryptocurrency OSINT",)),
+    RouteSpec("geoint", "/api/geoint", ("Geospatial Intelligence",)),
+    RouteSpec("archive", "/api/archive", ("Archive OSINT",)),
+    RouteSpec("techstack", "/api/techstack", ("Technographics",)),
+    RouteSpec("spoofing", "/api/spoofing", ("Email Spoofing Check",)),
+    RouteSpec("threatintel", "/api/threatintel", ("AlienVault Threat Intel",)),
+    RouteSpec("certificates", "/api/certificates", ("Certificate Transparency",)),
+    RouteSpec("trackers", "/api/trackers", ("Cross-Linked Trackers",)),
+    RouteSpec("friendship", "/api", ("Friendship Graph",)),
+    RouteSpec("advanced", "/api", ("Advanced OSINT",)),
+    RouteSpec("ml_intel", "/api", ("Advanced OSINT",)),
+    RouteSpec("unified", "/api", ("Unified OSINT",)),
+    RouteSpec("history", "/api", ("Investigation History",)),
+    RouteSpec("keys", "/api", ("API Key Settings",)),
+    RouteSpec("vault"),
+    RouteSpec("github", "/api/github", ("GitHub Organization Scan",)),
+    RouteSpec("report", "/api", ("PDF Reports",)),
+    RouteSpec("mobile_recon", "/api", ("Mobile App Recon",)),
+    RouteSpec("phone", "/api", ("Phone Intelligence",)),
+    RouteSpec("corporate_intel", "/api", ("Corporate Entity Intel",)),
+    RouteSpec("iot", "/api/iot", ("IoT OSINT",)),
+    RouteSpec("darkweb", "/api/darkweb", ("Dark Web Intelligence",)),
+    RouteSpec("metadata", "/api/metadata", ("Document Forensics",)),
+    RouteSpec("reddit", "/api/reddit", ("Social Media Intel",)),
+    RouteSpec("image_osint", "/api/image", ("Image OSINT",)),
+    RouteSpec("vehicle", "/api/vehicle", ("Vehicle OSINT",)),
+    RouteSpec("aviation", "/api/aviation", ("Aviation OSINT",)),
+    RouteSpec("hash", "/api/hash", ("Cryptography Intel",)),
+    RouteSpec("mac", "/api/mac", ("Network Intel",)),
+    RouteSpec("monitor", "", ("24/7 Monitoring",)),
 )
 
-api_v1_router = APIRouter()
 
-# ---------------------------------------------------------------------------
-# Core Scanners & Analysis
-# ---------------------------------------------------------------------------
-api_v1_router.include_router(scanner.router, tags=["OSINT Scanner"])
-api_v1_router.include_router(analyze.router, tags=["Intelligence Analyst"])
-api_v1_router.include_router(domain.router, prefix="/scan", tags=["Domain Recon"])
-api_v1_router.include_router(security.router, prefix="/security", tags=["Security Hunter"])
-api_v1_router.include_router(network.router, prefix="/network", tags=["Network Intelligence"])
-api_v1_router.include_router(forensics.router, prefix="/forensics", tags=["Forensics Engine"])
-api_v1_router.include_router(email.router, prefix="/email", tags=["Email OSINT"])
-api_v1_router.include_router(crypto.router, prefix="/crypto", tags=["Cryptocurrency OSINT"])
-api_v1_router.include_router(geoint.router, prefix="/geoint", tags=["Geospatial Intelligence"])
-api_v1_router.include_router(archive.router, prefix="/archive", tags=["Archive OSINT"])
-api_v1_router.include_router(techstack.router, prefix="/techstack", tags=["Technographics"])
-api_v1_router.include_router(spoofing.router, prefix="/spoofing", tags=["Email Spoofing Check"])
-api_v1_router.include_router(threatintel.router, prefix="/threatintel", tags=["Threat Intelligence"])
-api_v1_router.include_router(certificates.router, prefix="/certificates", tags=["Certificate Transparency"])
-api_v1_router.include_router(trackers.router, prefix="/trackers", tags=["Cross-Linked Trackers"])
-api_v1_router.include_router(friendship.router, tags=["Friendship Graph"])
-api_v1_router.include_router(advanced.router, tags=["Advanced OSINT"])
-api_v1_router.include_router(ml_intel.router, tags=["ML Intelligence"])
-api_v1_router.include_router(unified.router, tags=["Unified OSINT"])
+# --------------------------------------------------------------------------- #
+# Import helpers
+# --------------------------------------------------------------------------- #
+def _import_required(path: str) -> ModuleType:
+    try:
+        return importlib.import_module(path)
+    except Exception as exc:  # surface *which* router broke app start-up
+        raise RuntimeError(f"Failed to import router module '{path}': {exc}") from exc
 
-# ---------------------------------------------------------------------------
-# Investigation History, Vault & Configuration
-# ---------------------------------------------------------------------------
-api_v1_router.include_router(history.router, tags=["Investigation History"])
-api_v1_router.include_router(keys.router, tags=["API Keys"])
-api_v1_router.include_router(vault.router)
-api_v1_router.include_router(export_router.router)
-api_v1_router.include_router(auth_router.router)
 
-# ---------------------------------------------------------------------------
-# Specialized Recon Modules
-# ---------------------------------------------------------------------------
-api_v1_router.include_router(github.router, prefix="/github", tags=["GitHub Organization Scan"])
-api_v1_router.include_router(report.router, tags=["PDF Reports"])
-api_v1_router.include_router(mobile_recon.router, tags=["Mobile App Recon"])
-api_v1_router.include_router(phone.router, tags=["Phone Intelligence"])
-api_v1_router.include_router(corporate_intel.router, tags=["Corporate Entity Intel"])
-api_v1_router.include_router(iot.router, prefix="/iot", tags=["IoT OSINT"])
-api_v1_router.include_router(darkweb.router, prefix="/darkweb", tags=["Dark Web Intelligence"])
-api_v1_router.include_router(metadata.router, prefix="/metadata", tags=["Document Forensics"])
-api_v1_router.include_router(reddit.router, prefix="/reddit", tags=["Social Media Intel"])
-api_v1_router.include_router(image_osint.router, prefix="/image", tags=["Image OSINT"])
-api_v1_router.include_router(vehicle.router, prefix="/vehicle", tags=["Vehicle OSINT"])
-api_v1_router.include_router(aviation.router, prefix="/aviation", tags=["Aviation OSINT"])
-api_v1_router.include_router(hash_router.router, prefix="/hash", tags=["Cryptography Intel"])
-api_v1_router.include_router(mac.router, prefix="/mac", tags=["MAC Vendor Intel"])
-api_v1_router.include_router(monitor_router.router)
+def _import_optional(path: str) -> Optional[ModuleType]:
+    """Import ``path``; return None only if that module itself does not exist.
+
+    A missing *dependency* inside an existing module (e.g. ``exifread``) is a
+    real error and is re-raised, never silently swallowed.
+    """
+    try:
+        return importlib.import_module(path)
+    except ModuleNotFoundError as exc:
+        if exc.name and (path == exc.name or path.startswith(exc.name + ".")):
+            return None
+        raise
+
+
+# --------------------------------------------------------------------------- #
+# Builders
+# --------------------------------------------------------------------------- #
+def build_v1_router() -> Tuple[APIRouter, List[str]]:
+    """Return ``(router, loaded_module_names)``."""
+    router = APIRouter(prefix=V1_PREFIX)
+    loaded: List[str] = []
+
+    for name in V1_ENDPOINT_MODULES:
+        module = _import_optional(f"{V1_PACKAGE}.{name}")
+        if module is None:
+            logger.debug("v1 endpoint module '%s' not present yet, skipping", name)
+            continue
+        sub = getattr(module, "router", None)
+        if not isinstance(sub, APIRouter):
+            raise RuntimeError(f"{V1_PACKAGE}.{name} must expose `router = APIRouter()`")
+        router.include_router(sub, prefix=f"/{name}", tags=[f"v1:{name}"])
+        loaded.append(name)
+
+    @router.get("/health", tags=["v1"], summary="v1 API health & loaded modules")
+    async def v1_health() -> Dict[str, object]:
+        return {"status": "ok", "api": "v1", "modules": loaded}
+
+    return router, loaded
+
+
+def register_routers(app: FastAPI) -> Dict[str, object]:
+    """Mount legacy + v1 routers on ``app``. Call exactly once."""
+    for spec in LEGACY_ROUTES:
+        module = _import_required(f"{LEGACY_PACKAGE}.{spec.module}")
+        sub = getattr(module, "router", None)
+        if not isinstance(sub, APIRouter):
+            raise RuntimeError(f"{LEGACY_PACKAGE}.{spec.module} must expose `router = APIRouter()`")
+        kwargs: Dict[str, object] = {}
+        if spec.prefix:
+            kwargs["prefix"] = spec.prefix
+        if spec.tags:
+            kwargs["tags"] = list(spec.tags)
+        app.include_router(sub, **kwargs)
+
+    v1, loaded = build_v1_router()
+    app.include_router(v1)
+
+    summary = {"legacy": len(LEGACY_ROUTES), "v1_modules": loaded}
+    logger.info("Routers registered: %s", summary)
+    return summary
+
+
+# Module-level convenience instance
+api_v1_router, _ = build_v1_router()
+

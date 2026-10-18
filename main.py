@@ -23,7 +23,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
-from app.api.v1.router import api_v1_router
+from app.api.v1.router import register_routers
 from app.core.config import settings
 from app.core.keep_alive import start_keep_alive
 from contextlib import asynccontextmanager
@@ -264,9 +264,8 @@ def create_application() -> FastAPI:
         return response
 
 
-    # --- Include Standardized API Routers ---
-    application.include_router(api_v1_router, prefix="/api")
-    application.include_router(api_v1_router, prefix="/api/v1")
+    # --- Mount All Routers (Legacy 1:1 + v1 Dynamic Surface) ---
+    register_routers(application)
 
     def custom_openapi():
         if application.openapi_schema:
@@ -555,6 +554,13 @@ async def startup_event():
 async def shutdown_event():
     scheduler.shutdown()
     logger.info("APScheduler shut down.")
+    try:
+        from app.core.http_client import close_http_client
+        await close_http_client()
+        logger.info("OSINT HTTP client session pool closed.")
+    except Exception as e:
+        logger.error(f"Error closing HTTP client pool: {e}")
+
 # ---------------------------------------------------------------------------
 # Root & Health Endpoints
 # ---------------------------------------------------------------------------

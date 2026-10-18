@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from datetime import datetime
 from app.core.database import db
 
-router = APIRouter(prefix="/monitor", tags=["Monitoring"])
+router = APIRouter(prefix="/api/monitor", tags=["Monitoring"])
 
 class MonitorCreateRequest(BaseModel):
     target: str

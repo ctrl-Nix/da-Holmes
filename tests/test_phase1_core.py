@@ -15,8 +15,14 @@ from app.core.http_client import (
     create_async_client,
     OSINTHTTPClient,
 )
-from app.api.v1.router import api_v1_router
+from app.api.v1.router import (
+    build_v1_router,
+    register_routers,
+    LEGACY_ROUTES,
+    api_v1_router,
+)
 from app.models.models import Workspace, Target, Artifact, ScanResult, Investigation
+from fastapi import FastAPI
 
 
 @pytest.mark.asyncio
@@ -77,15 +83,25 @@ async def test_osint_http_client_429_retry():
 
 
 def test_api_v1_router_registration():
-    """Verify all expected v1 endpoints are registered on api_v1_router."""
-    routes = [r.path for r in api_v1_router.routes]
+    """Verify router builder, health route, and legacy route registration."""
+    # 1. Test build_v1_router
+    v1_router, loaded = build_v1_router()
+    routes = [r.path for r in v1_router.routes]
+    assert "/api/v1/health" in routes
 
-    # Verify key route prefixes exist
-    assert any("/security" in r for r in routes), "Security routes must be mounted"
-    assert any("/network" in r for r in routes), "Network routes must be mounted"
-    assert any("/forensics" in r for r in routes), "Forensics routes must be mounted"
-    assert any("/vault" in r for r in routes), "Vault routes must be mounted"
-    assert any("/unified" in r for r in routes), "Unified routes must be mounted"
+    # 2. Test register_routers onto FastAPI app
+    app = FastAPI()
+    summary = register_routers(app)
+    app_routes = [r.path for r in app.routes]
+
+    # Verify legacy routes are mounted
+    assert summary["legacy"] == len(LEGACY_ROUTES)
+    assert any("/api/security" in r for r in app_routes), "Security routes must be mounted"
+    assert any("/api/network" in r for r in app_routes), "Network routes must be mounted"
+    assert any("/api/forensics" in r for r in app_routes), "Forensics routes must be mounted"
+    assert any("/api/vault" in r for r in app_routes or "/vault" in r for r in app_routes)
+    assert any("/api/unified" in r for r in app_routes)
+    assert "/api/v1/health" in app_routes
 
 
 def test_database_models_structure():

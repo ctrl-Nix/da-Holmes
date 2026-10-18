@@ -5,7 +5,7 @@ import json
 from app.core.database import db
 from app.core.vault import encrypt_secret, decrypt_secret
 
-router = APIRouter(prefix="/vault", tags=["Secrets Vault"])
+router = APIRouter(prefix="/api/vault", tags=["Secrets Vault"])
 
 class SecretStoreRequest(BaseModel):
     service: str
