@@ -23,7 +23,9 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
+from app.api.routes import spoofing
 from app.api.v1.router import register_routers
+from app.core.http_client import startup_http_clients, shutdown_http_clients
 from app.core.config import settings
 from app.core.keep_alive import start_keep_alive
 from contextlib import asynccontextmanager
@@ -110,10 +112,12 @@ async def lifespan(app: FastAPI):
     # Create SQLite database tables if they don't exist
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    yield
-    from app.core.http_client import close_http_client
-    await close_http_client()
-    await engine.dispose()
+    await startup_http_clients()
+    try:
+        yield
+    finally:
+        await shutdown_http_clients()
+        await engine.dispose()
 
 def create_application() -> FastAPI:
     application = FastAPI(
@@ -554,12 +558,6 @@ async def startup_event():
 async def shutdown_event():
     scheduler.shutdown()
     logger.info("APScheduler shut down.")
-    try:
-        from app.core.http_client import close_http_client
-        await close_http_client()
-        logger.info("OSINT HTTP client session pool closed.")
-    except Exception as e:
-        logger.error(f"Error closing HTTP client pool: {e}")
 
 # ---------------------------------------------------------------------------
 # Root & Health Endpoints

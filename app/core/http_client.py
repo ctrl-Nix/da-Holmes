@@ -1,226 +1,402 @@
 """
-Centralized Non-Blocking HTTP Client Factory for da Holmes v2.0
-Provides connection pooling, custom timeouts, exponential backoff retries, and jitter.
+app/core/http_client.py
+=======================
+Centralised, resilient async HTTP client for every outbound da Holmes request.
+
+Why this exists
+---------------
+* One pooled ``httpx.AsyncClient`` per process instead of a new TCP/TLS
+  handshake per call (the old implementation opened a client per request).
+* Explicit connect / read / write / pool timeouts.
+* Retry with exponential back-off + jitter, honouring ``Retry-After``.
+  Retries are *method-aware*: a POST is never replayed after it may have
+  reached the server (no duplicate side effects).
+* DNS failures (NXDOMAIN) are NOT retried. In recon work, dead hosts are the
+  norm and retrying them only burns time.
+* A global concurrency cap so ``asyncio.gather`` over hundreds of targets
+  (Phase 4 social search) cannot exhaust sockets or hammer a single provider.
+* Only http/https URLs are accepted.
+
+Public API
+----------
+``get_http_client()``           shared client, strict TLS verification
+``get_insecure_http_client()``  shared client, TLS verification OFF. Only for
+                                probing *target* hosts with broken certs.
+                                Never send credentials through it.
+``build_http_client(**kw)``     factory for a dedicated, unmanaged instance
+                                (per-scan proxy, custom UA, ...). Caller closes it.
+``startup_http_clients()`` / ``shutdown_http_clients()``  FastAPI lifespan hooks.
+``http_client_dependency()``    ``Depends(...)`` provider.
+``OSINTHTTPClient``             backward-compatible alias of the old class.
 """
+from __future__ import annotations
 
 import asyncio
+import email.utils
 import logging
 import random
-from typing import Optional, Dict, Any, Union
+import socket
+import time
+from datetime import timezone
+from typing import Any, Awaitable, Callable, Dict, Mapping, Optional, Union
+from urllib.parse import urlsplit
+
 import httpx
 
-logger = logging.getLogger("holmes.http_client")
+logger = logging.getLogger("holmes.http")
 
-# ---------------------------------------------------------------------------
-# Client Configuration & Defaults
-# ---------------------------------------------------------------------------
-DEFAULT_USER_AGENT = "Holmes-OSINT-Engine/2.0 (+https://github.com/ctrl-Nix/da-Holmes)"
-DEFAULT_CONNECT_TIMEOUT = 5.0
-DEFAULT_READ_TIMEOUT = 15.0
-DEFAULT_WRITE_TIMEOUT = 5.0
-DEFAULT_POOL_TIMEOUT = 5.0
-DEFAULT_MAX_CONNECTIONS = 100
-DEFAULT_MAX_KEEPALIVE_CONNECTIONS = 20
-DEFAULT_KEEPALIVE_EXPIRY = 30.0
-DEFAULT_MAX_RETRIES = 3
-DEFAULT_BACKOFF_FACTOR = 0.5
+# --------------------------------------------------------------------------- #
+# Defaults
+# --------------------------------------------------------------------------- #
+DEFAULT_USER_AGENT = "da-Holmes/2.0 (+passive-osint)"
+DEFAULT_HEADERS: Dict[str, str] = {
+    "User-Agent": DEFAULT_USER_AGENT,
+    "Accept": "application/json, text/html;q=0.9, */*;q=0.8",
+}
+DEFAULT_TIMEOUT = httpx.Timeout(connect=5.0, read=15.0, write=10.0, pool=10.0)
+DEFAULT_LIMITS = httpx.Limits(
+    max_connections=100,
+    max_keepalive_connections=20,
+    keepalive_expiry=30.0,
+)
 
-# Singleton client instance
-_global_async_client: Optional[httpx.AsyncClient] = None
-_client_lock = asyncio.Lock()
+#: Statuses that mean "try again later".
+RETRY_STATUS = frozenset({429, 502, 503, 504})
+#: Statuses a server sends *instead of* processing the request, so even a
+#: non-idempotent method (POST) can be replayed safely.
+RETRY_STATUS_ANY_METHOD = frozenset({429, 503})
+#: Methods where a replay cannot cause a duplicated side effect.
+IDEMPOTENT_METHODS = frozenset({"GET", "HEAD", "OPTIONS", "PUT", "DELETE"})
+
+#: Failures where the request provably never reached the server.
+_NEVER_SENT = (httpx.ConnectError, httpx.ConnectTimeout, httpx.PoolTimeout)
+#: Failures where the server may or may not have processed the request.
+_MAYBE_SENT = (httpx.ReadTimeout, httpx.ReadError, httpx.RemoteProtocolError)
+
+TimeoutLike = Union[float, httpx.Timeout]
+SleepFn = Callable[[float], Awaitable[None]]
 
 
-def create_async_client(
-    timeout: Optional[Union[float, httpx.Timeout]] = None,
-    limits: Optional[httpx.Limits] = None,
-    headers: Optional[Dict[str, str]] = None,
-    verify: bool = True,
-    follow_redirects: bool = True,
-) -> httpx.AsyncClient:
+# --------------------------------------------------------------------------- #
+# Helpers
+# --------------------------------------------------------------------------- #
+def _parse_retry_after(value: Optional[str]) -> Optional[float]:
+    """Parse a Retry-After header (delta-seconds or HTTP-date) into seconds."""
+    if not value:
+        return None
+    value = value.strip()
+    if value.isdigit():
+        return float(value)
+    try:
+        when = email.utils.parsedate_to_datetime(value)
+    except (TypeError, ValueError):
+        return None
+    if when is None:
+        return None
+    if when.tzinfo is None:
+        when = when.replace(tzinfo=timezone.utc)
+    return max(0.0, when.timestamp() - time.time())
+
+
+def _is_permanent_dns_failure(exc: BaseException) -> bool:
+    """True when the exception chain contains a *deterministic* DNS failure.
+
+    ``EAI_AGAIN`` (temporary resolver failure) is deliberately excluded so it
+    stays retryable.
     """
-    Factory to construct a production-ready httpx.AsyncClient with
-    connection pooling and standardized timeout limits.
-    """
-    if timeout is None:
-        client_timeout = httpx.Timeout(
-            connect=DEFAULT_CONNECT_TIMEOUT,
-            read=DEFAULT_READ_TIMEOUT,
-            write=DEFAULT_WRITE_TIMEOUT,
-            pool=DEFAULT_POOL_TIMEOUT,
+    seen = set()
+    cur: Optional[BaseException] = exc
+    while cur is not None and id(cur) not in seen:
+        seen.add(id(cur))
+        if isinstance(cur, socket.gaierror):
+            return cur.errno != getattr(socket, "EAI_AGAIN", object())
+        cur = cur.__cause__ or cur.__context__
+    return False
+
+
+def _validate_url(url: Union[str, httpx.URL]) -> None:
+    parts = urlsplit(str(url))
+    if parts.scheme.lower() not in ("http", "https") or not parts.hostname:
+        raise httpx.UnsupportedProtocol(
+            f"Only absolute http(s) URLs are allowed, got: {str(url)[:120]!r}"
         )
-    elif isinstance(timeout, (int, float)):
-        client_timeout = httpx.Timeout(timeout)
-    else:
-        client_timeout = timeout
-
-    client_limits = limits or httpx.Limits(
-        max_connections=DEFAULT_MAX_CONNECTIONS,
-        max_keepalive_connections=DEFAULT_MAX_KEEPALIVE_CONNECTIONS,
-        keepalive_expiry=DEFAULT_KEEPALIVE_EXPIRY,
-    )
-
-    client_headers = {
-        "User-Agent": DEFAULT_USER_AGENT,
-        "Accept": "application/json, text/plain, */*",
-        "Accept-Encoding": "gzip, deflate",
-    }
-    if headers:
-        client_headers.update(headers)
-
-    return httpx.AsyncClient(
-        timeout=client_timeout,
-        limits=client_limits,
-        headers=client_headers,
-        verify=verify,
-        follow_redirects=follow_redirects,
-    )
 
 
-async def get_http_client() -> httpx.AsyncClient:
-    """
-    Returns the shared global httpx.AsyncClient instance.
-    Initializes safely with concurrency lock if not yet created.
-    """
-    global _global_async_client
-    if _global_async_client is not None and not _global_async_client.is_closed:
-        return _global_async_client
+# --------------------------------------------------------------------------- #
+# Client
+# --------------------------------------------------------------------------- #
+class HolmesHTTPClient:
+    """Pooled, retrying wrapper around ``httpx.AsyncClient``.
 
-    async with _client_lock:
-        if _global_async_client is None or _global_async_client.is_closed:
-            _global_async_client = create_async_client()
-            logger.info("Initialized global centralized httpx.AsyncClient connection pool.")
-        return _global_async_client
-
-
-async def close_http_client() -> None:
-    """
-    Gracefully shuts down the shared global httpx.AsyncClient pool.
-    """
-    global _global_async_client
-    async with _client_lock:
-        if _global_async_client is not None:
-            try:
-                await _global_async_client.aclose()
-                logger.info("Closed global centralized httpx.AsyncClient connection pool.")
-            except Exception as e:
-                logger.error(f"Error closing global httpx.AsyncClient: {e}")
-            finally:
-                _global_async_client = None
-
-
-# ---------------------------------------------------------------------------
-# High-Level OSINT HTTP Wrapper with Resilience & Rate-Limit Handling
-# ---------------------------------------------------------------------------
-class OSINTHTTPClient:
-    """
-    High-level asynchronous OSINT HTTP client supporting:
-    - Shared persistent connection pooling
-    - Exponential backoff with jitter on HTTP 429 and transient 5xx errors
-    - Request tracing and normalized error handling
+    The underlying client is created lazily on first use and transparently
+    re-created if the running event loop changes (scripts calling
+    ``asyncio.run`` repeatedly, pytest, ...).
     """
 
     def __init__(
         self,
-        timeout: float = DEFAULT_READ_TIMEOUT,
-        max_retries: int = DEFAULT_MAX_RETRIES,
-        headers: Optional[Dict[str, str]] = None,
-        custom_client: Optional[httpx.AsyncClient] = None,
-    ):
-        self.timeout = timeout
-        self.max_retries = max_retries
-        self.headers = {
-            "User-Agent": DEFAULT_USER_AGENT,
-            "Accept": "application/json, text/plain, */*",
-            **(headers or {}),
-        }
-        self._custom_client = custom_client
+        *,
+        name: str = "default",
+        timeout: TimeoutLike = DEFAULT_TIMEOUT,
+        limits: httpx.Limits = DEFAULT_LIMITS,
+        max_retries: int = 2,
+        backoff_base: float = 0.5,
+        backoff_max: float = 10.0,
+        backoff_jitter: float = 0.25,
+        headers: Optional[Mapping[str, str]] = None,
+        verify: bool = True,
+        proxy: Optional[str] = None,
+        follow_redirects: bool = True,
+        max_concurrency: int = 50,
+        transport: Optional[httpx.AsyncBaseTransport] = None,
+        sleep: Optional[SleepFn] = None,
+    ) -> None:
+        self.name = name
+        self._timeout = timeout if isinstance(timeout, httpx.Timeout) else httpx.Timeout(timeout)
+        self._limits = limits
+        self._max_retries = max(0, int(max_retries))
+        self._backoff_base = backoff_base
+        self._backoff_max = backoff_max
+        self._backoff_jitter = backoff_jitter
+        self._headers = {**DEFAULT_HEADERS, **(headers or {})}
+        self._verify = verify
+        self._proxy = proxy
+        self._follow_redirects = follow_redirects
+        self._max_concurrency = max(1, int(max_concurrency))
+        self._transport = transport
+        self._sleep: SleepFn = sleep or asyncio.sleep
 
-    async def _get_client(self) -> httpx.AsyncClient:
-        if self._custom_client and not self._custom_client.is_closed:
-            return self._custom_client
-        return await get_http_client()
+        self._client: Optional[httpx.AsyncClient] = None
+        self._loop: Optional[asyncio.AbstractEventLoop] = None
+        self._semaphore: Optional[asyncio.Semaphore] = None
+        self._stats = {"attempts": 0, "retries": 0, "failures": 0}
 
+    # -- lifecycle ---------------------------------------------------------- #
+    def _ensure_client(self) -> httpx.AsyncClient:
+        loop = asyncio.get_running_loop()
+        if self._client is None or self._client.is_closed or self._loop is not loop:
+            if self._client is not None and self._loop is not loop:
+                logger.debug("[%s] event loop changed, rebuilding HTTP client", self.name)
+            kwargs: Dict[str, Any] = dict(
+                timeout=self._timeout,
+                limits=self._limits,
+                headers=self._headers,
+                follow_redirects=self._follow_redirects,
+            )
+            if self._transport is not None:
+                kwargs["transport"] = self._transport
+            else:
+                kwargs["verify"] = self._verify
+                if self._proxy:
+                    kwargs["proxy"] = self._proxy
+            self._client = httpx.AsyncClient(**kwargs)
+            self._loop = loop
+            self._semaphore = asyncio.Semaphore(self._max_concurrency)
+        return self._client
+
+    async def start(self) -> None:
+        """Eagerly build the connection pool (call from app startup)."""
+        self._ensure_client()
+
+    async def aclose(self) -> None:
+        client, self._client = self._client, None
+        if client is not None and not client.is_closed and self._loop is asyncio.get_running_loop():
+            await client.aclose()
+
+    async def __aenter__(self) -> "HolmesHTTPClient":
+        await self.start()
+        return self
+
+    async def __aexit__(self, *exc_info: Any) -> None:
+        await self.aclose()
+
+    @property
+    def stats(self) -> Dict[str, int]:
+        return dict(self._stats)
+
+    # -- retry policy ------------------------------------------------------- #
+    def _delay(self, attempt: int, retry_after: Optional[float]) -> float:
+        if retry_after is not None:
+            return min(retry_after, self._backoff_max)
+        exp = min(self._backoff_max, self._backoff_base * (2 ** attempt))
+        return min(self._backoff_max, exp + random.uniform(0, self._backoff_jitter))
+
+    @staticmethod
+    def _should_retry_status(method: str, status: int) -> bool:
+        if status not in RETRY_STATUS:
+            return False
+        if method in IDEMPOTENT_METHODS:
+            return True
+        return status in RETRY_STATUS_ANY_METHOD
+
+    @staticmethod
+    def _should_retry_exception(method: str, exc: Exception) -> bool:
+        if _is_permanent_dns_failure(exc):
+            return False
+        if isinstance(exc, _NEVER_SENT):
+            return True
+        if isinstance(exc, _MAYBE_SENT):
+            return method in IDEMPOTENT_METHODS
+        return False
+
+    # -- core --------------------------------------------------------------- #
     async def request(
         self,
         method: str,
-        url: str,
-        headers: Optional[Dict[str, str]] = None,
-        params: Optional[Dict[str, Any]] = None,
-        data: Optional[Any] = None,
-        json: Optional[Any] = None,
-        timeout: Optional[float] = None,
-        **kwargs,
+        url: Union[str, httpx.URL],
+        *,
+        headers: Optional[Mapping[str, str]] = None,
+        timeout: Optional[TimeoutLike] = None,
+        retries: Optional[int] = None,
+        raise_for_status: bool = False,
+        **kwargs: Any,
     ) -> httpx.Response:
-        """
-        Executes outbound request with automatic retry on 429 Too Many Requests,
-        network dropouts, and transient server errors.
-        """
-        merged_headers = {**self.headers, **(headers or {})}
-        req_timeout = timeout or self.timeout
-        client = await self._get_client()
+        """Send a request with pooling, concurrency cap and retries.
 
-        last_exception = None
-        for attempt in range(1, self.max_retries + 2):
+        * After the retry budget is exhausted on a retryable *status*, the last
+          real response is returned, so callers keep checking ``status_code``.
+        * After the budget is exhausted on a transport error, the last
+          ``httpx`` exception is re-raised.
+        """
+        method = method.upper()
+        _validate_url(url)
+        client = self._ensure_client()
+        assert self._semaphore is not None
+        budget = self._max_retries if retries is None else max(0, int(retries))
+
+        send_kwargs = dict(kwargs)
+        if headers:
+            send_kwargs["headers"] = dict(headers)
+        if timeout is not None:
+            send_kwargs["timeout"] = timeout
+
+        attempt = 0
+        while True:
+            self._stats["attempts"] += 1
             try:
-                response = await client.request(
-                    method=method,
-                    url=url,
-                    headers=merged_headers,
-                    params=params,
-                    data=data,
-                    json=json,
-                    timeout=req_timeout,
-                    **kwargs,
-                )
-
-                # Retry on 429 (Rate Limit) or 502/503/504 (Gateway temporary errors)
-                if response.status_code in (429, 502, 503, 504) and attempt <= self.max_retries:
-                    retry_after = response.headers.get("Retry-After")
-                    if retry_after and retry_after.isdigit():
-                        sleep_time = float(retry_after)
-                    else:
-                        sleep_time = (DEFAULT_BACKOFF_FACTOR * (2 ** (attempt - 1))) + random.uniform(0.1, 0.5)
-
+                async with self._semaphore:
+                    response = await client.request(method, url, **send_kwargs)
+            except httpx.HTTPError as exc:
+                if attempt < budget and self._should_retry_exception(method, exc):
+                    delay = self._delay(attempt, None)
                     logger.warning(
-                        f"Transient HTTP {response.status_code} for {url} (attempt {attempt}/{self.max_retries}). "
-                        f"Retrying in {sleep_time:.2f}s..."
+                        "[%s] %s %s failed (%s: %s); retry %d/%d in %.2fs",
+                        self.name, method, url, type(exc).__name__, exc,
+                        attempt + 1, budget, delay,
                     )
-                    await asyncio.sleep(sleep_time)
+                    self._stats["retries"] += 1
+                    attempt += 1
+                    await self._sleep(delay)
                     continue
+                self._stats["failures"] += 1
+                raise
 
-                return response
+            if attempt < budget and self._should_retry_status(method, response.status_code):
+                delay = self._delay(attempt, _parse_retry_after(response.headers.get("Retry-After")))
+                logger.warning(
+                    "[%s] %s %s -> HTTP %d; retry %d/%d in %.2fs",
+                    self.name, method, url, response.status_code,
+                    attempt + 1, budget, delay,
+                )
+                await response.aclose()
+                self._stats["retries"] += 1
+                attempt += 1
+                await self._sleep(delay)
+                continue
 
-            except (httpx.ConnectError, httpx.ConnectTimeout, httpx.ReadTimeout) as e:
-                last_exception = e
-                if attempt <= self.max_retries:
-                    sleep_time = (DEFAULT_BACKOFF_FACTOR * (2 ** (attempt - 1))) + random.uniform(0.1, 0.5)
-                    logger.warning(
-                        f"Network error {type(e).__name__} connecting to {url} (attempt {attempt}/{self.max_retries}). "
-                        f"Retrying in {sleep_time:.2f}s..."
-                    )
-                    await asyncio.sleep(sleep_time)
-                else:
-                    logger.error(f"Max retries exhausted for {url}: {e}")
-                    raise e
-            except httpx.HTTPError as e:
-                logger.error(f"HTTP error during {method} {url}: {e}")
-                raise e
+            if raise_for_status:
+                response.raise_for_status()
+            return response
 
-        # If retries exhausted and synthetic response is required for 429
-        return httpx.Response(
-            status_code=429,
-            content=b'{"error": "Too Many Requests", "detail": "Rate limit exceeded. Max retries exhausted."}',
-            headers={"Content-Type": "application/json"},
+    # -- verbs -------------------------------------------------------------- #
+    async def get(self, url: Union[str, httpx.URL], **kwargs: Any) -> httpx.Response:
+        return await self.request("GET", url, **kwargs)
+
+    async def head(self, url: Union[str, httpx.URL], **kwargs: Any) -> httpx.Response:
+        return await self.request("HEAD", url, **kwargs)
+
+    async def post(self, url: Union[str, httpx.URL], **kwargs: Any) -> httpx.Response:
+        return await self.request("POST", url, **kwargs)
+
+    async def put(self, url: Union[str, httpx.URL], **kwargs: Any) -> httpx.Response:
+        return await self.request("PUT", url, **kwargs)
+
+    async def delete(self, url: Union[str, httpx.URL], **kwargs: Any) -> httpx.Response:
+        return await self.request("DELETE", url, **kwargs)
+
+    async def get_json(self, url: Union[str, httpx.URL], **kwargs: Any) -> Any:
+        """GET + ``raise_for_status`` + ``.json()`` in one call."""
+        kwargs.setdefault("raise_for_status", True)
+        return (await self.get(url, **kwargs)).json()
+
+
+# --------------------------------------------------------------------------- #
+# Factory + process-wide registry
+# --------------------------------------------------------------------------- #
+_registry: Dict[str, HolmesHTTPClient] = {}
+
+
+def build_http_client(**overrides: Any) -> HolmesHTTPClient:
+    """Create a dedicated, *unmanaged* client. The caller must ``aclose()`` it
+    (``async with build_http_client(proxy=...) as c:`` does that for you)."""
+    return HolmesHTTPClient(**overrides)
+
+
+def get_http_client() -> HolmesHTTPClient:
+    """Shared client with strict TLS verification (use this by default)."""
+    client = _registry.get("default")
+    if client is None:
+        client = _registry["default"] = HolmesHTTPClient(name="default")
+    return client
+
+
+def get_insecure_http_client() -> HolmesHTTPClient:
+    """Shared client with TLS verification DISABLED.
+
+    Only for probing *target* hosts that may have expired/self-signed certs
+    (takeover checks, header audits). Never send API keys through it.
+    """
+    client = _registry.get("insecure")
+    if client is None:
+        client = _registry["insecure"] = HolmesHTTPClient(name="insecure", verify=False)
+    return client
+
+
+def http_client_dependency() -> HolmesHTTPClient:
+    """FastAPI provider: ``http: HolmesHTTPClient = Depends(http_client_dependency)``."""
+    return get_http_client()
+
+
+async def startup_http_clients() -> None:
+    await get_http_client().start()
+    logger.info("HTTP client pool ready")
+
+
+async def shutdown_http_clients() -> None:
+    clients = list(_registry.values())
+    _registry.clear()
+    for client in clients:
+        await client.aclose()
+    logger.info("HTTP client pool closed")
+
+
+# --------------------------------------------------------------------------- #
+# Backward compatibility
+# --------------------------------------------------------------------------- #
+class OSINTHTTPClient(HolmesHTTPClient):
+    """Deprecated: use ``get_http_client()``.
+
+    Keeps the old ``OSINTHTTPClient(timeout, max_retries)`` constructor and
+    ``get``/``post``/``request(method, url, headers=None, **kw)`` signatures.
+    """
+
+    def __init__(self, timeout: float = 10.0, max_retries: int = 4) -> None:
+        super().__init__(
+            name="legacy",
+            timeout=timeout,
+            max_retries=max_retries,
+            backoff_base=1.0,
+            backoff_max=10.0,
+            backoff_jitter=0.5,
+            headers={"User-Agent": "Holmes-OSINT-Intelligence-Agent/3.0", "Accept": "application/json"},
         )
-
-    async def get(self, url: str, headers: Optional[Dict[str, str]] = None, **kwargs) -> httpx.Response:
-        return await self.request("GET", url, headers=headers, **kwargs)
-
-    async def post(self, url: str, headers: Optional[Dict[str, str]] = None, **kwargs) -> httpx.Response:
-        return await self.request("POST", url, headers=headers, **kwargs)
-
-    async def put(self, url: str, headers: Optional[Dict[str, str]] = None, **kwargs) -> httpx.Response:
-        return await self.request("PUT", url, headers=headers, **kwargs)
-
-    async def delete(self, url: str, headers: Optional[Dict[str, str]] = None, **kwargs) -> httpx.Response:
-        return await self.request("DELETE", url, headers=headers, **kwargs)
