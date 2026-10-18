@@ -1,6 +1,9 @@
 from datetime import datetime, timedelta
 from typing import Optional
-import jwt
+try:
+    import jwt
+except ImportError:
+    jwt = None
 import os
 from fastapi import HTTPException, Security
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials

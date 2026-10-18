@@ -5,7 +5,7 @@ import uuid
 from datetime import datetime
 from app.core.database import db
 
-router = APIRouter(prefix="/api/export", tags=["Enterprise Export"])
+router = APIRouter(prefix="/export", tags=["Enterprise Export"])
 
 def create_stix_bundle(target: str, findings: List[Dict]) -> Dict[str, Any]:
     # Base STIX 2.1 Bundle

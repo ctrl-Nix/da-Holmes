@@ -23,7 +23,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
-from app.api.routes import analyze, scanner, domain, security, network, forensics, email, crypto, geoint, archive, techstack, spoofing, threatintel, certificates, trackers, friendship, unified, history, keys, github, report, vault, mobile_recon, corporate_intel, phone, iot, darkweb, metadata, reddit, image_osint, vehicle, aviation, hash, mac, advanced, ml_intel, monitor as monitor_router
+from app.api.v1.router import api_v1_router
 from app.core.config import settings
 from app.core.keep_alive import start_keep_alive
 from contextlib import asynccontextmanager
@@ -111,6 +111,8 @@ async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield
+    from app.core.http_client import close_http_client
+    await close_http_client()
     await engine.dispose()
 
 def create_application() -> FastAPI:
@@ -262,120 +264,9 @@ def create_application() -> FastAPI:
         return response
 
 
-    # --- Include Routers ---
-    application.include_router(
-        scanner.router,
-        prefix="/api",
-        tags=["OSINT Scanner"],
-    )
-
-    application.include_router(
-        analyze.router,
-        prefix="/api",
-        tags=["Intelligence Analyst"],
-    )
-
-    application.include_router(
-        domain.router,
-        prefix="/api/scan",
-        tags=["domain"],
-    )
-
-    application.include_router(
-        security.router,
-        prefix="/api/security",
-        tags=["Security Hunter"],
-    )
-
-    application.include_router(
-        network.router,
-        prefix="/api/network",
-        tags=["Network Intelligence"],
-    )
-
-    application.include_router(
-        forensics.router,
-        prefix="/api/forensics",
-        tags=["EXIF Forensics"],
-    )
-
-    application.include_router(
-        email.router,
-        prefix="/api/email",
-        tags=["Email OSINT"],
-    )
-
-    application.include_router(
-        crypto.router,
-        prefix="/api/crypto",
-        tags=["Cryptocurrency OSINT"],
-    )
-
-    application.include_router(
-        geoint.router,
-        prefix="/api/geoint",
-        tags=["Geospatial Intelligence"],
-    )
-
-    application.include_router(
-        archive.router,
-        prefix="/api/archive",
-        tags=["Archive OSINT"],
-    )
-
-    application.include_router(
-        techstack.router,
-        prefix="/api/techstack",
-        tags=["Technographics"],
-    )
-
-    application.include_router(
-        spoofing.router,
-        prefix="/api/spoofing",
-        tags=["Email Spoofing Check"],
-    )
-
-    application.include_router(
-        threatintel.router,
-        prefix="/api/threatintel",
-        tags=["AlienVault Threat Intel"],
-    )
-
-    application.include_router(
-        certificates.router,
-        prefix="/api/certificates",
-        tags=["Certificate Transparency"],
-    )
-
-    application.include_router(
-        trackers.router,
-        prefix="/api/trackers",
-        tags=["Cross-Linked Trackers"],
-    )
-
-    application.include_router(
-        friendship.router,
-        prefix="/api",
-        tags=["Friendship Graph"],
-    )
-    
-    application.include_router(
-        advanced.router,
-        prefix="/api",
-        tags=["Advanced OSINT"],
-    )
-    
-    application.include_router(
-        ml_intel.router,
-        prefix="/api",
-        tags=["Advanced OSINT"],
-    )
-    
-    application.include_router(
-        unified.router,
-        prefix="/api",
-        tags=["Unified OSINT"],
-    )
+    # --- Include Standardized API Routers ---
+    application.include_router(api_v1_router, prefix="/api")
+    application.include_router(api_v1_router, prefix="/api/v1")
 
     def custom_openapi():
         if application.openapi_schema:
@@ -412,114 +303,6 @@ def create_application() -> FastAPI:
         return application.openapi_schema
 
     application.openapi = custom_openapi
-
-    application.include_router(
-        history.router,
-        prefix="/api",
-        tags=["Investigation History"],
-    )
-
-    application.include_router(
-        keys.router,
-        prefix="/api",
-        tags=["API Key Settings"],
-    )
-
-    application.include_router(
-        vault.router,
-    )
-
-    application.include_router(
-        github.router,
-        prefix="/api/github",
-        tags=["GitHub Organization Scan"],
-    )
-
-    application.include_router(
-        report.router,
-        prefix="/api",
-        tags=["PDF Reports"],
-    )
-
-    application.include_router(
-        mobile_recon.router,
-        prefix="/api",
-        tags=["Mobile App Recon"],
-    )
-
-    application.include_router(
-        phone.router,
-        prefix="/api",
-        tags=["Phone Intelligence"],
-    )
-
-    application.include_router(
-        corporate_intel.router,
-        prefix="/api",
-        tags=["Corporate Entity Intel"],
-    )
-
-    application.include_router(
-        iot.router,
-        prefix="/api/iot",
-        tags=["IoT OSINT"],
-    )
-
-    application.include_router(
-        darkweb.router,
-        prefix="/api/darkweb",
-        tags=["Dark Web Intelligence"],
-    )
-
-    application.include_router(
-        metadata.router,
-        prefix="/api/metadata",
-        tags=["Document Forensics"],
-    )
-
-    application.include_router(
-        reddit.router,
-        prefix="/api/reddit",
-        tags=["Social Media Intel"],
-    )
-
-    application.include_router(
-        image_osint.router,
-        prefix="/api/image",
-        tags=["Image OSINT"],
-    )
-
-    application.include_router(
-        vehicle.router,
-        prefix="/api/vehicle",
-        tags=["Vehicle OSINT"],
-    )
-
-    application.include_router(
-        aviation.router,
-        prefix="/api/aviation",
-        tags=["Aviation OSINT"],
-    )
-
-    application.include_router(
-        hash.router,
-        prefix="/api/hash",
-        tags=["Cryptography Intel"],
-    )
-
-    application.include_router(
-        mac.router,
-        prefix="/api/mac",
-        tags=["Network Intel"],
-    )
-
-    # 24/7 Continuous Monitoring
-    application.include_router(
-        monitor_router.router,
-        tags=["24/7 Monitoring"],
-    )
-
-    # Note: report.router already registered above at /api prefix — do not register again.
 
     return application
 

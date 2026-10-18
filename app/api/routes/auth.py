@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from app.core.security import create_access_token, verify_token
 import os
 
-router = APIRouter(prefix="/api/auth", tags=["Authentication"])
+router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 class LoginRequest(BaseModel):
     username: str
